@@ -1,0 +1,9 @@
+[package]
+name = "suri"
+version = "0.0.0"
+edition = "2024"
+description = "WIP"
+authors = ["Paresh Saxena <pareshsaxena@gmail.com>"]
+license = "MIT"
+
+[dependencies]

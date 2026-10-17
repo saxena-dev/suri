@@ -46,9 +46,31 @@ written back as a JSON string of the same text.
   `"5"` and `"100.0"`. There is no ordering and no arithmetic: read
   `as_str()` into the decimal type of your choice to compare or compute.
 
+## Time
+
+Instants arrive as `Timestamp`, a UTC instant to the nanosecond between
+0000-01-01T00:00:00Z and 9999-12-31T23:59:59.999999999Z; dates without a time
+arrive as `Date` (`YYYY-MM-DD`).
+
+- **Read:** RFC 3339 text: `YYYY-MM-DD`, `T` or `t`, `HH:MM:SS`, an optional
+  fraction of one to nine digits, then `Z`, `z` or an offset `±HH:MM`. The
+  offset is applied and not kept: `13:45:04-04:00` and `17:45:04Z` are the
+  same instant.
+- **Rejected rather than altered:** ten or more fractional digits (never
+  trimmed), a leap second `:60` (never folded into the next minute), any
+  other deviation from that form, and instants outside the range.
+- **Written:** `YYYY-MM-DDTHH:MM:SS[.fraction]Z` in UTC, with trailing zeros
+  removed from the fraction and no fraction when it is zero. Every value
+  written reads back as the same instant.
+- **To other time types:** `unix_seconds()` (the floor) and `subsec_nanos()`
+  build any time crate's value. There is no conversion to
+  `std::time::SystemTime`, which cannot hold every instant on every platform.
+
 ## Decisions
 
 | Topic | Decision | Reason |
 |---|---|---|
 | Decimal representation | The exact text, with no arithmetic | suri does no arithmetic, and Alpaca's money strings can exceed the range of common decimal crates |
 | Decimal equality | Text equality | It is the value as sent; numeric equality would need a normalisation suri has no use for |
+| Time precision | Nanoseconds, UTC; the offset is applied and dropped | Alpaca documents nanosecond precision, and a single instant type compares correctly whatever offset each value was sent with |
+| Leap seconds and long fractions | Rejected, never folded or trimmed | Silent adjustment would change a value without saying so |

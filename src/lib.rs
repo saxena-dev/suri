@@ -6,5 +6,7 @@
 //! states every behaviour suri promises.
 
 mod decimal;
+mod time;
 
 pub use decimal::{Decimal, ParseDecimalError};
+pub use time::{Date, ParseTimeError, Timestamp};

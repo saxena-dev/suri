@@ -9,3 +9,4 @@ All notable changes to suri are listed here. The format follows
 ### Added
 
 - `Decimal`, an exact decimal value kept as text.
+- `Timestamp` and `Date`, read from RFC 3339 text to the nanosecond.

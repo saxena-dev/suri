@@ -30,6 +30,7 @@ pub(crate) struct Request<'a> {
     segments: &'a [&'a str],
     query: Vec<(&'static str, String)>,
     body: Option<Vec<u8>>,
+    no_content: bool,
 }
 
 impl<'a> Request<'a> {
@@ -39,6 +40,7 @@ impl<'a> Request<'a> {
             segments,
             query: Vec::new(),
             body: None,
+            no_content: false,
         }
     }
 
@@ -52,6 +54,13 @@ impl<'a> Request<'a> {
         // suri's request types hold only strings, numbers, booleans, lists
         // and structs, which serde_json always serialises.
         self.body = Some(serde_json::to_vec(body).expect("a request body serialises"));
+        self
+    }
+
+    /// Marks a call documented with no response body: a success's body is
+    /// read within the limit and dropped, and the result is `()`.
+    pub(crate) fn no_content(mut self) -> Request<'a> {
+        self.no_content = true;
         self
     }
 
@@ -182,6 +191,15 @@ impl Client {
             retry_cap: config.retry_cap,
             max_read_attempts: config.max_read_attempts,
         })))
+    }
+
+    /// The key ID and secret, for scrubbing text Alpaca sends back.
+    pub(crate) fn credentials(&self) -> [&str; 2] {
+        let credentials = &self.0.credentials;
+        [
+            credentials.key_id.expose_secret(),
+            credentials.secret.expose_secret(),
+        ]
     }
 
     /// Sends a call with no query and no body (see `send_request`).
@@ -357,11 +375,7 @@ impl Client {
         if !response.status().is_success() {
             // The status decides the kind; the body is read on a best-effort
             // basis for Alpaca's code and message.
-            let credentials = [
-                inner.credentials.key_id.expose_secret(),
-                inner.credentials.secret.expose_secret(),
-            ];
-            let (code, message) = details(body.as_deref().ok(), &credentials);
+            let (code, message) = details(body.as_deref().ok(), &self.credentials());
             return Err(error(ErrorKind::Api, Stage::ResponseReceived)
                 .with_meta(meta)
                 .with_details(code, message));
@@ -380,7 +394,9 @@ impl Client {
                 return Err(error(kind, Stage::ResponseReceived).with_meta(meta));
             }
         };
-        match serde_json::from_slice(&body) {
+        // `()` is decoded from `null`, never from a body that may be empty.
+        let json: &[u8] = if request.no_content { b"null" } else { &body };
+        match serde_json::from_slice(json) {
             Ok(data) => Ok(Response::new(data, meta)),
             Err(_) => Err(error(ErrorKind::Decode, Stage::ResponseReceived).with_meta(meta)),
         }

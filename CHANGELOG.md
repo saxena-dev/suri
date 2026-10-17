@@ -47,3 +47,10 @@ All notable changes to suri are listed here. The format follows
 - `Error::client_order_id`, set on every error of an order placement.
 - `Client::order_by_client_order_id`, to find out whether an order whose
   placement failed was placed.
+- `Client::orders` and `Client::order`, one page per call, with
+  `OrdersQuery` and `OrderWindow`.
+- `Client::replace_order`, made once, with a generated client order ID for
+  the replacing order that every error carries.
+- `Client::cancel_order`, which returns `Response<()>`, and
+  `Client::cancel_all_orders`, with one `CancelResult` per order; both are
+  made once.

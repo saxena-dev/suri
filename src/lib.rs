@@ -1,7 +1,7 @@
 //! A Rust client for the Alpaca Trading and Market Data APIs.
 //!
 //! Pre-release: the market clock and calendar, the account's endpoints,
-//! assets, option contracts and order placement are the only ones yet.
+//! assets, option contracts and orders are the only ones yet.
 //!
 //! The [contract](https://github.com/saxena-dev/suri/blob/main/docs/contract.md)
 //! states every behaviour suri promises.
@@ -58,9 +58,10 @@ pub use error::{Error, ErrorKind, Stage};
 pub use inbound::Inbound;
 #[cfg(feature = "rest")]
 pub use orders::{
-    ClientOrderId, Exit, Leg, Legs, MultiLegKind, Order, OrderClass, OrderKind, OrderRequest,
-    OrderShape, OrderSide, OrderStatus, OrderType, ParseClientOrderIdError, ParseLegsError,
-    PositionIntent, Size, StopLoss, TakeProfit, TimeInForce, Trail,
+    CancelResult, ClientOrderId, Exit, Leg, Legs, MultiLegKind, Order, OrderClass, OrderKind,
+    OrderQueryStatus, OrderRequest, OrderShape, OrderSide, OrderStatus, OrderType, OrderWindow,
+    OrdersQuery, ParseClientOrderIdError, ParseLegsError, PositionIntent, ReplaceOrderRequest,
+    Size, StopLoss, TakeProfit, TimeInForce, Trail,
 };
 pub use path::{Id, ParsePathValueError, Symbol};
 #[cfg(feature = "rest")]

@@ -34,8 +34,8 @@ url = { version = "2.5.8", optional = true }
 # Holds the API key pair so it never reaches Debug output.
 secrecy = { version = "0.10.3", default-features = false, optional = true }
 # Decodes response bodies; float_roundtrip reads JSON numbers to the
-# correctly rounded nearest f64.
-serde_json = { version = "1.0.154", optional = true, features = ["float_roundtrip"] }
+# correctly rounded nearest f64, and raw_value keeps a nested body's text.
+serde_json = { version = "1.0.154", optional = true, features = ["float_roundtrip", "raw_value"] }
 # Waits between the attempts of a read.
 tokio = { version = "1.53.3", features = ["time"], optional = true }
 # One span per call and its events; suri installs no subscriber.

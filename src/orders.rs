@@ -9,10 +9,19 @@ use std::time::Instant;
 
 use reqwest::Method;
 use serde::{Deserialize, Serialize, Serializer};
+use serde_json::value::RawValue;
 
 use crate::client::{Endpoint, Request};
-use crate::wire::wire_enum;
-use crate::{AssetClass, Client, Decimal, Error, Inbound, Response, Timestamp};
+use crate::error::{details, sanitise};
+use crate::wire::{Sort, wire_enum};
+use crate::{AssetClass, Client, Decimal, Error, Id, Inbound, Response, Timestamp};
+
+mod request;
+
+pub use request::{
+    Exit, Leg, Legs, MultiLegKind, OrderKind, OrderRequest, OrderShape, ParseLegsError, Size,
+    StopLoss, TakeProfit, Trail,
+};
 
 wire_enum! {
     /// The side of an order or a fill.
@@ -219,579 +228,6 @@ impl fmt::Display for ParseClientOrderIdError {
 
 impl std::error::Error for ParseClientOrderIdError {}
 
-/// How much to trade: a quantity, or an amount of money.
-#[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
-pub enum Size {
-    /// A number of shares or units, fractional where the asset allows it.
-    Qty(Decimal),
-    /// An amount in dollars.
-    Notional(Decimal),
-}
-
-/// An order's type with the prices it needs.
-#[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
-pub enum OrderKind {
-    /// At the market price.
-    Market,
-    /// At this price or better.
-    Limit {
-        /// The limit price.
-        limit_price: Decimal,
-    },
-    /// A market order once the price reaches the stop.
-    Stop {
-        /// The stop price.
-        stop_price: Decimal,
-    },
-    /// A limit order once the price reaches the stop.
-    StopLimit {
-        /// The stop price.
-        stop_price: Decimal,
-        /// The limit price.
-        limit_price: Decimal,
-    },
-    /// A stop that follows the price at a distance.
-    TrailingStop(Trail),
-}
-
-/// A trailing stop's distance from the price.
-#[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
-pub enum Trail {
-    /// In dollars.
-    Price(Decimal),
-    /// In percent.
-    Percent(Decimal),
-}
-
-/// A multi-leg order's type: market or limit only.
-#[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
-pub enum MultiLegKind {
-    /// At the market price.
-    Market,
-    /// At this net price or better; a negative price is a credit.
-    Limit {
-        /// The limit price.
-        limit_price: Decimal,
-    },
-}
-
-/// A take-profit exit: a limit order.
-#[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Serialize)]
-pub struct TakeProfit {
-    /// The limit price.
-    pub limit_price: Decimal,
-}
-
-impl TakeProfit {
-    /// A take-profit at this limit price.
-    pub fn new(limit_price: Decimal) -> TakeProfit {
-        TakeProfit { limit_price }
-    }
-}
-
-/// A stop-loss exit: a stop order, or a stop-limit order when it has a
-/// limit price.
-#[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Serialize)]
-pub struct StopLoss {
-    /// The stop price.
-    pub stop_price: Decimal,
-    /// The limit price, for a stop-limit exit.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit_price: Option<Decimal>,
-}
-
-impl StopLoss {
-    /// A stop-loss at this stop price, with no limit price.
-    pub fn new(stop_price: Decimal) -> StopLoss {
-        StopLoss {
-            stop_price,
-            limit_price: None,
-        }
-    }
-}
-
-/// The one exit of a one-triggers-other order.
-#[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
-pub enum Exit {
-    /// A take-profit.
-    TakeProfit(TakeProfit),
-    /// A stop-loss.
-    StopLoss(StopLoss),
-}
-
-/// One leg of a multi-leg order.
-#[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Serialize)]
-pub struct Leg {
-    /// The option contract's symbol.
-    pub symbol: String,
-    /// The leg's quantity for each unit of the order's quantity.
-    pub ratio_qty: Decimal,
-    /// The leg's side.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub side: Option<OrderSide>,
-    /// Whether the leg opens or closes a position.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub position_intent: Option<PositionIntent>,
-}
-
-impl Leg {
-    /// A leg of this contract and ratio.
-    pub fn new(symbol: impl Into<String>, ratio_qty: Decimal) -> Leg {
-        Leg {
-            symbol: symbol.into(),
-            ratio_qty,
-            side: None,
-            position_intent: None,
-        }
-    }
-}
-
-/// The legs of a multi-leg order: at most four.
-#[derive(Debug, Clone, PartialEq)]
-pub struct Legs(Vec<Leg>);
-
-impl Legs {
-    /// The legs, or an error if there are more than four.
-    pub fn new(legs: Vec<Leg>) -> Result<Legs, ParseLegsError> {
-        if legs.len() > 4 {
-            return Err(ParseLegsError {
-                kind: LegsKind::TooMany,
-            });
-        }
-        Ok(Legs(legs))
-    }
-
-    /// The legs, in order.
-    pub fn as_slice(&self) -> &[Leg] {
-        &self.0
-    }
-}
-
-/// The error returned when a multi-leg order would have too many legs.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ParseLegsError {
-    kind: LegsKind,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum LegsKind {
-    TooMany,
-}
-
-impl fmt::Display for ParseLegsError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(match self.kind {
-            LegsKind::TooMany => "a multi-leg order takes at most 4 legs",
-        })
-    }
-}
-
-impl std::error::Error for ParseLegsError {}
-
-/// What an order is: its class and the parts that class requires.
-///
-/// Every part a class requires is a field of its variant, so an order
-/// missing one cannot be built. A simple market order:
-///
-/// ```
-/// # use suri::{OrderKind, OrderShape, OrderSide, Size};
-/// let shape = OrderShape::Simple {
-///     symbol: "AAPL".to_owned(),
-///     side: OrderSide::Buy,
-///     size: Size::Qty("1".parse()?),
-///     kind: OrderKind::Market,
-/// };
-/// # Ok::<(), suri::ParseDecimalError>(())
-/// ```
-///
-/// Without its kind, it does not compile:
-///
-/// ```compile_fail
-/// # use suri::{OrderKind, OrderShape, OrderSide, Size};
-/// let shape = OrderShape::Simple {
-///     symbol: "AAPL".to_owned(),
-///     side: OrderSide::Buy,
-///     size: Size::Qty("1".parse()?),
-/// };
-/// # Ok::<(), suri::ParseDecimalError>(())
-/// ```
-///
-/// A bracket order, and the same without its stop-loss, which does not
-/// compile:
-///
-/// ```
-/// # use suri::{OrderKind, OrderShape, OrderSide, Size, StopLoss, TakeProfit};
-/// let shape = OrderShape::Bracket {
-///     symbol: "AAPL".to_owned(),
-///     side: OrderSide::Buy,
-///     size: Size::Qty("1".parse()?),
-///     kind: OrderKind::Market,
-///     take_profit: TakeProfit::new("200".parse()?),
-///     stop_loss: StopLoss::new("150".parse()?),
-/// };
-/// # Ok::<(), suri::ParseDecimalError>(())
-/// ```
-///
-/// ```compile_fail
-/// # use suri::{OrderKind, OrderShape, OrderSide, Size, StopLoss, TakeProfit};
-/// let shape = OrderShape::Bracket {
-///     symbol: "AAPL".to_owned(),
-///     side: OrderSide::Buy,
-///     size: Size::Qty("1".parse()?),
-///     kind: OrderKind::Market,
-///     take_profit: TakeProfit::new("200".parse()?),
-/// };
-/// # Ok::<(), suri::ParseDecimalError>(())
-/// ```
-///
-/// A one-triggers-other order, and the same without its exit:
-///
-/// ```
-/// # use suri::{Exit, OrderKind, OrderShape, OrderSide, Size, TakeProfit};
-/// let shape = OrderShape::Oto {
-///     symbol: "AAPL".to_owned(),
-///     side: OrderSide::Buy,
-///     size: Size::Qty("1".parse()?),
-///     kind: OrderKind::Market,
-///     exit: Exit::TakeProfit(TakeProfit::new("200".parse()?)),
-/// };
-/// # Ok::<(), suri::ParseDecimalError>(())
-/// ```
-///
-/// ```compile_fail
-/// # use suri::{Exit, OrderKind, OrderShape, OrderSide, Size, TakeProfit};
-/// let shape = OrderShape::Oto {
-///     symbol: "AAPL".to_owned(),
-///     side: OrderSide::Buy,
-///     size: Size::Qty("1".parse()?),
-///     kind: OrderKind::Market,
-/// };
-/// # Ok::<(), suri::ParseDecimalError>(())
-/// ```
-///
-/// A one-cancels-other order, and the same without its take-profit:
-///
-/// ```
-/// # use suri::{OrderShape, OrderSide, Size, StopLoss, TakeProfit};
-/// let shape = OrderShape::Oco {
-///     symbol: "AAPL".to_owned(),
-///     side: OrderSide::Sell,
-///     size: Size::Qty("1".parse()?),
-///     take_profit: TakeProfit::new("200".parse()?),
-///     stop_loss: StopLoss::new("150".parse()?),
-/// };
-/// # Ok::<(), suri::ParseDecimalError>(())
-/// ```
-///
-/// ```compile_fail
-/// # use suri::{OrderShape, OrderSide, Size, StopLoss, TakeProfit};
-/// let shape = OrderShape::Oco {
-///     symbol: "AAPL".to_owned(),
-///     side: OrderSide::Sell,
-///     size: Size::Qty("1".parse()?),
-///     stop_loss: StopLoss::new("150".parse()?),
-/// };
-/// # Ok::<(), suri::ParseDecimalError>(())
-/// ```
-///
-/// A multi-leg order, and the same without its legs:
-///
-/// ```
-/// # use suri::{Leg, Legs, MultiLegKind, OrderShape};
-/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// let shape = OrderShape::MultiLeg {
-///     qty: "1".parse()?,
-///     kind: MultiLegKind::Market,
-///     legs: Legs::new(vec![Leg::new("AAPL241213C00250000", "1".parse()?)])?,
-/// };
-/// # Ok(())
-/// # }
-/// ```
-///
-/// ```compile_fail
-/// # use suri::{Leg, Legs, MultiLegKind, OrderShape};
-/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// let shape = OrderShape::MultiLeg {
-///     qty: "1".parse()?,
-///     kind: MultiLegKind::Market,
-/// };
-/// # Ok(())
-/// # }
-/// ```
-#[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
-pub enum OrderShape {
-    /// A single order.
-    Simple {
-        /// The symbol.
-        symbol: String,
-        /// Buy or sell.
-        side: OrderSide,
-        /// How much.
-        size: Size,
-        /// The type and its prices.
-        kind: OrderKind,
-    },
-    /// An entry order with a take-profit and a stop-loss exit.
-    Bracket {
-        /// The symbol.
-        symbol: String,
-        /// Buy or sell.
-        side: OrderSide,
-        /// How much.
-        size: Size,
-        /// The entry's type and its prices.
-        kind: OrderKind,
-        /// The take-profit exit.
-        take_profit: TakeProfit,
-        /// The stop-loss exit.
-        stop_loss: StopLoss,
-    },
-    /// An entry order that triggers one exit.
-    Oto {
-        /// The symbol.
-        symbol: String,
-        /// Buy or sell.
-        side: OrderSide,
-        /// How much.
-        size: Size,
-        /// The entry's type and its prices.
-        kind: OrderKind,
-        /// The exit.
-        exit: Exit,
-    },
-    /// Two exits, one canceling the other when it fills; sent as a limit
-    /// order.
-    Oco {
-        /// The symbol.
-        symbol: String,
-        /// Buy or sell.
-        side: OrderSide,
-        /// How much.
-        size: Size,
-        /// The take-profit exit.
-        take_profit: TakeProfit,
-        /// The stop-loss exit.
-        stop_loss: StopLoss,
-    },
-    /// A multi-leg options order, with no symbol or side of its own.
-    MultiLeg {
-        /// The number of units of the strategy.
-        qty: Decimal,
-        /// Market or limit.
-        kind: MultiLegKind,
-        /// The legs.
-        legs: Legs,
-    },
-}
-
-/// An order to place.
-///
-/// Its JSON (`Serialize`) is exactly the body sent. `new` fills
-/// `client_order_id` with a generated ID, so it can be read, logged or
-/// stored before the order is sent.
-#[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
-pub struct OrderRequest {
-    /// What the order is.
-    pub shape: OrderShape,
-    /// How long it stays live.
-    pub time_in_force: TimeInForce,
-    /// The ID to look the order up by; replace it to use your own.
-    pub client_order_id: ClientOrderId,
-    /// Whether it may fill in extended hours.
-    pub extended_hours: Option<bool>,
-    /// Whether it opens or closes a position.
-    pub position_intent: Option<PositionIntent>,
-}
-
-impl OrderRequest {
-    /// An order of this shape and time in force, with a generated client
-    /// order ID.
-    pub fn new(shape: OrderShape, time_in_force: TimeInForce) -> OrderRequest {
-        OrderRequest {
-            shape,
-            time_in_force,
-            client_order_id: ClientOrderId::generate(),
-            extended_hours: None,
-            position_intent: None,
-        }
-    }
-}
-
-/// The body of an order placement, in the order Alpaca's docs list it.
-#[derive(Serialize)]
-struct WireOrder<'a> {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    symbol: Option<&'a str>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    qty: Option<&'a Decimal>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    notional: Option<&'a Decimal>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    side: Option<OrderSide>,
-    r#type: OrderType,
-    time_in_force: TimeInForce,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    limit_price: Option<&'a Decimal>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    stop_price: Option<&'a Decimal>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    trail_price: Option<&'a Decimal>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    trail_percent: Option<&'a Decimal>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    extended_hours: Option<bool>,
-    client_order_id: &'a ClientOrderId,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    order_class: Option<OrderClass>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    take_profit: Option<&'a TakeProfit>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    stop_loss: Option<&'a StopLoss>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    legs: Option<&'a [Leg]>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    position_intent: Option<PositionIntent>,
-}
-
-impl<'a> WireOrder<'a> {
-    /// Sets the type and the prices it needs.
-    fn kind(&mut self, kind: &'a OrderKind) {
-        match kind {
-            OrderKind::Market => self.r#type = OrderType::Market,
-            OrderKind::Limit { limit_price } => {
-                self.r#type = OrderType::Limit;
-                self.limit_price = Some(limit_price);
-            }
-            OrderKind::Stop { stop_price } => {
-                self.r#type = OrderType::Stop;
-                self.stop_price = Some(stop_price);
-            }
-            OrderKind::StopLimit {
-                stop_price,
-                limit_price,
-            } => {
-                self.r#type = OrderType::StopLimit;
-                self.stop_price = Some(stop_price);
-                self.limit_price = Some(limit_price);
-            }
-            OrderKind::TrailingStop(trail) => {
-                self.r#type = OrderType::TrailingStop;
-                match trail {
-                    Trail::Price(price) => self.trail_price = Some(price),
-                    Trail::Percent(percent) => self.trail_percent = Some(percent),
-                }
-            }
-        }
-    }
-
-    /// Sets the symbol, size and side shared by every class but multi-leg.
-    fn single(&mut self, symbol: &'a str, side: OrderSide, size: &'a Size) {
-        self.symbol = Some(symbol);
-        self.side = Some(side);
-        match size {
-            Size::Qty(qty) => self.qty = Some(qty),
-            Size::Notional(notional) => self.notional = Some(notional),
-        }
-    }
-}
-
-impl Serialize for OrderRequest {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let mut wire = WireOrder {
-            symbol: None,
-            qty: None,
-            notional: None,
-            side: None,
-            r#type: OrderType::Market,
-            time_in_force: self.time_in_force,
-            limit_price: None,
-            stop_price: None,
-            trail_price: None,
-            trail_percent: None,
-            extended_hours: self.extended_hours,
-            client_order_id: &self.client_order_id,
-            order_class: None,
-            take_profit: None,
-            stop_loss: None,
-            legs: None,
-            position_intent: self.position_intent,
-        };
-        match &self.shape {
-            OrderShape::Simple {
-                symbol,
-                side,
-                size,
-                kind,
-            } => {
-                wire.single(symbol, *side, size);
-                wire.kind(kind);
-            }
-            OrderShape::Bracket {
-                symbol,
-                side,
-                size,
-                kind,
-                take_profit,
-                stop_loss,
-            } => {
-                wire.single(symbol, *side, size);
-                wire.kind(kind);
-                wire.order_class = Some(OrderClass::Bracket);
-                wire.take_profit = Some(take_profit);
-                wire.stop_loss = Some(stop_loss);
-            }
-            OrderShape::Oto {
-                symbol,
-                side,
-                size,
-                kind,
-                exit,
-            } => {
-                wire.single(symbol, *side, size);
-                wire.kind(kind);
-                wire.order_class = Some(OrderClass::Oto);
-                match exit {
-                    Exit::TakeProfit(take_profit) => wire.take_profit = Some(take_profit),
-                    Exit::StopLoss(stop_loss) => wire.stop_loss = Some(stop_loss),
-                }
-            }
-            OrderShape::Oco {
-                symbol,
-                side,
-                size,
-                take_profit,
-                stop_loss,
-            } => {
-                wire.single(symbol, *side, size);
-                wire.r#type = OrderType::Limit;
-                wire.order_class = Some(OrderClass::Oco);
-                wire.take_profit = Some(take_profit);
-                wire.stop_loss = Some(stop_loss);
-            }
-            OrderShape::MultiLeg { qty, kind, legs } => {
-                wire.qty = Some(qty);
-                if let MultiLegKind::Limit { limit_price } = kind {
-                    wire.r#type = OrderType::Limit;
-                    wire.limit_price = Some(limit_price);
-                }
-                wire.order_class = Some(OrderClass::Mleg);
-                wire.legs = Some(legs.as_slice());
-            }
-        }
-        wire.serialize(serializer)
-    }
-}
-
 /// An order, as Alpaca reports it.
 ///
 /// Prices and quantities are exact [`Decimal`]s. A multi-leg order's parent
@@ -873,6 +309,136 @@ pub struct Order {
     pub legs: Option<Vec<Order>>,
 }
 
+wire_enum! {
+    /// Which orders to list by status.
+    OrderQueryStatus {
+        /// Open orders.
+        Open => "open",
+        /// Closed orders.
+        Closed => "closed",
+        /// Every order.
+        All => "all",
+    }
+}
+
+/// Which orders to list by when they were submitted: a time window, or the
+/// orders before or after one order.
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq)]
+pub enum OrderWindow {
+    /// Orders submitted after `after` and until `until`.
+    Time {
+        /// Only orders submitted after this instant.
+        after: Option<Timestamp>,
+        /// Only orders submitted until this instant.
+        until: Option<Timestamp>,
+    },
+    /// Orders submitted before this order.
+    BeforeOrder(Id),
+    /// Orders submitted after this order.
+    AfterOrder(Id),
+}
+
+/// Which orders to list. One page per call.
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct OrdersQuery {
+    /// Open, closed or all orders; open unless set.
+    pub status: Option<OrderQueryStatus>,
+    /// The most orders on a page.
+    pub limit: Option<u32>,
+    /// When the orders were submitted.
+    pub window: Option<OrderWindow>,
+    /// The order of the list.
+    pub direction: Option<Sort>,
+    /// Whether to nest a multi-leg, bracket, OCO or OTO order's legs in it.
+    pub nested: Option<bool>,
+    /// Only orders for these symbols.
+    pub symbols: Option<Vec<String>>,
+    /// Only buy or only sell orders.
+    pub side: Option<OrderSide>,
+    /// Only orders in these asset classes; every class unless set.
+    pub asset_classes: Option<Vec<AssetClass>>,
+}
+
+impl OrdersQuery {
+    /// A query with Alpaca's defaults.
+    pub fn new() -> OrdersQuery {
+        OrdersQuery::default()
+    }
+}
+
+/// The changes to an open order. Only the fields set are sent; the
+/// replacing order keeps the rest from the order it replaces.
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct ReplaceOrderRequest {
+    /// The new quantity.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub qty: Option<Decimal>,
+    /// The new time in force.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub time_in_force: Option<TimeInForce>,
+    /// The new limit price.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub limit_price: Option<Decimal>,
+    /// The new stop price.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stop_price: Option<Decimal>,
+    /// The new trailing distance, in the trailing stop's own unit.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub trail: Option<Decimal>,
+    /// The replacing order's own ID; replace it to use your own.
+    pub client_order_id: ClientOrderId,
+}
+
+impl ReplaceOrderRequest {
+    /// A replacement that changes nothing yet, with a generated client
+    /// order ID for the replacing order.
+    pub fn new() -> ReplaceOrderRequest {
+        ReplaceOrderRequest {
+            qty: None,
+            time_in_force: None,
+            limit_price: None,
+            stop_price: None,
+            trail: None,
+            client_order_id: ClientOrderId::generate(),
+        }
+    }
+}
+
+impl Default for ReplaceOrderRequest {
+    fn default() -> ReplaceOrderRequest {
+        ReplaceOrderRequest::new()
+    }
+}
+
+/// What happened to one order when all were cancelled.
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CancelResult {
+    /// The order ID.
+    pub id: String,
+    /// The HTTP status of this order's cancellation.
+    pub status: u16,
+    /// For a failed cancellation, Alpaca's error code.
+    pub code: Option<u64>,
+    /// For a failed cancellation, Alpaca's message, scrubbed and bounded as
+    /// [`Error::message`] is.
+    pub message: Option<String>,
+    /// For a successful cancellation, the body sent with it, if any, as
+    /// text, scrubbed and bounded the same way.
+    pub body: Option<String>,
+}
+
+/// One item of a cancel-all response, as sent.
+#[derive(Deserialize)]
+struct WireCancel {
+    id: String,
+    status: u16,
+    body: Option<Box<RawValue>>,
+}
+
 const PLACE_ORDER: Endpoint = Endpoint {
     method: Method::POST,
     template: "/v2/orders",
@@ -881,6 +447,31 @@ const PLACE_ORDER: Endpoint = Endpoint {
 const ORDER_BY_CLIENT_ORDER_ID: Endpoint = Endpoint {
     method: Method::GET,
     template: "/v2/orders:by_client_order_id",
+};
+
+const ORDERS: Endpoint = Endpoint {
+    method: Method::GET,
+    template: "/v2/orders",
+};
+
+const ORDER: Endpoint = Endpoint {
+    method: Method::GET,
+    template: "/v2/orders/{order_id}",
+};
+
+const REPLACE_ORDER: Endpoint = Endpoint {
+    method: Method::PATCH,
+    template: "/v2/orders/{order_id}",
+};
+
+const CANCEL_ORDER: Endpoint = Endpoint {
+    method: Method::DELETE,
+    template: "/v2/orders/{order_id}",
+};
+
+const CANCEL_ALL_ORDERS: Endpoint = Endpoint {
+    method: Method::DELETE,
+    template: "/v2/orders",
 };
 
 impl Client {
@@ -907,6 +498,115 @@ impl Client {
         );
         request.pair("client_order_id", client_order_id.as_str());
         self.send_request(request).await
+    }
+
+    /// Lists one page of orders (`GET /v2/orders`).
+    pub async fn orders(&self, query: &OrdersQuery) -> Result<Response<Vec<Order>>, Error> {
+        let mut request = Request::new(&ORDERS, &["v2", "orders"]);
+        if let Some(status) = &query.status {
+            request.pair("status", status.as_str());
+        }
+        if let Some(limit) = query.limit {
+            request.pair("limit", limit.to_string());
+        }
+        if let Some(OrderWindow::Time { after, until }) = &query.window {
+            if let Some(after) = after {
+                request.pair("after", after.to_string());
+            }
+            if let Some(until) = until {
+                request.pair("until", until.to_string());
+            }
+        }
+        if let Some(direction) = &query.direction {
+            request.pair("direction", direction.as_str());
+        }
+        if let Some(nested) = query.nested {
+            request.pair("nested", nested.to_string());
+        }
+        if let Some(symbols) = &query.symbols {
+            request.pair("symbols", symbols.join(","));
+        }
+        if let Some(side) = &query.side {
+            request.pair("side", side.as_str());
+        }
+        if let Some(classes) = &query.asset_classes {
+            let names: Vec<&str> = classes.iter().map(AssetClass::as_str).collect();
+            request.pair("asset_class", names.join(","));
+        }
+        match &query.window {
+            Some(OrderWindow::BeforeOrder(id)) => request.pair("before_order_id", id.as_str()),
+            Some(OrderWindow::AfterOrder(id)) => request.pair("after_order_id", id.as_str()),
+            _ => {}
+        }
+        self.send_request(request).await
+    }
+
+    /// Reads one order (`GET /v2/orders/{order_id}`); `nested` asks for a
+    /// multi-leg, bracket, OCO or OTO order's legs in it.
+    pub async fn order(&self, id: &Id, nested: bool) -> Result<Response<Order>, Error> {
+        let segments = ["v2", "orders", id.as_str()];
+        let mut request = Request::new(&ORDER, &segments);
+        if nested {
+            request.pair("nested", "true");
+        }
+        self.send_request(request).await
+    }
+
+    /// Replaces an open order (`PATCH /v2/orders/{order_id}`) and returns
+    /// the replacing order. It is made once and never retried. Every error
+    /// carries the replacing order's client order ID. Success does not
+    /// guarantee the replacement: the order may fill first.
+    pub async fn replace_order(
+        &self,
+        id: &Id,
+        replace: &ReplaceOrderRequest,
+    ) -> Result<Response<Order>, Error> {
+        let segments = ["v2", "orders", id.as_str()];
+        let request = Request::new(&REPLACE_ORDER, &segments).json(replace);
+        self.send_request(request)
+            .await
+            .map_err(|error| error.with_client_order_id(replace.client_order_id.clone()))
+    }
+
+    /// Asks Alpaca to cancel an open order (`DELETE /v2/orders/{order_id}`).
+    /// Success means the request was accepted; a 422 `Api` error, that the
+    /// order can no longer be cancelled. It is made once and never retried.
+    pub async fn cancel_order(&self, id: &Id) -> Result<Response<()>, Error> {
+        let segments = ["v2", "orders", id.as_str()];
+        let request = Request::new(&CANCEL_ORDER, &segments).no_content();
+        self.send_request(request).await
+    }
+
+    /// Asks Alpaca to cancel every open order (`DELETE /v2/orders`), with
+    /// one result per order. It is made once and never retried.
+    pub async fn cancel_all_orders(&self) -> Result<Response<Vec<CancelResult>>, Error> {
+        let request = Request::new(&CANCEL_ALL_ORDERS, &["v2", "orders"]);
+        let (items, meta) = self
+            .send_request::<Vec<WireCancel>>(request)
+            .await?
+            .into_parts();
+        let credentials = self.credentials();
+        let results = items
+            .into_iter()
+            .map(|item| {
+                let text = item.body.as_deref().map(RawValue::get);
+                let (code, message, body) = if (200..300).contains(&item.status) {
+                    let body = text.map(|text| sanitise(text, &credentials));
+                    (None, None, body)
+                } else {
+                    let (code, message) = details(text.map(str::as_bytes), &credentials);
+                    (code, message, None)
+                };
+                CancelResult {
+                    id: item.id,
+                    status: item.status,
+                    code,
+                    message,
+                    body,
+                }
+            })
+            .collect();
+        Ok(Response::new(results, meta))
     }
 }
 

@@ -5,7 +5,8 @@ Data APIs. Support for the Broker API is planned after the first release.
 
 **Status: pre-release.** The client reads the market clock and calendar, the
 account, its configuration, activities and portfolio history, assets and
-option contracts, and places orders exactly once, so far; the crate is
+option contracts, and places, finds, replaces and cancels orders, each
+change made exactly once, so far; the crate is
 being built in the open, one tested piece at a time.
 
 ## Scope of 0.1.0

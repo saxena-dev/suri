@@ -41,3 +41,9 @@ All notable changes to suri are listed here. The format follows
   call, with strike filters sent as exact decimal text.
 - `Client::calendar`, with `ClockTime` for the day's local market times.
 - An `Id` converts into a `Symbol`.
+- `Client::place_order`, made once and never retried, with `OrderRequest`
+  and `OrderShape` for every order class; `OrderRequest::new` generates a
+  `ClientOrderId` the caller can read before sending.
+- `Error::client_order_id`, set on every error of an order placement.
+- `Client::order_by_client_order_id`, to find out whether an order whose
+  placement failed was placed.

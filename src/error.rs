@@ -4,7 +4,7 @@ use std::fmt;
 
 use reqwest::Method;
 
-use crate::ResponseMeta;
+use crate::{ClientOrderId, ResponseMeta};
 
 /// What went wrong.
 #[non_exhaustive]
@@ -51,6 +51,7 @@ struct Inner {
     location: Option<String>,
     code: Option<u64>,
     message: Option<String>,
+    client_order_id: Option<ClientOrderId>,
 }
 
 impl Error {
@@ -71,6 +72,7 @@ impl Error {
             location: None,
             code: None,
             message: None,
+            client_order_id: None,
         }))
     }
 
@@ -88,6 +90,12 @@ impl Error {
     pub(crate) fn with_details(mut self, code: Option<u64>, message: Option<String>) -> Error {
         self.0.code = code;
         self.0.message = message;
+        self
+    }
+
+    /// Adds the client order ID of the order the call placed or replaced.
+    pub(crate) fn with_client_order_id(mut self, id: ClientOrderId) -> Error {
+        self.0.client_order_id = Some(id);
         self
     }
 
@@ -151,6 +159,13 @@ impl Error {
     /// text is cut to 1,024 bytes.
     pub fn message(&self) -> Option<&str> {
         self.0.message.as_deref()
+    }
+
+    /// For an order placement or replacement, the order's client order ID,
+    /// whatever went wrong: the key to look the order up by when the call
+    /// [may have reached Alpaca](Error::may_have_reached_broker).
+    pub fn client_order_id(&self) -> Option<&ClientOrderId> {
+        self.0.client_order_id.as_ref()
     }
 }
 

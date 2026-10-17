@@ -1,10 +1,12 @@
 //! A Rust client for the Alpaca Trading and Market Data APIs.
 //!
-//! Pre-release: the market clock is the only endpoint yet.
+//! Pre-release: the market clock and the account are the only endpoints yet.
 //!
 //! The [contract](https://github.com/saxena-dev/suri/blob/main/docs/contract.md)
 //! states every behaviour suri promises.
 
+#[cfg(feature = "rest")]
+mod account;
 #[cfg(feature = "rest")]
 mod client;
 #[cfg(feature = "rest")]
@@ -19,7 +21,11 @@ mod path;
 #[cfg(feature = "rest")]
 mod response;
 mod time;
+#[cfg(feature = "rest")]
+mod wire;
 
+#[cfg(feature = "rest")]
+pub use account::{Account, AccountStatus};
 #[cfg(feature = "rest")]
 pub use client::Client;
 #[cfg(feature = "rest")]
@@ -34,3 +40,5 @@ pub use path::{Id, ParsePathValueError, Symbol};
 #[cfg(feature = "rest")]
 pub use response::{RateLimit, Response, ResponseMeta};
 pub use time::{Date, ParseTimeError, Timestamp};
+#[cfg(feature = "rest")]
+pub use wire::ParseEnumError;

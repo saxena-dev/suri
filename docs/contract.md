@@ -250,6 +250,34 @@ is recorded.
   libraries at TRACE, with requests that succeed, fail, retry and have
   Alpaca echo the credentials back, and find none. No filter is needed.
 
+## Response fields
+
+These rules apply to every response type:
+
+- **Money, prices and quantities** that Alpaca sends as strings are
+  `Decimal`s holding the exact text (see "Decimal values"); a JSON number
+  in such a field is accepted only if it is an integer, and is otherwise a
+  `Decode` error rather than a rounded value.
+- **Text enumerations** are `Inbound` values: a value suri does not know
+  yet is kept as `Unknown` with its text (see "Unknown values").
+- **Optional fields.** A field is always present (not an `Option`) only
+  when Alpaca's schema requires it, or every documented example and
+  recorded response carries it, and none of them leaves it out or sends
+  `null`. Any other field is an `Option`, `None` when the response omits it
+  or sends `null`, so an optional field missing from a response never fails
+  the call; a response missing an always-present field fails with a
+  `Decode` error.
+- **Unknown fields** are ignored, so a field Alpaca adds never fails a call;
+  suri models it in a later version. A field Alpaca deprecates is kept and
+  marked `#[deprecated]`.
+
+## Account
+
+`Client::account` reads `GET /v2/account`: the account's ID and status
+(always present) and its balances, buying power, margin figures and
+restrictions. The options levels arrive as integers or, in some responses,
+as strings of digits; both read as the same number.
+
 ## Market clock
 
 `Client::clock` reads `GET /v2/clock`: the server's time, whether the market
@@ -273,3 +301,5 @@ is open, and the next open and close, each a `Timestamp`.
 | Retries | Reads only, on 429, 500, 502, 503, 504 and failed connections, with capped exponential backoff and added jitter, never before a rate-limit reset by this machine's clock, within a deadline | A read is safe to repeat; Alpaca asks clients to back off, wait for the reset and add jitter, and documents 500 as worth retrying later |
 | HTTP version | HTTP/1.1 only | One connection model to reason about and test; the documentation leaves the protocol version open and lists new HTTP versions among the changes Alpaca makes without notice |
 | Compression | Uncompressed responses requested (`Accept-Encoding: identity`); nothing is decompressed | No decompression code or limits to get right; Alpaca says it may add gzip, so suri asks for none rather than accept any |
+| Response field types | Exact decimals for amounts sent as strings, `Inbound` for text enumerations, optional unless always present | A response field that does not fit its type fails the call, so types follow the documented wire form and leave room for what Alpaca adds |
+| Optional fields | Always present only when the schema requires a field, or every documented example and recorded response carries it, and none omits it; otherwise an `Option` | A field missing from a real response must not fail the call; an `Option` loses nothing, and a missing always-present field is reported as a `Decode` error |

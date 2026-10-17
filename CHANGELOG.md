@@ -27,3 +27,5 @@ All notable changes to suri are listed here. The format follows
 - A `tracing` span, `suri.request`, for every call, with `retry` and `error`
   events; suri installs no subscriber.
 - Requests ask for uncompressed responses (`Accept-Encoding: identity`).
+- `Client::account` and `Account`, with `AccountStatus`; documented enums
+  reject other texts with `ParseEnumError`.

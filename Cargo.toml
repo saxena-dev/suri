@@ -2,7 +2,11 @@
 name = "suri"
 version = "0.0.0"
 edition = "2024"
-description = "WIP"
+description = "A Rust client for the Alpaca Trading and Market Data APIs"
+repository = "https://github.com/saxena-dev/suri"
+readme = "README.md"
+keywords = ["alpaca", "trading", "market-data", "finance", "api"]
+categories = ["api-bindings", "finance"]
 authors = ["Paresh Saxena <pareshsaxena@gmail.com>"]
 license = "MIT"
 # Tooling, CI configuration, tests and test data (some under other licences)

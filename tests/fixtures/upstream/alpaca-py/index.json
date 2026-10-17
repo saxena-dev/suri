@@ -1,0 +1,4102 @@
+{
+  "schema": 1,
+  "upstream": {
+    "repository": "https://github.com/alpacahq/alpaca-py",
+    "commit": "6c15a94e92558b337620d31d6b891e40e85bfef4",
+    "tree": "23a3ae8eabe1efb68f80d48a9be1f8489c30301a",
+    "license": "Apache-2.0"
+  },
+  "extractor": {
+    "path": "tools/fixtures/extract.py",
+    "sha256": "d7ceafec1bb51c59d8ec4ecc70bd8d6347dca031300599c37589f0248162b6eb",
+    "python": "3.14"
+  },
+  "sources": [
+    {
+      "path": "LICENSE",
+      "sha256": "bc84da682744c6dd008cf9ad3306caf18444d613a80c1bcc3de0dd46094787ef"
+    },
+    {
+      "path": "alpaca/common/enums.py",
+      "sha256": "eeec81eb5d484cc0cf643d4bfaa1d9c4ab49f977c6466ef52957ae4ab0cccf3f"
+    },
+    {
+      "path": "tests/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/broker/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/broker/broker_client/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/broker/broker_client/test_account_activities_routes.py",
+      "sha256": "f3cf7baac1ae4fadac2fb4137c8a2399048941f9d416a0422443f6b81d8f2dcd"
+    },
+    {
+      "path": "tests/broker/broker_client/test_accounts_routes.py",
+      "sha256": "811e60f35c4e9baed5eccf20cdd7d12ebddea7c4139300a90c8fbd32cdfb5b6c"
+    },
+    {
+      "path": "tests/broker/broker_client/test_documents_routes.py",
+      "sha256": "a96df3ec2f0711d80580aa5e6486d5fee2964f2a0910e69c7eb37d367079652c"
+    },
+    {
+      "path": "tests/broker/broker_client/test_funding_routes.py",
+      "sha256": "e999a4a6cbfe19a6e19b654d401c893b63fbf01bef41960b79a6879438c4168d"
+    },
+    {
+      "path": "tests/broker/broker_client/test_journal_routes.py",
+      "sha256": "7351a207e66894d1d03bee4bc92723b5f129f199b63520b3aebb11bb4c2a144a"
+    },
+    {
+      "path": "tests/broker/broker_client/test_misc_routes.py",
+      "sha256": "59a4d920b9f0a590bffe25d4a0d87e3e07d0ee6ec0b1195588527c35ff54fb97"
+    },
+    {
+      "path": "tests/broker/broker_client/test_rebalancing_routes.py",
+      "sha256": "fedda5dabafd7a64cd629efab75d1e42ababc8cf24c602c8bff72f72f4211b01"
+    },
+    {
+      "path": "tests/broker/broker_client/test_trading_routes.py",
+      "sha256": "d7817290024e831f535a6ed265ad2354dbaf1ce669dfce1f17179b1eb3d81498"
+    },
+    {
+      "path": "tests/broker/broker_client/test_watchlist_routes.py",
+      "sha256": "b34db79f90d1b7095e46395a52c574cdf38cbdcd7564b4d11884beb6f1cfe718"
+    },
+    {
+      "path": "tests/broker/factories/__init__.py",
+      "sha256": "6b9fc2b1577c194162b07f8d07d8304af268685ca6055318c1ed7b558a52d8ed"
+    },
+    {
+      "path": "tests/broker/factories/accounts.py",
+      "sha256": "4026ed1070185c40e04aae36c3b1989e0fe259ce2d5d38880af05b64892167ab"
+    },
+    {
+      "path": "tests/broker/factories/documents.py",
+      "sha256": "bdf0578801b7919df342520a2e36d43b571350bd9c6d6c526090aa0a7423c058"
+    },
+    {
+      "path": "tests/broker/factories/journals.py",
+      "sha256": "47069e638702e239d082372e1e026fad7c3e07af627f2a23fe00176c504f1597"
+    },
+    {
+      "path": "tests/broker/test_enums.py",
+      "sha256": "cc19fa5dcfb7f623fbd83369f509e047a58801b933e33dea266091888ab95fe1"
+    },
+    {
+      "path": "tests/broker/test_models.py",
+      "sha256": "9b7793dca2918830ad0086860f8e78e4bf658fd2835a68c7f5d95f3b68fdfe20"
+    },
+    {
+      "path": "tests/common/factories/__init__.py",
+      "sha256": "5dbe863e38881a35b5ced3545b8e66dddcfc826a7c63b9d71775f501a39fd23b"
+    },
+    {
+      "path": "tests/common/factories/trading.py",
+      "sha256": "bc5d787a69d96bef8f33912524655e36af176a21599840534eb144edd7854795"
+    },
+    {
+      "path": "tests/common/test_common_models.py",
+      "sha256": "1eed0d449217374e4903dfb034146ce0fcb28a58cc4cb8261ef67701f9de2647"
+    },
+    {
+      "path": "tests/common/test_rest.py",
+      "sha256": "f7e0e34524ef8f9e5c1d86b45fe2e700815b8cf239123e786d5d3f2cdeedfa5d"
+    },
+    {
+      "path": "tests/common/test_version.py",
+      "sha256": "7505acd820d355f9d8d8fff2653dffd4878bbe630c63e715b95bcbbc9f92ecfb"
+    },
+    {
+      "path": "tests/conftest.py",
+      "sha256": "6de182e94c418498e8f8273196af27de055cf78c9e5de963d191db663ff666dc"
+    },
+    {
+      "path": "tests/data/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/data/test_corporate_actions.py",
+      "sha256": "b3208a42b8695f8fab004376b69b5ec74631ee8b2266437a56b2fde3211de50a"
+    },
+    {
+      "path": "tests/data/test_historical_crypto_data.py",
+      "sha256": "389f56198b346c215548f3bf7ed7938cfcd14b5bc7e597a5f26ca3fc913e3b0c"
+    },
+    {
+      "path": "tests/data/test_historical_news_data.py",
+      "sha256": "32c5cbf12db8fb926c483a403f8f44d416c4ffd19e6de5fb31cdbf22bdaa9f7a"
+    },
+    {
+      "path": "tests/data/test_historical_option_data.py",
+      "sha256": "80805625b3253704c542b77ad5985c3ea2e4a9cf81df5603b4895f250f7a2868"
+    },
+    {
+      "path": "tests/data/test_historical_stock_data.py",
+      "sha256": "e002a9628cc3ed6f28b94dcebf814d45f05f13144c3f0c72e1b42083c3762e5e"
+    },
+    {
+      "path": "tests/data/test_screener.py",
+      "sha256": "9a965b42967af0fc2a2ff98d5a280fc789a14d9d2b4a1b2e94e01337d066f6dc"
+    },
+    {
+      "path": "tests/data/test_websockets.py",
+      "sha256": "36d1c216f7173858ca527634cedd5c8ae2769514aec5abe7f54859870e935608"
+    },
+    {
+      "path": "tests/test_streaming_reconnect_issues.py",
+      "sha256": "dd51b55cf5cc8c498a467dc78b2b08bf6e80921a22e6c64861b3fa9fa3b29b43"
+    },
+    {
+      "path": "tests/tools/test_compare_api_breakage.py",
+      "sha256": "0b7c12d31da19a8be43ad7a14ac708060005f4cf6127f041654f6f031712b967"
+    },
+    {
+      "path": "tests/trading/test_trading_models.py",
+      "sha256": "3c9af0134a1888e51174424763defc673fa1d4289d5f2c0139449f882b9fe37c"
+    },
+    {
+      "path": "tests/trading/test_trading_stream.py",
+      "sha256": "b4d6940e943ad19650b5388a24ae9b6e1fac48f06e0755468f57415e876c356c"
+    },
+    {
+      "path": "tests/trading/trading_client/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/trading/trading_client/test_account_routes.py",
+      "sha256": "5870069bc91ac460608fc3c273dee45a1599031eda286ef76ecce37a1b31c3fa"
+    },
+    {
+      "path": "tests/trading/trading_client/test_asset_routes.py",
+      "sha256": "1661da1fd7c51fbc0550740d661e90bef16229fdb48afc22163d29f654010342"
+    },
+    {
+      "path": "tests/trading/trading_client/test_corporate_announcements.py",
+      "sha256": "696e93784826f89aa6f68c16b74fe6762ca0ddf9e5db269d9db1e8f5f80263d6"
+    },
+    {
+      "path": "tests/trading/trading_client/test_option_routes.py",
+      "sha256": "f90e137e8eabb6a5411363978e0a2b22d33ef7a7b21d8c5b1bfcf9a99ec543a6"
+    },
+    {
+      "path": "tests/trading/trading_client/test_order_routes.py",
+      "sha256": "6b8180477c009d721fcec88ff0bce49efafdfd6b35e3dbbeb42a3d8bd73f8247"
+    },
+    {
+      "path": "tests/trading/trading_client/test_position_routes.py",
+      "sha256": "4f3b7966b8799477991729af4a2ae5cdfa3be047748f5e5c2c7157918d7e2550"
+    }
+  ],
+  "excluded": [
+    {
+      "path": "tests/broker/broker_client/test_journal_routes.py",
+      "qualname": "test_get_journal_by_id",
+      "line": 261,
+      "reason": "shadowed-definition"
+    },
+    {
+      "path": "tests/live/",
+      "qualname": null,
+      "line": null,
+      "reason": "live-probe"
+    }
+  ],
+  "fixtures": [
+    {
+      "id": "broker/broker_client/test_account_activities_routes::setup_reqmock_for_paginated_account_activities_response::GET /v1/accounts/activities#0@0",
+      "file": "broker/broker_client/test_account_activities_routes/setup_reqmock_for_paginated_account_activities_response/get-v1-accounts-activities-0-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_account_activities_routes.py",
+        "line": 107,
+        "qualname": "setup_reqmock_for_paginated_account_activities_response"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/accounts/activities",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1449,
+      "sha256": "3499ca29b9f609f8ee4d27b26449ab8be34e97e17b7552856735b66545f82d42",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_account_activities_routes::setup_reqmock_for_paginated_account_activities_response::GET /v1/accounts/activities#0@1",
+      "file": "broker/broker_client/test_account_activities_routes/setup_reqmock_for_paginated_account_activities_response/get-v1-accounts-activities-0-1.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_account_activities_routes.py",
+        "line": 107,
+        "qualname": "setup_reqmock_for_paginated_account_activities_response"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/accounts/activities",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1232,
+      "sha256": "1c30b80af66d6760d57c23cfb8d3ce331737baa3b74c17ff2bbe7176082e2a94",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_account_activities_routes::setup_reqmock_for_paginated_account_activities_response::GET /v1/accounts/activities#0@2",
+      "file": "broker/broker_client/test_account_activities_routes/setup_reqmock_for_paginated_account_activities_response/get-v1-accounts-activities-0-2.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_account_activities_routes.py",
+        "line": 107,
+        "qualname": "setup_reqmock_for_paginated_account_activities_response"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/accounts/activities",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_account_activities_routes::test_get_activities_for_account_max_items_and_single_request_date::GET /v1/accounts/activities#0",
+      "file": "broker/broker_client/test_account_activities_routes/test_get_activities_for_account_max_items_and_single_request_date/get-v1-accounts-activities-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_account_activities_routes.py",
+        "line": 159,
+        "qualname": "test_get_activities_for_account_max_items_and_single_request_date"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/accounts/activities",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 2990,
+      "sha256": "5bfdb1335cf4b1802abd546c6d56a891457eafd4b461e3d48ba5b446cd71092f",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_account_activities_routes::test_get_activities_for_account_none_pagination_empty_page_returns_empty_list::GET /v1/accounts/activities#0",
+      "file": "broker/broker_client/test_account_activities_routes/test_get_activities_for_account_none_pagination_empty_page_returns_empty_list/get-v1-accounts-activities-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_account_activities_routes.py",
+        "line": 301,
+        "qualname": "test_get_activities_for_account_none_pagination_empty_page_returns_empty_list"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/accounts/activities",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "json-literal",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_accounts_routes::test_close_account::POST /v1/accounts/{account_id}/actions/close#0",
+      "file": "broker/broker_client/test_accounts_routes/test_close_account/post-v1-accounts-account-id-actions-close-0.empty",
+      "source": {
+        "path": "tests/broker/broker_client/test_accounts_routes.py",
+        "line": 703,
+        "qualname": "test_close_account"
+      },
+      "family": "broker",
+      "method": "POST",
+      "path": "/v1/accounts/{account_id}/actions/close",
+      "query": null,
+      "status": 204,
+      "headers": {},
+      "kind": "empty",
+      "origin": "none",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_accounts_routes::test_create_account::POST /v1/accounts#0",
+      "file": "broker/broker_client/test_accounts_routes/test_create_account/post-v1-accounts-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_accounts_routes.py",
+        "line": 56,
+        "qualname": "test_create_account"
+      },
+      "family": "broker",
+      "method": "POST",
+      "path": "/v1/accounts",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 2634,
+      "sha256": "bf99ed5d0a0c51dc6f8cd163751e538d7b29c4ec383df3c128db8460c3896178",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_accounts_routes::test_create_ira_account::POST /v1/accounts#0",
+      "file": "broker/broker_client/test_accounts_routes/test_create_ira_account/post-v1-accounts-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_accounts_routes.py",
+        "line": 164,
+        "qualname": "test_create_ira_account"
+      },
+      "family": "broker",
+      "method": "POST",
+      "path": "/v1/accounts",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 2675,
+      "sha256": "a7191ca5e092494ff52846cdade5ff14f2533c5c20f3a95b47863fd2d440ead5",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_accounts_routes::test_create_lct_account::POST /v1/accounts#0",
+      "file": "broker/broker_client/test_accounts_routes/test_create_lct_account/post-v1-accounts-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_accounts_routes.py",
+        "line": 275,
+        "qualname": "test_create_lct_account"
+      },
+      "family": "broker",
+      "method": "POST",
+      "path": "/v1/accounts",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 2694,
+      "sha256": "0da6c7a199b49a0e5dfcf807bcff89335e96d1a27c10b710864f6694c833c0c3",
+      "notes": [
+        "duplicate-key:currency"
+      ]
+    },
+    {
+      "id": "broker/broker_client/test_accounts_routes::test_delete_account::POST /v1/accounts/{account_id}/actions/close#0",
+      "file": "broker/broker_client/test_accounts_routes/test_delete_account/post-v1-accounts-account-id-actions-close-0.empty",
+      "source": {
+        "path": "tests/broker/broker_client/test_accounts_routes.py",
+        "line": 682,
+        "qualname": "test_delete_account"
+      },
+      "family": "broker",
+      "method": "POST",
+      "path": "/v1/accounts/{account_id}/actions/close",
+      "query": null,
+      "status": 204,
+      "headers": {},
+      "kind": "empty",
+      "origin": "none",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_accounts_routes::test_exercise_options_position_empty_body_returns_none::POST /v1/trading/accounts/{account_id}/positions/{symbol_or_contract_id}/exercise#0",
+      "file": "broker/broker_client/test_accounts_routes/test_exercise_options_position_empty_body_returns_none/post-v1-trading-accounts-account-id-positions-symbol-or-contract-id-exercise-0.empty",
+      "source": {
+        "path": "tests/broker/broker_client/test_accounts_routes.py",
+        "line": 1252,
+        "qualname": "test_exercise_options_position_empty_body_returns_none"
+      },
+      "family": "broker",
+      "method": "POST",
+      "path": "/v1/trading/accounts/{account_id}/positions/{symbol_or_contract_id}/exercise",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "empty",
+      "origin": "text",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_accounts_routes::test_exercise_options_position_returns_quantities::POST /v1/trading/accounts/{account_id}/positions/{symbol_or_contract_id}/exercise#0",
+      "file": "broker/broker_client/test_accounts_routes/test_exercise_options_position_returns_quantities/post-v1-trading-accounts-account-id-positions-symbol-or-contract-id-exercise-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_accounts_routes.py",
+        "line": 1213,
+        "qualname": "test_exercise_options_position_returns_quantities"
+      },
+      "family": "broker",
+      "method": "POST",
+      "path": "/v1/trading/accounts/{account_id}/positions/{symbol_or_contract_id}/exercise",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "json-literal",
+      "bytes": 44,
+      "sha256": "17052b4e0ccd4837919bf2d377a0154edd8103d7373a0f5ee8635c228b41ebac",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_accounts_routes::test_exercise_options_position_sends_qty::POST /v1/trading/accounts/{account_id}/positions/{symbol_or_contract_id}/exercise#0",
+      "file": "broker/broker_client/test_accounts_routes/test_exercise_options_position_sends_qty/post-v1-trading-accounts-account-id-positions-symbol-or-contract-id-exercise-0.empty",
+      "source": {
+        "path": "tests/broker/broker_client/test_accounts_routes.py",
+        "line": 1193,
+        "qualname": "test_exercise_options_position_sends_qty"
+      },
+      "family": "broker",
+      "method": "POST",
+      "path": "/v1/trading/accounts/{account_id}/positions/{symbol_or_contract_id}/exercise",
+      "query": null,
+      "status": 204,
+      "headers": {},
+      "kind": "empty",
+      "origin": "none",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_accounts_routes::test_exercise_options_position_with_symbol_and_commission::POST /v1/trading/accounts/{account_id}/positions/{symbol_or_contract_id}/exercise#0",
+      "file": "broker/broker_client/test_accounts_routes/test_exercise_options_position_with_symbol_and_commission/post-v1-trading-accounts-account-id-positions-symbol-or-contract-id-exercise-0.empty",
+      "source": {
+        "path": "tests/broker/broker_client/test_accounts_routes.py",
+        "line": 1173,
+        "qualname": "test_exercise_options_position_with_symbol_and_commission"
+      },
+      "family": "broker",
+      "method": "POST",
+      "path": "/v1/trading/accounts/{account_id}/positions/{symbol_or_contract_id}/exercise",
+      "query": null,
+      "status": 204,
+      "headers": {},
+      "kind": "empty",
+      "origin": "none",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_accounts_routes::test_get_account::GET /v1/accounts/{account_id}#0",
+      "file": "broker/broker_client/test_accounts_routes/test_get_account/get-v1-accounts-account-id-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_accounts_routes.py",
+        "line": 389,
+        "qualname": "test_get_account"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/accounts/{account_id}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 3064,
+      "sha256": "76b54bd10164a0dfd62aa8c2c46cc1a98d3c7c3605164648c5c6ea664302ec6e",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_accounts_routes::test_get_account_account_not_found::GET /v1/accounts/{account_id}#0",
+      "file": "broker/broker_client/test_accounts_routes/test_get_account_account_not_found/get-v1-accounts-account-id-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_accounts_routes.py",
+        "line": 502,
+        "qualname": "test_get_account_account_not_found"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/accounts/{account_id}",
+      "query": null,
+      "status": 401,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 106,
+      "sha256": "8996130850e297fa20d2d07f4f456a2fc5032bbbadbcdef4016c7cb64e62c902",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_accounts_routes::test_get_account_by_id_raw_data_keeps_extended_fields::GET /v1/accounts/{account_id}#0",
+      "file": "broker/broker_client/test_accounts_routes/test_get_account_by_id_raw_data_keeps_extended_fields/get-v1-accounts-account-id-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_accounts_routes.py",
+        "line": 1268,
+        "qualname": "test_get_account_by_id_raw_data_keeps_extended_fields"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/accounts/{account_id}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "json-literal",
+      "bytes": 314,
+      "sha256": "967dc4e79942bca497a69823fb6341eea05e6d3f77cc61e8cde166d8261535cf",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_accounts_routes::test_get_trade_account_by_id::GET /v1/trading/accounts/{account_id}/account#0",
+      "file": "broker/broker_client/test_accounts_routes/test_get_trade_account_by_id/get-v1-trading-accounts-account-id-account-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_accounts_routes.py",
+        "line": 925,
+        "qualname": "test_get_trade_account_by_id"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/trading/accounts/{account_id}/account",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1630,
+      "sha256": "41d10e170901b7b0532813b4fa9af27813895d0e18fcff6bc10e1f64644dccaf",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_accounts_routes::test_get_trade_account_by_id_without_deprecated_pdt_fields::GET /v1/trading/accounts/{account_id}/account#0",
+      "file": "broker/broker_client/test_accounts_routes/test_get_trade_account_by_id_without_deprecated_pdt_fields/get-v1-trading-accounts-account-id-account-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_accounts_routes.py",
+        "line": 996,
+        "qualname": "test_get_trade_account_by_id_without_deprecated_pdt_fields"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/trading/accounts/{account_id}/account",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1435,
+      "sha256": "98ec7e05fa7f326bdd97d9eccfec6e9d04f99ba5840275975bf6637df12d3769",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_accounts_routes::test_get_trade_configuration_for_account::GET /v1/trading/accounts/{account_id}/account/configurations#0",
+      "file": "broker/broker_client/test_accounts_routes/test_get_trade_configuration_for_account/get-v1-trading-accounts-account-id-account-configurations-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_accounts_routes.py",
+        "line": 1067,
+        "qualname": "test_get_trade_configuration_for_account"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/trading/accounts/{account_id}/account/configurations",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 319,
+      "sha256": "1f4aec033af02f4e8c262b6c3f8debd5280b02be2f94e62b7fec4e8ee2376245",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_accounts_routes::test_list_accounts_no_params::GET /v1/accounts#0",
+      "file": "broker/broker_client/test_accounts_routes/test_list_accounts_no_params/get-v1-accounts-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_accounts_routes.py",
+        "line": 721,
+        "qualname": "test_list_accounts_no_params"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/accounts",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1071,
+      "sha256": "6c815243f4d6c90f0d38105fbfa1150edd90fd85491bc0a9b723b440ef66b996",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_accounts_routes::test_list_accounts_parses_entities_if_present::GET /v1/accounts#0",
+      "file": "broker/broker_client/test_accounts_routes/test_list_accounts_parses_entities_if_present/get-v1-accounts-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_accounts_routes.py",
+        "line": 794,
+        "qualname": "test_list_accounts_parses_entities_if_present"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/accounts",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 3007,
+      "sha256": "c92403b26d188b89d76a7863cbc4f106c04f45543987efd2ada999aa6699a4a3",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_accounts_routes::test_update_account::PATCH /v1/accounts/{account_id}#0",
+      "file": "broker/broker_client/test_accounts_routes/test_update_account/patch-v1-accounts-account-id-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_accounts_routes.py",
+        "line": 538,
+        "qualname": "test_update_account"
+      },
+      "family": "broker",
+      "method": "PATCH",
+      "path": "/v1/accounts/{account_id}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 3474,
+      "sha256": "46157e4274167018542e530a6c890295f2d6cb9099b495810dd8d23c52c8bddb",
+      "notes": [
+        "redacted:aws-access-key-id"
+      ]
+    },
+    {
+      "id": "broker/broker_client/test_accounts_routes::test_update_trade_configuration_for_account::PATCH /v1/trading/accounts/{account_id}/account/configurations#0",
+      "file": "broker/broker_client/test_accounts_routes/test_update_trade_configuration_for_account/patch-v1-trading-accounts-account-id-account-configurations-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_accounts_routes.py",
+        "line": 1121,
+        "qualname": "test_update_trade_configuration_for_account"
+      },
+      "family": "broker",
+      "method": "PATCH",
+      "path": "/v1/trading/accounts/{account_id}/account/configurations",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 320,
+      "sha256": "96f6d02fbf919d73a7cc8530e738f9f6867a41b2c839163783dffbe27142bb4d",
+      "notes": [
+        "request-matcher:match_request_json"
+      ]
+    },
+    {
+      "id": "broker/broker_client/test_documents_routes::test_download_trade_document_for_account_by_id::GET /v1/accounts/{account_id}/documents/{document_id}/download#0",
+      "file": "broker/broker_client/test_documents_routes/test_download_trade_document_for_account_by_id/get-v1-accounts-account-id-documents-document-id-download-0.txt",
+      "source": {
+        "path": "tests/broker/broker_client/test_documents_routes.py",
+        "line": 238,
+        "qualname": "test_download_trade_document_for_account_by_id"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/accounts/{account_id}/documents/{document_id}/download",
+      "query": null,
+      "status": 301,
+      "headers": {
+        "Location": "https://fake-dl.com/2a87c089-ffb6-472b-a4a3-cd9305c8605d"
+      },
+      "kind": "text",
+      "origin": "text",
+      "bytes": 127,
+      "sha256": "48ea299afcea732b0f9a57250adfad8cb7cb616999182509c653c3147387b3ea",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_documents_routes::test_download_trade_document_for_account_by_id::GET /{document_id}#0",
+      "file": "broker/broker_client/test_documents_routes/test_download_trade_document_for_account_by_id/get-document-id-0.txt",
+      "source": {
+        "path": "tests/broker/broker_client/test_documents_routes.py",
+        "line": 250,
+        "qualname": "test_download_trade_document_for_account_by_id"
+      },
+      "family": "other",
+      "method": "GET",
+      "path": "/{document_id}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "text",
+      "origin": "text",
+      "bytes": 40,
+      "sha256": "41182003e1011cbf4a136c3cecd993bde7fb6df382e68953bc7b4012910eb2f6",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_documents_routes::test_get_trade_document_for_account_by_id::GET /v1/accounts/{account_id}/documents/{document_id}#0",
+      "file": "broker/broker_client/test_documents_routes/test_get_trade_document_for_account_by_id/get-v1-accounts-account-id-documents-document-id-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_documents_routes.py",
+        "line": 192,
+        "qualname": "test_get_trade_document_for_account_by_id"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/accounts/{account_id}/documents/{document_id}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 203,
+      "sha256": "c6c66df569ac825c8fac3a3d4bb639ed827223cce8b4297fed3e8fc1da5ca51b",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_documents_routes::test_get_trade_documents_for_account::GET /v1/accounts/{account_id}/documents#0",
+      "file": "broker/broker_client/test_documents_routes/test_get_trade_documents_for_account/get-v1-accounts-account-id-documents-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_documents_routes.py",
+        "line": 25,
+        "qualname": "test_get_trade_documents_for_account"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/accounts/{account_id}/documents",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 446,
+      "sha256": "b2f8d5b5070a8b5ea2779d18a46500c3e438e0167739b8f6d33374248931d41c",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_documents_routes::test_upload_documents_to_account::POST /v1/accounts/{account_id}/documents/upload#0",
+      "file": "broker/broker_client/test_documents_routes/test_upload_documents_to_account/post-v1-accounts-account-id-documents-upload-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_documents_routes.py",
+        "line": 80,
+        "qualname": "test_upload_documents_to_account"
+      },
+      "family": "broker",
+      "method": "POST",
+      "path": "/v1/accounts/{account_id}/documents/upload",
+      "query": null,
+      "status": 202,
+      "headers": {},
+      "kind": "json",
+      "origin": "json-literal",
+      "bytes": 2,
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_documents_routes::test_upload_documents_to_account_w8ben::POST /v1/accounts/{account_id}/documents/upload#0",
+      "file": "broker/broker_client/test_documents_routes/test_upload_documents_to_account_w8ben/post-v1-accounts-account-id-documents-upload-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_documents_routes.py",
+        "line": 108,
+        "qualname": "test_upload_documents_to_account_w8ben"
+      },
+      "family": "broker",
+      "method": "POST",
+      "path": "/v1/accounts/{account_id}/documents/upload",
+      "query": null,
+      "status": 202,
+      "headers": {},
+      "kind": "json",
+      "origin": "json-literal",
+      "bytes": 2,
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_funding_routes::setup_reqmock_for_paginated_transfers_response::GET /v1/accounts/{account_id}/transfers#0@0",
+      "file": "broker/broker_client/test_funding_routes/setup_reqmock_for_paginated_transfers_response/get-v1-accounts-account-id-transfers-0-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_funding_routes.py",
+        "line": 392,
+        "qualname": "setup_reqmock_for_paginated_transfers_response"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/accounts/{account_id}/transfers",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1869,
+      "sha256": "83afe92c12feebe23f3b0a28e6669675d2a1cf49987e789a15aa0b8ac9db0a3b",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_funding_routes::setup_reqmock_for_paginated_transfers_response::GET /v1/accounts/{account_id}/transfers#0@1",
+      "file": "broker/broker_client/test_funding_routes/setup_reqmock_for_paginated_transfers_response/get-v1-accounts-account-id-transfers-0-1.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_funding_routes.py",
+        "line": 392,
+        "qualname": "setup_reqmock_for_paginated_transfers_response"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/accounts/{account_id}/transfers",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1900,
+      "sha256": "cb548d2d54c10a59e488cdab34ca1009a608ccfd73429d6afb9c434fb55cfc56",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_funding_routes::setup_reqmock_for_paginated_transfers_response::GET /v1/accounts/{account_id}/transfers#0@2",
+      "file": "broker/broker_client/test_funding_routes/setup_reqmock_for_paginated_transfers_response/get-v1-accounts-account-id-transfers-0-2.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_funding_routes.py",
+        "line": 392,
+        "qualname": "setup_reqmock_for_paginated_transfers_response"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/accounts/{account_id}/transfers",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_funding_routes::test_cancel_transfer_for_account::DELETE /v1/accounts/{account_id}/transfers/{transfer_id}#0",
+      "file": "broker/broker_client/test_funding_routes/test_cancel_transfer_for_account/delete-v1-accounts-account-id-transfers-transfer-id-0.empty",
+      "source": {
+        "path": "tests/broker/broker_client/test_funding_routes.py",
+        "line": 531,
+        "qualname": "test_cancel_transfer_for_account"
+      },
+      "family": "broker",
+      "method": "DELETE",
+      "path": "/v1/accounts/{account_id}/transfers/{transfer_id}",
+      "query": null,
+      "status": 204,
+      "headers": {},
+      "kind": "empty",
+      "origin": "none",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_funding_routes::test_create_ach_relationship_for_account::POST /v1/accounts/{account_id}/ach_relationships#0",
+      "file": "broker/broker_client/test_funding_routes/test_create_ach_relationship_for_account/post-v1-accounts-account-id-ach-relationships-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_funding_routes.py",
+        "line": 32,
+        "qualname": "test_create_ach_relationship_for_account"
+      },
+      "family": "broker",
+      "method": "POST",
+      "path": "/v1/accounts/{account_id}/ach_relationships",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 487,
+      "sha256": "6e9a25518af67df393efb4dda53892b5280b4845a399e3c5c6ef5cf04acffa74",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_funding_routes::test_create_bank_for_account::POST /v1/accounts/{account_id}/recipient_banks#0",
+      "file": "broker/broker_client/test_funding_routes/test_create_bank_for_account/post-v1-accounts-account-id-recipient-banks-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_funding_routes.py",
+        "line": 145,
+        "qualname": "test_create_bank_for_account"
+      },
+      "family": "broker",
+      "method": "POST",
+      "path": "/v1/accounts/{account_id}/recipient_banks",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 585,
+      "sha256": "0d78a6ad937951044938d0648fe48351854c6ebcffb66c6ecd85ae7f481c6627",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_funding_routes::test_create_transfer_for_account::POST /v1/accounts/{account_id}/transfers#0",
+      "file": "broker/broker_client/test_funding_routes/test_create_transfer_for_account/post-v1-accounts-account-id-transfers-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_funding_routes.py",
+        "line": 248,
+        "qualname": "test_create_transfer_for_account"
+      },
+      "family": "broker",
+      "method": "POST",
+      "path": "/v1/accounts/{account_id}/transfers",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 626,
+      "sha256": "f13554a4dd0433f7abf33538a1e9dcf1ab0a4c72a2dc161825734a82f0919c82",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_funding_routes::test_delete_ach_relationship_for_account::DELETE /v1/accounts/{account_id}/ach_relationships/{relationship_id}#0",
+      "file": "broker/broker_client/test_funding_routes/test_delete_ach_relationship_for_account/delete-v1-accounts-account-id-ach-relationships-relationship-id-0.empty",
+      "source": {
+        "path": "tests/broker/broker_client/test_funding_routes.py",
+        "line": 131,
+        "qualname": "test_delete_ach_relationship_for_account"
+      },
+      "family": "broker",
+      "method": "DELETE",
+      "path": "/v1/accounts/{account_id}/ach_relationships/{relationship_id}",
+      "query": null,
+      "status": 204,
+      "headers": {},
+      "kind": "empty",
+      "origin": "none",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_funding_routes::test_delete_bank_for_account::DELETE /v1/accounts/{account_id}/recipient_banks/{bank_id}#0",
+      "file": "broker/broker_client/test_funding_routes/test_delete_bank_for_account/delete-v1-accounts-account-id-recipient-banks-bank-id-0.empty",
+      "source": {
+        "path": "tests/broker/broker_client/test_funding_routes.py",
+        "line": 236,
+        "qualname": "test_delete_bank_for_account"
+      },
+      "family": "broker",
+      "method": "DELETE",
+      "path": "/v1/accounts/{account_id}/recipient_banks/{bank_id}",
+      "query": null,
+      "status": 204,
+      "headers": {},
+      "kind": "empty",
+      "origin": "none",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_funding_routes::test_get_ach_relationships_for_account::GET /v1/accounts/{account_id}/ach_relationships#0",
+      "file": "broker/broker_client/test_funding_routes/test_get_ach_relationships_for_account/get-v1-accounts-account-id-ach-relationships-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_funding_routes.py",
+        "line": 65,
+        "qualname": "test_get_ach_relationships_for_account"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/accounts/{account_id}/ach_relationships",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 551,
+      "sha256": "1e20e6e50dcb99ccfbd37bcd5cfcb7d167bdf5c20a0dd2b2c0204e44a3f79dc1",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_funding_routes::test_get_ach_relationships_for_account_with_statuses::GET /v1/accounts/{account_id}/ach_relationships#0",
+      "file": "broker/broker_client/test_funding_routes/test_get_ach_relationships_for_account_with_statuses/get-v1-accounts-account-id-ach-relationships-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_funding_routes.py",
+        "line": 94,
+        "qualname": "test_get_ach_relationships_for_account_with_statuses"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/accounts/{account_id}/ach_relationships",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 551,
+      "sha256": "1e20e6e50dcb99ccfbd37bcd5cfcb7d167bdf5c20a0dd2b2c0204e44a3f79dc1",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_funding_routes::test_get_banks_for_account::GET /v1/accounts/{account_id}/recipient_banks#0",
+      "file": "broker/broker_client/test_funding_routes/test_get_banks_for_account/get-v1-accounts-account-id-recipient-banks-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_funding_routes.py",
+        "line": 184,
+        "qualname": "test_get_banks_for_account"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/accounts/{account_id}/recipient_banks",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 669,
+      "sha256": "9ece826012e2df8330cb58d7115fd601bdd344aed2f0727b893eb99308a0225f",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_funding_routes::test_get_banks_for_account_sends_status_and_name::GET /v1/accounts/{account_id}/recipient_banks#0",
+      "file": "broker/broker_client/test_funding_routes/test_get_banks_for_account_sends_status_and_name/get-v1-accounts-account-id-recipient-banks-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_funding_routes.py",
+        "line": 217,
+        "qualname": "test_get_banks_for_account_sends_status_and_name"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/accounts/{account_id}/recipient_banks",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_funding_routes::test_get_transfers_for_account_keeps_ira::GET /v1/accounts/{account_id}/transfers#0",
+      "file": "broker/broker_client/test_funding_routes/test_get_transfers_for_account_keeps_ira/get-v1-accounts-account-id-transfers-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_funding_routes.py",
+        "line": 542,
+        "qualname": "test_get_transfers_for_account_keeps_ira"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/accounts/{account_id}/transfers",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 668,
+      "sha256": "2247b0302d7a1ef269710b9813f71254299d70ac5ccf389c8ac686eccbf11399",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_funding_routes::test_get_transfers_for_account_none_pagination_empty_page_returns_empty_list::GET /v1/accounts/{account_id}/transfers#0",
+      "file": "broker/broker_client/test_funding_routes/test_get_transfers_for_account_none_pagination_empty_page_returns_empty_list/get-v1-accounts-account-id-transfers-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_funding_routes.py",
+        "line": 463,
+        "qualname": "test_get_transfers_for_account_none_pagination_empty_page_returns_empty_list"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/accounts/{account_id}/transfers",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "json-literal",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_journal_routes::test_batch_journal::POST /v1/journals/batch#0",
+      "file": "broker/broker_client/test_journal_routes/test_batch_journal/post-v1-journals-batch-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_journal_routes.py",
+        "line": 97,
+        "qualname": "test_batch_journal"
+      },
+      "family": "broker",
+      "method": "POST",
+      "path": "/v1/journals/batch",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1141,
+      "sha256": "232cf6ec0df7c08d025b5f84f994a9f0476e6901cadcd046faaf3b9c87d6fd8e",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_journal_routes::test_create_journal::POST /v1/journals#0",
+      "file": "broker/broker_client/test_journal_routes/test_create_journal/post-v1-journals-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_journal_routes.py",
+        "line": 29,
+        "qualname": "test_create_journal"
+      },
+      "family": "broker",
+      "method": "POST",
+      "path": "/v1/journals",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 470,
+      "sha256": "0a3968e49f16b36959327fd9fc423d8bc569065f40a0fb82fef474f7edf46c4d",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_journal_routes::test_create_lct_journal::POST /v1/journals#0",
+      "file": "broker/broker_client/test_journal_routes/test_create_lct_journal/post-v1-journals-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_journal_routes.py",
+        "line": 61,
+        "qualname": "test_create_lct_journal"
+      },
+      "family": "broker",
+      "method": "POST",
+      "path": "/v1/journals",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 470,
+      "sha256": "e4e81e18ad6c71e7906946e993c54412e608adacd477959c5c5d384d149757de",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_journal_routes::test_get_journal_by_id::DELETE /v1/journals/{journal_id}#0",
+      "file": "broker/broker_client/test_journal_routes/test_get_journal_by_id/delete-v1-journals-journal-id-0.empty",
+      "source": {
+        "path": "tests/broker/broker_client/test_journal_routes.py",
+        "line": 294,
+        "qualname": "test_get_journal_by_id"
+      },
+      "family": "broker",
+      "method": "DELETE",
+      "path": "/v1/journals/{journal_id}",
+      "query": null,
+      "status": 204,
+      "headers": {},
+      "kind": "empty",
+      "origin": "none",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_journal_routes::test_get_journals::GET /v1/journals#0",
+      "file": "broker/broker_client/test_journal_routes/test_get_journals/get-v1-journals-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_journal_routes.py",
+        "line": 205,
+        "qualname": "test_get_journals"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/journals",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1207,
+      "sha256": "c210198660e49f39cabe193b6635609f2ac3f795c33139d1700fa58a899194f2",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_journal_routes::test_get_journals_sends_limit::GET /v1/journals#0",
+      "file": "broker/broker_client/test_journal_routes/test_get_journals_sends_limit/get-v1-journals-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_journal_routes.py",
+        "line": 251,
+        "qualname": "test_get_journals_sends_limit"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/journals",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_journal_routes::test_reverse_batch_journal::POST /v1/journals/reverse_batch#0",
+      "file": "broker/broker_client/test_journal_routes/test_reverse_batch_journal/post-v1-journals-reverse-batch-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_journal_routes.py",
+        "line": 151,
+        "qualname": "test_reverse_batch_journal"
+      },
+      "family": "broker",
+      "method": "POST",
+      "path": "/v1/journals/reverse_batch",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1281,
+      "sha256": "869303cbf2ca20a2982b3e2f2246de72366e29589c74b316065c1e926f6dbe7a",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_misc_routes::test_get_calendar::GET /v1/calendar#0",
+      "file": "broker/broker_client/test_misc_routes/test_get_calendar/get-v1-calendar-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_misc_routes.py",
+        "line": 10,
+        "qualname": "test_get_calendar"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/calendar",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 408,
+      "sha256": "0eb075fa15843dacc0f2ce9ef3e935716ba8f252218a5580959260fe82a957a0",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_misc_routes::test_get_clock::GET /v1/clock#0",
+      "file": "broker/broker_client/test_misc_routes/test_get_clock/get-v1-clock-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_misc_routes.py",
+        "line": 51,
+        "qualname": "test_get_clock"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/clock",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 222,
+      "sha256": "3bf7f5d9cf4fecda25dc32185b0ff49b9d73a9c34800c5348d7a9d977c046eb1",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_rebalancing_routes::test_cancel_run_by_id::DELETE /v1/rebalancing/runs/{run_id}#0",
+      "file": "broker/broker_client/test_rebalancing_routes/test_cancel_run_by_id/delete-v1-rebalancing-runs-run-id-0.empty",
+      "source": {
+        "path": "tests/broker/broker_client/test_rebalancing_routes.py",
+        "line": 662,
+        "qualname": "test_cancel_run_by_id"
+      },
+      "family": "broker",
+      "method": "DELETE",
+      "path": "/v1/rebalancing/runs/{run_id}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "empty",
+      "origin": "none",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_rebalancing_routes::test_create_manual_run::POST /v1/rebalancing/runs#0",
+      "file": "broker/broker_client/test_rebalancing_routes/test_create_manual_run/post-v1-rebalancing-runs-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_rebalancing_routes.py",
+        "line": 446,
+        "qualname": "test_create_manual_run"
+      },
+      "family": "broker",
+      "method": "POST",
+      "path": "/v1/rebalancing/runs",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1200,
+      "sha256": "fbf01953bc3f3c4dee3db5b21b4f6ede8e0f96fbf657a4d2c759ce35094aa463",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_rebalancing_routes::test_create_portfolio::POST /v1/rebalancing/portfolios#0",
+      "file": "broker/broker_client/test_rebalancing_routes/test_create_portfolio/post-v1-rebalancing-portfolios-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_rebalancing_routes.py",
+        "line": 26,
+        "qualname": "test_create_portfolio"
+      },
+      "family": "broker",
+      "method": "POST",
+      "path": "/v1/rebalancing/portfolios",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1295,
+      "sha256": "b6bbbd0d09f37a57e32bb2bb55c3f817fee21675eebef2152b4d021abd4f8eff",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_rebalancing_routes::test_create_subscription::POST /v1/rebalancing/subscriptions#0",
+      "file": "broker/broker_client/test_rebalancing_routes/test_create_subscription/post-v1-rebalancing-subscriptions-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_rebalancing_routes.py",
+        "line": 360,
+        "qualname": "test_create_subscription"
+      },
+      "family": "broker",
+      "method": "POST",
+      "path": "/v1/rebalancing/subscriptions",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 353,
+      "sha256": "f11be52aa5bd7786e64ebe8237c2fc330178a35656d6fb470d066d33d749d34b",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_rebalancing_routes::test_get_all_portfolios::GET /v1/rebalancing/portfolios#0",
+      "file": "broker/broker_client/test_rebalancing_routes/test_get_all_portfolios/get-v1-rebalancing-portfolios-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_rebalancing_routes.py",
+        "line": 96,
+        "qualname": "test_get_all_portfolios"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/rebalancing/portfolios",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 3342,
+      "sha256": "a506b2b85de9effc8bdd8ba5a89b45be74b47d9cf6ae9d8154085e70bd99d5a2",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_rebalancing_routes::test_get_all_runs::GET /v1/rebalancing/runs#0@0",
+      "file": "broker/broker_client/test_rebalancing_routes/test_get_all_runs/get-v1-rebalancing-runs-0-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_rebalancing_routes.py",
+        "line": 502,
+        "qualname": "test_get_all_runs"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/rebalancing/runs",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1663,
+      "sha256": "89638475f2c07d37587b7ed10d9bcaa113eb66839c0899fadba2763d03ca6693",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_rebalancing_routes::test_get_all_runs::GET /v1/rebalancing/runs#0@1",
+      "file": "broker/broker_client/test_rebalancing_routes/test_get_all_runs/get-v1-rebalancing-runs-0-1.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_rebalancing_routes.py",
+        "line": 502,
+        "qualname": "test_get_all_runs"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/rebalancing/runs",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 2198,
+      "sha256": "c9ce6408fd34f6452557e24285eb5af8e5d4453e89c3a37446d4ef1c8370d625",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_rebalancing_routes::test_get_all_runs_none_empty_page_returns_empty_list::GET /v1/rebalancing/runs#0",
+      "file": "broker/broker_client/test_rebalancing_routes/test_get_all_runs_none_empty_page_returns_empty_list/get-v1-rebalancing-runs-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_rebalancing_routes.py",
+        "line": 779,
+        "qualname": "test_get_all_runs_none_empty_page_returns_empty_list"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/rebalancing/runs",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "json-literal",
+      "bytes": 37,
+      "sha256": "84a3de26331749173ce278a3eb4db95de07659d8ae6258cded3a79b2c1b4bb85",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_rebalancing_routes::test_get_all_subscriptions::GET /v1/rebalancing/subscriptions#0",
+      "file": "broker/broker_client/test_rebalancing_routes/test_get_all_subscriptions/get-v1-rebalancing-subscriptions-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_rebalancing_routes.py",
+        "line": 386,
+        "qualname": "test_get_all_subscriptions"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/rebalancing/subscriptions",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 387,
+      "sha256": "17c1176352132f0005c000ed2a27d14b0db7d0db7f97f42a69a0ecd2c12be5d7",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_rebalancing_routes::test_get_all_subscriptions_none_empty_page_returns_empty_list::GET /v1/rebalancing/subscriptions#0",
+      "file": "broker/broker_client/test_rebalancing_routes/test_get_all_subscriptions_none_empty_page_returns_empty_list/get-v1-rebalancing-subscriptions-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_rebalancing_routes.py",
+        "line": 722,
+        "qualname": "test_get_all_subscriptions_none_empty_page_returns_empty_list"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/rebalancing/subscriptions",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "json-literal",
+      "bytes": 46,
+      "sha256": "3215d067f6496c965522f8328728a0452549481780e14bf4873dec7970fa0739",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_rebalancing_routes::test_get_all_subscriptions_none_returns_first_page_as_list::GET /v1/rebalancing/subscriptions#0",
+      "file": "broker/broker_client/test_rebalancing_routes/test_get_all_subscriptions_none_returns_first_page_as_list/get-v1-rebalancing-subscriptions-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_rebalancing_routes.py",
+        "line": 670,
+        "qualname": "test_get_all_subscriptions_none_returns_first_page_as_list"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/rebalancing/subscriptions",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "json-literal",
+      "bytes": 291,
+      "sha256": "8e76af12c313d63fe942bcb19c62e914a55253545324924463dca9df46b6b11b",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_rebalancing_routes::test_get_portfolio_by_id::GET /v1/rebalancing/portfolios/{ptf_id}#0",
+      "file": "broker/broker_client/test_rebalancing_routes/test_get_portfolio_by_id/get-v1-rebalancing-portfolios-ptf-id-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_rebalancing_routes.py",
+        "line": 233,
+        "qualname": "test_get_portfolio_by_id"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/rebalancing/portfolios/{ptf_id}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1420,
+      "sha256": "a70e9a4c293d35945502a295cad5ab31af8cf7cf07dbbcf3ac519bbdd24da630",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_rebalancing_routes::test_get_run_by_id::GET /v1/rebalancing/runs/{run_id}#0",
+      "file": "broker/broker_client/test_rebalancing_routes/test_get_run_by_id/get-v1-rebalancing-runs-run-id-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_rebalancing_routes.py",
+        "line": 605,
+        "qualname": "test_get_run_by_id"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/rebalancing/runs/{run_id}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 2057,
+      "sha256": "1f41d8198b650f4a91716c352e8adf2710a734dc2d4b28393b8131341398f7c7",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_rebalancing_routes::test_get_subscription_by_id::GET /v1/rebalancing/subscriptions/{sub_id}#0",
+      "file": "broker/broker_client/test_rebalancing_routes/test_get_subscription_by_id/get-v1-rebalancing-subscriptions-sub-id-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_rebalancing_routes.py",
+        "line": 413,
+        "qualname": "test_get_subscription_by_id"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/rebalancing/subscriptions/{sub_id}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 317,
+      "sha256": "656c3d1b969c44fcb84a0865ae9f539bad982b2200b478529e0bde7c146704e6",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_rebalancing_routes::test_inactivate_portfolio_by_id::DELETE /v1/rebalancing/portfolios/{ptf_id}#0",
+      "file": "broker/broker_client/test_rebalancing_routes/test_inactivate_portfolio_by_id/delete-v1-rebalancing-portfolios-ptf-id-0.empty",
+      "source": {
+        "path": "tests/broker/broker_client/test_rebalancing_routes.py",
+        "line": 351,
+        "qualname": "test_inactivate_portfolio_by_id"
+      },
+      "family": "broker",
+      "method": "DELETE",
+      "path": "/v1/rebalancing/portfolios/{ptf_id}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "empty",
+      "origin": "none",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_rebalancing_routes::test_unsubscribe_account::DELETE /v1/rebalancing/subscriptions/{sub_id}#0",
+      "file": "broker/broker_client/test_rebalancing_routes/test_unsubscribe_account/delete-v1-rebalancing-subscriptions-sub-id-0.empty",
+      "source": {
+        "path": "tests/broker/broker_client/test_rebalancing_routes.py",
+        "line": 435,
+        "qualname": "test_unsubscribe_account"
+      },
+      "family": "broker",
+      "method": "DELETE",
+      "path": "/v1/rebalancing/subscriptions/{sub_id}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "empty",
+      "origin": "none",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_rebalancing_routes::test_update_portfolio_by_id::PATCH /v1/rebalancing/portfolios/{ptf_id}#0",
+      "file": "broker/broker_client/test_rebalancing_routes/test_update_portfolio_by_id/patch-v1-rebalancing-portfolios-ptf-id-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_rebalancing_routes.py",
+        "line": 288,
+        "qualname": "test_update_portfolio_by_id"
+      },
+      "family": "broker",
+      "method": "PATCH",
+      "path": "/v1/rebalancing/portfolios/{ptf_id}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1210,
+      "sha256": "043d3a1622c3468129757ec9c4e7687378d2f8ca8af0d1010377fe277ca7e7c7",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_trading_routes::test_cancel_orders_for_account::DELETE /v1/trading/accounts/{account_id}/orders#0",
+      "file": "broker/broker_client/test_trading_routes/test_cancel_orders_for_account/delete-v1-trading-accounts-account-id-orders-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_trading_routes.py",
+        "line": 643,
+        "qualname": "test_cancel_orders_for_account"
+      },
+      "family": "broker",
+      "method": "DELETE",
+      "path": "/v1/trading/accounts/{account_id}/orders",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 344,
+      "sha256": "01c9b07e990f47a5e848278b7bd4362a8a3961ea46f5c5c2afd9428c78c1e923",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_trading_routes::test_close_all_positions_for_account::DELETE /v1/trading/accounts/{account_id}/positions#0",
+      "file": "broker/broker_client/test_trading_routes/test_close_all_positions_for_account/delete-v1-trading-accounts-account-id-positions-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_trading_routes.py",
+        "line": 234,
+        "qualname": "test_close_all_positions_for_account"
+      },
+      "family": "broker",
+      "method": "DELETE",
+      "path": "/v1/trading/accounts/{account_id}/positions",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 2447,
+      "sha256": "22ab1eb3ccb25f0388366a162858238cebccb89bd07ed87c250e42ba2b686153",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_trading_routes::test_close_position_for_account_with_id::DELETE /v1/trading/accounts/{account_id}/positions/{asset_id}#0",
+      "file": "broker/broker_client/test_trading_routes/test_close_position_for_account_with_id/delete-v1-trading-accounts-account-id-positions-asset-id-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_trading_routes.py",
+        "line": 315,
+        "qualname": "test_close_position_for_account_with_id"
+      },
+      "family": "broker",
+      "method": "DELETE",
+      "path": "/v1/trading/accounts/{account_id}/positions/{asset_id}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1387,
+      "sha256": "811094a8be6524a9ac0ee9aa32ae9b7cf3cef8f9a5fd1a37527116efb966ecc8",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_trading_routes::test_close_position_for_account_with_percentage::DELETE /v1/trading/accounts/{account_id}/positions/{asset_id}#0",
+      "file": "broker/broker_client/test_trading_routes/test_close_position_for_account_with_percentage/delete-v1-trading-accounts-account-id-positions-asset-id-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_trading_routes.py",
+        "line": 477,
+        "qualname": "test_close_position_for_account_with_percentage"
+      },
+      "family": "broker",
+      "method": "DELETE",
+      "path": "/v1/trading/accounts/{account_id}/positions/{asset_id}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1240,
+      "sha256": "2c8e7fd7404b4f442d9b900e8d96b45724daf958c7527c8ac67dae1c9791b684",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_trading_routes::test_close_position_for_account_with_qty::DELETE /v1/trading/accounts/{account_id}/positions/{asset_id}#0",
+      "file": "broker/broker_client/test_trading_routes/test_close_position_for_account_with_qty/delete-v1-trading-accounts-account-id-positions-asset-id-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_trading_routes.py",
+        "line": 423,
+        "qualname": "test_close_position_for_account_with_qty"
+      },
+      "family": "broker",
+      "method": "DELETE",
+      "path": "/v1/trading/accounts/{account_id}/positions/{asset_id}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1240,
+      "sha256": "2c8e7fd7404b4f442d9b900e8d96b45724daf958c7527c8ac67dae1c9791b684",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_trading_routes::test_close_position_for_account_with_symbol::DELETE /v1/trading/accounts/{account_id}/positions/{symbol}#0",
+      "file": "broker/broker_client/test_trading_routes/test_close_position_for_account_with_symbol/delete-v1-trading-accounts-account-id-positions-symbol-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_trading_routes.py",
+        "line": 369,
+        "qualname": "test_close_position_for_account_with_symbol"
+      },
+      "family": "broker",
+      "method": "DELETE",
+      "path": "/v1/trading/accounts/{account_id}/positions/{symbol}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1387,
+      "sha256": "811094a8be6524a9ac0ee9aa32ae9b7cf3cef8f9a5fd1a37527116efb966ecc8",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_trading_routes::test_get_all_accounts_positions::GET /v1/accounts/positions#0",
+      "file": "broker/broker_client/test_trading_routes/test_get_all_accounts_positions/get-v1-accounts-positions-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_trading_routes.py",
+        "line": 22,
+        "qualname": "test_get_all_accounts_positions"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/accounts/positions",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 2143,
+      "sha256": "5454b0392c8ea5348f23b2b3add44e3043e063119387ece3c6f448cc7ce76bae",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_trading_routes::test_get_all_accounts_positions_sends_page::GET /v1/accounts/positions#0",
+      "file": "broker/broker_client/test_trading_routes/test_get_all_accounts_positions_sends_page/get-v1-accounts-positions-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_trading_routes.py",
+        "line": 79,
+        "qualname": "test_get_all_accounts_positions_sends_page"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/accounts/positions",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 55,
+      "sha256": "113e664b1082dda734b8016454474fe3caf11b6ebace036790a97ffead4201f5",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_trading_routes::test_get_all_positions_for_account::GET /v1/trading/accounts/{account_id}/positions#0",
+      "file": "broker/broker_client/test_trading_routes/test_get_all_positions_for_account/get-v1-trading-accounts-account-id-positions-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_trading_routes.py",
+        "line": 92,
+        "qualname": "test_get_all_positions_for_account"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/trading/accounts/{account_id}/positions",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1261,
+      "sha256": "a9122b5a419bca1cebaa6d0864e7545d5c0041d03dd9b180719fd46dba91d269",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_trading_routes::test_get_open_position_for_account_with_asset_id::GET /v1/trading/accounts/{account_id}/positions/{asset_id}#0",
+      "file": "broker/broker_client/test_trading_routes/test_get_open_position_for_account_with_asset_id/get-v1-trading-accounts-account-id-positions-asset-id-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_trading_routes.py",
+        "line": 141,
+        "qualname": "test_get_open_position_for_account_with_asset_id"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/trading/accounts/{account_id}/positions/{asset_id}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1121,
+      "sha256": "03d99ae1912404d5d78f35ab21186cfd4d8d9c336b6aef70d835a990fdc536a4",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_trading_routes::test_get_open_position_for_account_with_symbol::GET /v1/trading/accounts/{account_id}/positions/{symbol}#0",
+      "file": "broker/broker_client/test_trading_routes/test_get_open_position_for_account_with_symbol/get-v1-trading-accounts-account-id-positions-symbol-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_trading_routes.py",
+        "line": 188,
+        "qualname": "test_get_open_position_for_account_with_symbol"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/trading/accounts/{account_id}/positions/{symbol}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1121,
+      "sha256": "03d99ae1912404d5d78f35ab21186cfd4d8d9c336b6aef70d835a990fdc536a4",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_trading_routes::test_get_portfolio_history::GET /v1/trading/accounts/{account_id}/account/portfolio/history#0",
+      "file": "broker/broker_client/test_trading_routes/test_get_portfolio_history/get-v1-trading-accounts-account-id-account-portfolio-history-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_trading_routes.py",
+        "line": 530,
+        "qualname": "test_get_portfolio_history"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/trading/accounts/{account_id}/account/portfolio/history",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 388,
+      "sha256": "b2c3c62b2ff90a5ca638f13137b2c2d773135ceb81139340e274729488b2da6a",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_trading_routes::test_get_portfolio_history_with_filter::GET /v1/trading/accounts/{account_id}/account/portfolio/history#0",
+      "file": "broker/broker_client/test_trading_routes/test_get_portfolio_history_with_filter/get-v1-trading-accounts-account-id-account-portfolio-history-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_trading_routes.py",
+        "line": 604,
+        "qualname": "test_get_portfolio_history_with_filter"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/trading/accounts/{account_id}/account/portfolio/history",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 388,
+      "sha256": "b2c3c62b2ff90a5ca638f13137b2c2d773135ceb81139340e274729488b2da6a",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_trading_routes::test_get_portfolio_history_with_null_base_value::GET /v1/trading/accounts/{account_id}/account/portfolio/history#0",
+      "file": "broker/broker_client/test_trading_routes/test_get_portfolio_history_with_null_base_value/get-v1-trading-accounts-account-id-account-portfolio-history-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_trading_routes.py",
+        "line": 580,
+        "qualname": "test_get_portfolio_history_with_null_base_value"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/trading/accounts/{account_id}/account/portfolio/history",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 312,
+      "sha256": "cb0adfb0c83ffdffb049f1ca2ee17d9b600b71e14f94dacb57f7d5379f4c8be9",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_trading_routes::test_get_portfolio_history_with_null_pl_pct::GET /v1/trading/accounts/{account_id}/account/portfolio/history#0",
+      "file": "broker/broker_client/test_trading_routes/test_get_portfolio_history_with_null_pl_pct/get-v1-trading-accounts-account-id-account-portfolio-history-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_trading_routes.py",
+        "line": 556,
+        "qualname": "test_get_portfolio_history_with_null_pl_pct"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/trading/accounts/{account_id}/account/portfolio/history",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 313,
+      "sha256": "9c9126e22b0e44eff1a885c65897053d99a2dc2b3a59c86f4f87587b446136eb",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_watchlist_routes::test_add_asset_to_watchlist::POST /v1/trading/accounts/{account_id}/watchlists/{watchlist_id}#0",
+      "file": "broker/broker_client/test_watchlist_routes/test_add_asset_to_watchlist/post-v1-trading-accounts-account-id-watchlists-watchlist-id-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_watchlist_routes.py",
+        "line": 240,
+        "qualname": "test_add_asset_to_watchlist"
+      },
+      "family": "broker",
+      "method": "POST",
+      "path": "/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 691,
+      "sha256": "032a3a4f41718d0b0282ac2930c19ec5bf9c188a73611a8412ba95d2d22558f8",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_watchlist_routes::test_create_watchlist_for_account::POST /v1/trading/accounts/{account_id}/watchlists#0",
+      "file": "broker/broker_client/test_watchlist_routes/test_create_watchlist_for_account/post-v1-trading-accounts-account-id-watchlists-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_watchlist_routes.py",
+        "line": 112,
+        "qualname": "test_create_watchlist_for_account"
+      },
+      "family": "broker",
+      "method": "POST",
+      "path": "/v1/trading/accounts/{account_id}/watchlists",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 600,
+      "sha256": "9a5bd4ecdf1b9b72ff8637b67818e030f3cc7ec1729b599a8358d5b3facefc3e",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_watchlist_routes::test_delete_watchlist_for_account::DELETE /v1/trading/accounts/{account_id}/watchlists/{watchlist_id}#0",
+      "file": "broker/broker_client/test_watchlist_routes/test_delete_watchlist_for_account/delete-v1-trading-accounts-account-id-watchlists-watchlist-id-0.empty",
+      "source": {
+        "path": "tests/broker/broker_client/test_watchlist_routes.py",
+        "line": 340,
+        "qualname": "test_delete_watchlist_for_account"
+      },
+      "family": "broker",
+      "method": "DELETE",
+      "path": "/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "empty",
+      "origin": "none",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_watchlist_routes::test_get_watchlist_for_account_by_id::GET /v1/trading/accounts/{account_id}/watchlists/{watchlist_id}#0",
+      "file": "broker/broker_client/test_watchlist_routes/test_get_watchlist_for_account_by_id/get-v1-trading-accounts-account-id-watchlists-watchlist-id-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_watchlist_routes.py",
+        "line": 51,
+        "qualname": "test_get_watchlist_for_account_by_id"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 600,
+      "sha256": "9a5bd4ecdf1b9b72ff8637b67818e030f3cc7ec1729b599a8358d5b3facefc3e",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_watchlist_routes::test_get_watchlists_for_account::GET /v1/trading/accounts/{account_id}/watchlists#0",
+      "file": "broker/broker_client/test_watchlist_routes/test_get_watchlists_for_account/get-v1-trading-accounts-account-id-watchlists-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_watchlist_routes.py",
+        "line": 18,
+        "qualname": "test_get_watchlists_for_account"
+      },
+      "family": "broker",
+      "method": "GET",
+      "path": "/v1/trading/accounts/{account_id}/watchlists",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 328,
+      "sha256": "ca6a712c749c59efa0581d89f24c2c659584321d0fb44ed7f98145da1d096c4b",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_watchlist_routes::test_remove_asset_from_watchlist_for_account::DELETE /v1/trading/accounts/{account_id}/watchlists/{watchlist_id}/{symbol}#0",
+      "file": "broker/broker_client/test_watchlist_routes/test_remove_asset_from_watchlist_for_account/delete-v1-trading-accounts-account-id-watchlists-watchlist-id-symbol-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_watchlist_routes.py",
+        "line": 312,
+        "qualname": "test_remove_asset_from_watchlist_for_account"
+      },
+      "family": "broker",
+      "method": "DELETE",
+      "path": "/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}/{symbol}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 296,
+      "sha256": "485e9b99f72e8ffa0419ff5d6a3b8f89d7326233015a6ba9cfdc0ad6431f3ffa",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_watchlist_routes::test_remove_asset_to_watchlist_for_account::DELETE /v1/trading/accounts/{account_id}/watchlists/{watchlist_id}/{symbol}#0",
+      "file": "broker/broker_client/test_watchlist_routes/test_remove_asset_to_watchlist_for_account/delete-v1-trading-accounts-account-id-watchlists-watchlist-id-symbol-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_watchlist_routes.py",
+        "line": 283,
+        "qualname": "test_remove_asset_to_watchlist_for_account"
+      },
+      "family": "broker",
+      "method": "DELETE",
+      "path": "/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}/{symbol}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 296,
+      "sha256": "485e9b99f72e8ffa0419ff5d6a3b8f89d7326233015a6ba9cfdc0ad6431f3ffa",
+      "notes": []
+    },
+    {
+      "id": "broker/broker_client/test_watchlist_routes::test_update_watchlist_for_account_by_id::PUT /v1/trading/accounts/{account_id}/watchlists/{watchlist_id}#0",
+      "file": "broker/broker_client/test_watchlist_routes/test_update_watchlist_for_account_by_id/put-v1-trading-accounts-account-id-watchlists-watchlist-id-0.json",
+      "source": {
+        "path": "tests/broker/broker_client/test_watchlist_routes.py",
+        "line": 169,
+        "qualname": "test_update_watchlist_for_account_by_id"
+      },
+      "family": "broker",
+      "method": "PUT",
+      "path": "/v1/trading/accounts/{account_id}/watchlists/{watchlist_id}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 599,
+      "sha256": "50345816ca235144f4c083dcc1d987534ca0b64f47eed8d057607e5d0e771dfd",
+      "notes": []
+    },
+    {
+      "id": "common/test_rest::test_request_sends_user_agent_header::GET /v2/clock#0",
+      "file": "common/test_rest/test_request_sends_user_agent_header/get-v2-clock-0.json",
+      "source": {
+        "path": "tests/common/test_rest.py",
+        "line": 32,
+        "qualname": "test_request_sends_user_agent_header"
+      },
+      "family": "trading",
+      "method": "GET",
+      "path": "/v2/clock",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 222,
+      "sha256": "38180bfaacf6827e9276d53db7f2d998317b98c99bc1ffa52ad5ef21edb8a29b",
+      "notes": []
+    },
+    {
+      "id": "data/test_corporate_actions::test_get_corporate_actions::GET /v1/corporate-actions#0",
+      "file": "data/test_corporate_actions/test_get_corporate_actions/get-v1-corporate-actions-0.json",
+      "source": {
+        "path": "tests/data/test_corporate_actions.py",
+        "line": 39,
+        "qualname": "test_get_corporate_actions"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1/corporate-actions",
+      "query": "symbols={_symbols_in_url}&cusips={_cusips_in_url}&types={_types_in_url}&start={_start_in_url}&ids={_ids_in_url}&sort={sort}&limit={limit}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 4812,
+      "sha256": "972586a53b30c647734d8b53135e61e6aa2e9a1127b1c79582c94690314e0fa9",
+      "notes": []
+    },
+    {
+      "id": "data/test_corporate_actions::test_get_corporate_actions::GET /v1/corporate-actions#1",
+      "file": "data/test_corporate_actions/test_get_corporate_actions/get-v1-corporate-actions-1.json",
+      "source": {
+        "path": "tests/data/test_corporate_actions.py",
+        "line": 220,
+        "qualname": "test_get_corporate_actions"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1/corporate-actions",
+      "query": "symbols={_symbols_in_url}&cusips={_cusips_in_url}&types={_types_in_url}&start={_start_in_url}&ids={_ids_in_url}&sort={sort}&limit={limit2}&page_token={_page_token_in_url}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 445,
+      "sha256": "2da15478afbb05ad8bcc6ca821b1a3e39036517db4ada6492cbf1202a329461f",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_crypto_data::test_crypto_client_without_credentials::GET /v1beta3/crypto/us/bars#0",
+      "file": "data/test_historical_crypto_data/test_crypto_client_without_credentials/get-v1beta3-crypto-us-bars-0.json",
+      "source": {
+        "path": "tests/data/test_historical_crypto_data.py",
+        "line": 36,
+        "qualname": "test_crypto_client_without_credentials"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta3/crypto/us/bars",
+      "query": "timeframe={timeframe}&start={_start_in_url}&end={_end_in_url}&symbols={_symbols_in_url}&limit=10000",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 12,
+      "sha256": "89d93cd1b9b312b7c02527b756b5b19253da0e5483105a386f36b7487084044e",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_crypto_data::test_crypto_client_without_credentials_basic_auth::GET /v1beta3/crypto/us/bars#0",
+      "file": "data/test_historical_crypto_data/test_crypto_client_without_credentials_basic_auth/get-v1beta3-crypto-us-bars-0.json",
+      "source": {
+        "path": "tests/data/test_historical_crypto_data.py",
+        "line": 64,
+        "qualname": "test_crypto_client_without_credentials_basic_auth"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta3/crypto/us/bars",
+      "query": "timeframe={timeframe}&start={_start_in_url}&end={_end_in_url}&symbols={_symbols_in_url}&limit=10000",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 12,
+      "sha256": "89d93cd1b9b312b7c02527b756b5b19253da0e5483105a386f36b7487084044e",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_crypto_data::test_crypto_get_snapshot::GET /v1beta3/crypto/us/snapshots#0",
+      "file": "data/test_historical_crypto_data/test_crypto_get_snapshot/get-v1beta3-crypto-us-snapshots-0.json",
+      "source": {
+        "path": "tests/data/test_historical_crypto_data.py",
+        "line": 334,
+        "qualname": "test_crypto_get_snapshot"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta3/crypto/us/snapshots",
+      "query": "symbols={_symbols_in_url}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 3213,
+      "sha256": "5580afbb7ee88fe66f6e8975263c82144783a034d8fcd4f7c6a5ea7ba682157e",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_crypto_data::test_crypto_latest_bar::GET /v1beta3/crypto/us/latest/bars#0",
+      "file": "data/test_historical_crypto_data/test_crypto_latest_bar/get-v1beta3-crypto-us-latest-bars-0.json",
+      "source": {
+        "path": "tests/data/test_historical_crypto_data.py",
+        "line": 456,
+        "qualname": "test_crypto_latest_bar"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta3/crypto/us/latest/bars",
+      "query": "symbols={symbol}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 473,
+      "sha256": "9c79fc8370f39a8c99e786f8f0168a5eb57d8ade9613d010cd4c2db254f56898",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_crypto_data::test_get_crypto_bars::GET /v1beta3/crypto/us/bars#0",
+      "file": "data/test_historical_crypto_data/test_get_crypto_bars/get-v1beta3-crypto-us-bars-0.json",
+      "source": {
+        "path": "tests/data/test_historical_crypto_data.py",
+        "line": 102,
+        "qualname": "test_get_crypto_bars"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta3/crypto/us/bars",
+      "query": "timeframe={timeframe}&start={_start_in_url}&end={_end_in_url}&symbols={_symbols_in_url}&limit=10000",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 802,
+      "sha256": "9d6f0ce03b2513c05ccddf565fafe01bc012b10321a668f00b7b165473dc26f2",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_crypto_data::test_get_crypto_latest_quote::GET /v1beta3/crypto/us/latest/quotes#0",
+      "file": "data/test_historical_crypto_data/test_get_crypto_latest_quote/get-v1beta3-crypto-us-latest-quotes-0.json",
+      "source": {
+        "path": "tests/data/test_historical_crypto_data.py",
+        "line": 295,
+        "qualname": "test_get_crypto_latest_quote"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta3/crypto/us/latest/quotes",
+      "query": "symbols={symbol}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 268,
+      "sha256": "6fd53f013ab9ae2cdcb88d84eec2e27e2c4795794978267cb203294f03488827",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_crypto_data::test_get_crypto_latest_trade::GET /v1beta3/crypto/us/latest/trades#0",
+      "file": "data/test_historical_crypto_data/test_get_crypto_latest_trade/get-v1beta3-crypto-us-latest-trades-0.json",
+      "source": {
+        "path": "tests/data/test_historical_crypto_data.py",
+        "line": 257,
+        "qualname": "test_get_crypto_latest_trade"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta3/crypto/us/latest/trades",
+      "query": "symbols={symbol}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 257,
+      "sha256": "070213712d52701267dc44c95419c9bdcc1cf202d6f2fe6f980878b87300982d",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_crypto_data::test_get_crypto_quotes::GET /v1beta3/crypto/us/quotes#0",
+      "file": "data/test_historical_crypto_data/test_get_crypto_quotes/get-v1beta3-crypto-us-quotes-0.json",
+      "source": {
+        "path": "tests/data/test_historical_crypto_data.py",
+        "line": 161,
+        "qualname": "test_get_crypto_quotes"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta3/crypto/us/quotes",
+      "query": "start={_start_in_url}&end={_end_in_url}&symbols={_symbols_in_url}&limit=10000",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 474,
+      "sha256": "e1fa73e4dd8db4783c051643efdd7d0d6b332498b161b5f25e353bbf8eb63ec8",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_crypto_data::test_get_crypto_trades::GET /v1beta3/crypto/us/trades#0",
+      "file": "data/test_historical_crypto_data/test_get_crypto_trades/get-v1beta3-crypto-us-trades-0.json",
+      "source": {
+        "path": "tests/data/test_historical_crypto_data.py",
+        "line": 211,
+        "qualname": "test_get_crypto_trades"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta3/crypto/us/trades",
+      "query": "start={_start_in_url}&symbols={_symbols_in_url}&limit=10000",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 619,
+      "sha256": "4301aaedb9a87b604d76b06dc4c9b4dbf88e43d43053cc19b19f354cbb45b4ba",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_news_data::test_get_news::GET /v1beta1/news#0",
+      "file": "data/test_historical_news_data/test_get_news/get-v1beta1-news-0.json",
+      "source": {
+        "path": "tests/data/test_historical_news_data.py",
+        "line": 40,
+        "qualname": "test_get_news"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta1/news",
+      "query": "symbols={symbols}&start={_start_in_url}&page_token={_next_page_token_in_url}&limit=50",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 682,
+      "sha256": "fa4058931e2e7150042a0b29580784298d0a3ef2168a7c99b9f1018d55f4a11e",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_news_data::test_get_news::GET /v1beta1/news#1",
+      "file": "data/test_historical_news_data/test_get_news/get-v1beta1-news-1.json",
+      "source": {
+        "path": "tests/data/test_historical_news_data.py",
+        "line": 80,
+        "qualname": "test_get_news"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta1/news",
+      "query": "symbols={symbols}&start={_start_in_url}&page_token=MTczMDk3MTEwMTAwMDAwMDAwMHw0MTc5OTExNQ==&limit=50",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 605,
+      "sha256": "2be3a783b48bb84b195097388e01bff21b4a6ef61848f2d14c574b0fac5aba9f",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_option_data::test_get_bars::GET /v1beta1/options/bars#0",
+      "file": "data/test_historical_option_data/test_get_bars/get-v1beta1-options-bars-0.json",
+      "source": {
+        "path": "tests/data/test_historical_option_data.py",
+        "line": 32,
+        "qualname": "test_get_bars"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta1/options/bars",
+      "query": "symbols={symbol}&start={_start_in_url}&limit={limit}&timeframe={timeframe}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 512,
+      "sha256": "9ac25ed7e76004c30a5ce04042912b5b88f5c287e988f44a7c15099b67baacfd",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_option_data::test_get_bars_multi_empty_response::GET /v1beta1/options/bars#0",
+      "file": "data/test_historical_option_data/test_get_bars_multi_empty_response/get-v1beta1-options-bars-0.json",
+      "source": {
+        "path": "tests/data/test_historical_option_data.py",
+        "line": 248,
+        "qualname": "test_get_bars_multi_empty_response"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta1/options/bars",
+      "query": "symbols={symbol}&start={_start_in_url}&limit={limit}&timeframe={timeframe}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 53,
+      "sha256": "a71e3e5d7e75de597b5a1258161687d3d78f58171b193060c8d62f753fb41f03",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_option_data::test_get_bars_single_empty_response::GET /v1beta1/options/bars#0",
+      "file": "data/test_historical_option_data/test_get_bars_single_empty_response/get-v1beta1-options-bars-0.json",
+      "source": {
+        "path": "tests/data/test_historical_option_data.py",
+        "line": 210,
+        "qualname": "test_get_bars_single_empty_response"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta1/options/bars",
+      "query": "symbols={symbol}&start={_start_in_url}&limit={limit}&timeframe={timeframe}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 53,
+      "sha256": "a71e3e5d7e75de597b5a1258161687d3d78f58171b193060c8d62f753fb41f03",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_option_data::test_get_latest_quote::GET /v1beta1/options/quotes/latest#0",
+      "file": "data/test_historical_option_data/test_get_latest_quote/get-v1beta1-options-quotes-latest-0.json",
+      "source": {
+        "path": "tests/data/test_historical_option_data.py",
+        "line": 644,
+        "qualname": "test_get_latest_quote"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta1/options/quotes/latest",
+      "query": "symbols={symbol}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 348,
+      "sha256": "3f31639f86ea2d1b3ea784b9dfa1deba98036e33935710d9054a7b7af7596ece",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_option_data::test_get_latest_quote_multi_empty_response::GET /v1beta1/options/quotes/latest#0",
+      "file": "data/test_historical_option_data/test_get_latest_quote_multi_empty_response/get-v1beta1-options-quotes-latest-0.json",
+      "source": {
+        "path": "tests/data/test_historical_option_data.py",
+        "line": 758,
+        "qualname": "test_get_latest_quote_multi_empty_response"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta1/options/quotes/latest",
+      "query": "symbols={symbol}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 42,
+      "sha256": "2bdcc1c8d4f46d70961f8aa1d1b02a2ac81e51ea77f3320c0f1f975f6ef0a74e",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_option_data::test_get_latest_quote_single_empty_response::GET /v1beta1/options/quotes/latest#0",
+      "file": "data/test_historical_option_data/test_get_latest_quote_single_empty_response/get-v1beta1-options-quotes-latest-0.json",
+      "source": {
+        "path": "tests/data/test_historical_option_data.py",
+        "line": 733,
+        "qualname": "test_get_latest_quote_single_empty_response"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta1/options/quotes/latest",
+      "query": "symbols={symbol}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 42,
+      "sha256": "2bdcc1c8d4f46d70961f8aa1d1b02a2ac81e51ea77f3320c0f1f975f6ef0a74e",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_option_data::test_get_latest_quote_with_feed::GET /v1beta1/options/quotes/latest#0",
+      "file": "data/test_historical_option_data/test_get_latest_quote_with_feed/get-v1beta1-options-quotes-latest-0.json",
+      "source": {
+        "path": "tests/data/test_historical_option_data.py",
+        "line": 686,
+        "qualname": "test_get_latest_quote_with_feed"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta1/options/quotes/latest",
+      "query": "symbols={symbol}&feed=indicative",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 348,
+      "sha256": "3f31639f86ea2d1b3ea784b9dfa1deba98036e33935710d9054a7b7af7596ece",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_option_data::test_get_latest_trade::GET /v1beta1/options/trades/latest#0",
+      "file": "data/test_historical_option_data/test_get_latest_trade/get-v1beta1-options-trades-latest-0.json",
+      "source": {
+        "path": "tests/data/test_historical_option_data.py",
+        "line": 494,
+        "qualname": "test_get_latest_trade"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta1/options/trades/latest",
+      "query": "symbols={symbol}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 259,
+      "sha256": "320780f81a91c58cf32465aac50c8f8f35179b8d88508fe423de719181de478a",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_option_data::test_get_latest_trade_multi_not_found::GET /v1beta1/options/trades/latest#0",
+      "file": "data/test_historical_option_data/test_get_latest_trade_multi_not_found/get-v1beta1-options-trades-latest-0.json",
+      "source": {
+        "path": "tests/data/test_historical_option_data.py",
+        "line": 621,
+        "qualname": "test_get_latest_trade_multi_not_found"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta1/options/trades/latest",
+      "query": "symbols={symbol}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 42,
+      "sha256": "52bb61a7362924f01975abdd13a3edab468311c06b3b704a71698751f48987e0",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_option_data::test_get_latest_trade_with_feed::GET /v1beta1/options/trades/latest#0",
+      "file": "data/test_historical_option_data/test_get_latest_trade_with_feed/get-v1beta1-options-trades-latest-0.json",
+      "source": {
+        "path": "tests/data/test_historical_option_data.py",
+        "line": 533,
+        "qualname": "test_get_latest_trade_with_feed"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta1/options/trades/latest",
+      "query": "symbols={symbol}&feed=indicative",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 258,
+      "sha256": "1f5bb437c93c0b8da10f655f3aa9227d86c7c99ce535310733f9e340a37d8676",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_option_data::test_get_multisymbol_latest_trade::GET /v1beta1/options/trades/latest#0",
+      "file": "data/test_historical_option_data/test_get_multisymbol_latest_trade/get-v1beta1-options-trades-latest-0.json",
+      "source": {
+        "path": "tests/data/test_historical_option_data.py",
+        "line": 575,
+        "qualname": "test_get_multisymbol_latest_trade"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta1/options/trades/latest",
+      "query": "symbols={_symbols_in_url}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 469,
+      "sha256": "f906943bcd882aa7139840f3c58a2cbc02ef1c1fcf43a51e2ba4d6aa6fc99387",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_option_data::test_get_option_chain::GET /v1beta1/options/snapshots/{symbol}#0",
+      "file": "data/test_historical_option_data/test_get_option_chain/get-v1beta1-options-snapshots-symbol-0.json",
+      "source": {
+        "path": "tests/data/test_historical_option_data.py",
+        "line": 1007,
+        "qualname": "test_get_option_chain"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta1/options/snapshots/{symbol}",
+      "query": "updated_since=2024-04-25T00%3A00%3A00%2B00%3A00",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1175,
+      "sha256": "9608799738aae4098f1bccb2fcca79a47910cf1b2f3aca8839356856a551d2f5",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_option_data::test_get_snapshot::GET /v1beta1/options/snapshots#0",
+      "file": "data/test_historical_option_data/test_get_snapshot/get-v1beta1-options-snapshots-0.json",
+      "source": {
+        "path": "tests/data/test_historical_option_data.py",
+        "line": 782,
+        "qualname": "test_get_snapshot"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta1/options/snapshots",
+      "query": "symbols={symbol}&limit=1000",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 996,
+      "sha256": "87fc00294fa6281216c950f848af2990af92e52dd1150f810b6db32fc6ced157",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_option_data::test_get_snapshot_latest_quote_only::GET /v1beta1/options/snapshots#0",
+      "file": "data/test_historical_option_data/test_get_snapshot_latest_quote_only/get-v1beta1-options-snapshots-0.json",
+      "source": {
+        "path": "tests/data/test_historical_option_data.py",
+        "line": 847,
+        "qualname": "test_get_snapshot_latest_quote_only"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta1/options/snapshots",
+      "query": "symbols={symbol}&limit=1000",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 423,
+      "sha256": "dc2bed1773ec09c04268b909054765680ae14cbd5c673de5272eb68f16224678",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_option_data::test_get_snapshot_multi_empty_response::GET /v1beta1/options/snapshots#0",
+      "file": "data/test_historical_option_data/test_get_snapshot_multi_empty_response/get-v1beta1-options-snapshots-0.json",
+      "source": {
+        "path": "tests/data/test_historical_option_data.py",
+        "line": 983,
+        "qualname": "test_get_snapshot_multi_empty_response"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta1/options/snapshots",
+      "query": "symbols={symbol}&limit=1000",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 44,
+      "sha256": "f551c3d1e49f47da9d7239b5a22d6df046badc10b929776adb4ca34ceb451d8a",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_option_data::test_get_snapshot_single_empty_response::GET /v1beta1/options/snapshots#0",
+      "file": "data/test_historical_option_data/test_get_snapshot_single_empty_response/get-v1beta1-options-snapshots-0.json",
+      "source": {
+        "path": "tests/data/test_historical_option_data.py",
+        "line": 958,
+        "qualname": "test_get_snapshot_single_empty_response"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta1/options/snapshots",
+      "query": "symbols={symbol}&limit=1000",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 44,
+      "sha256": "f551c3d1e49f47da9d7239b5a22d6df046badc10b929776adb4ca34ceb451d8a",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_option_data::test_get_snapshot_with_feed::GET /v1beta1/options/snapshots#0",
+      "file": "data/test_historical_option_data/test_get_snapshot_with_feed/get-v1beta1-options-snapshots-0.json",
+      "source": {
+        "path": "tests/data/test_historical_option_data.py",
+        "line": 891,
+        "qualname": "test_get_snapshot_with_feed"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta1/options/snapshots",
+      "query": "symbols={symbol}&feed=indicative&limit=1000",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 996,
+      "sha256": "87fc00294fa6281216c950f848af2990af92e52dd1150f810b6db32fc6ced157",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_option_data::test_get_trades::GET /v1beta1/options/trades#0",
+      "file": "data/test_historical_option_data/test_get_trades/get-v1beta1-options-trades-0.json",
+      "source": {
+        "path": "tests/data/test_historical_option_data.py",
+        "line": 283,
+        "qualname": "test_get_trades"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta1/options/trades",
+      "query": "symbols={symbol}&start={_start_in_url}&limit={limit}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 560,
+      "sha256": "cec0124d3d1ef53a85a0330e75904f9eb74ef48581c9fd17259cd57f0c341275",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_option_data::test_get_trades_multi_empty_response::GET /v1beta1/options/trades#0",
+      "file": "data/test_historical_option_data/test_get_trades_multi_empty_response/get-v1beta1-options-trades-0.json",
+      "source": {
+        "path": "tests/data/test_historical_option_data.py",
+        "line": 467,
+        "qualname": "test_get_trades_multi_empty_response"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta1/options/trades",
+      "query": "symbols={_symbols_in_url}&start={_start_in_url}&limit={limit}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 55,
+      "sha256": "2414c031cc003964aa06832e997e2f3395b2779b8716185fea4a0822c6163013",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_option_data::test_get_trades_single_empty_response::GET /v1beta1/options/trades#0",
+      "file": "data/test_historical_option_data/test_get_trades_single_empty_response/get-v1beta1-options-trades-0.json",
+      "source": {
+        "path": "tests/data/test_historical_option_data.py",
+        "line": 431,
+        "qualname": "test_get_trades_single_empty_response"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta1/options/trades",
+      "query": "symbols={symbol}&start={_start_in_url}&limit={limit}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 55,
+      "sha256": "2414c031cc003964aa06832e997e2f3395b2779b8716185fea4a0822c6163013",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_option_data::test_multisymbol_get_bars::GET /v1beta1/options/bars#0",
+      "file": "data/test_historical_option_data/test_multisymbol_get_bars/get-v1beta1-options-bars-0.json",
+      "source": {
+        "path": "tests/data/test_historical_option_data.py",
+        "line": 108,
+        "qualname": "test_multisymbol_get_bars"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta1/options/bars",
+      "query": "start={_start_in_url}&symbols={_symbols_in_url}&timeframe={timeframe}&limit=10000",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 676,
+      "sha256": "ec8b9ef965de800939636024611439a12bd73f80712b390f2307462bfda6ea94",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_option_data::test_multisymbol_get_trades::GET /v1beta1/options/trades#0",
+      "file": "data/test_historical_option_data/test_multisymbol_get_trades/get-v1beta1-options-trades-0.json",
+      "source": {
+        "path": "tests/data/test_historical_option_data.py",
+        "line": 348,
+        "qualname": "test_multisymbol_get_trades"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta1/options/trades",
+      "query": "start={_start_in_url}&symbols={_symbols_in_url}&limit=10000",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 526,
+      "sha256": "c75d0dab23f56ff8e8090575771bad899cccfeecdd8433bc40d600f088be75a1",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_stock_data::test_barset_contains::GET /v2/stocks/bars#0",
+      "file": "data/test_historical_stock_data/test_barset_contains/get-v2-stocks-bars-0.json",
+      "source": {
+        "path": "tests/data/test_historical_stock_data.py",
+        "line": 1030,
+        "qualname": "test_barset_contains"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v2/stocks/bars",
+      "query": "symbols=AAPL&start={_start_in_url}&timeframe={timeframe}&limit={limit}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 369,
+      "sha256": "0a9e565f8dc8025dbdf47776060866371152fc0ddfa809bbb3f630d86e12dc0b",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_stock_data::test_get_bars::GET /v2/stocks/bars#0",
+      "file": "data/test_historical_stock_data/test_get_bars/get-v2-stocks-bars-0.json",
+      "source": {
+        "path": "tests/data/test_historical_stock_data.py",
+        "line": 32,
+        "qualname": "test_get_bars"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v2/stocks/bars",
+      "query": "symbols=AAPL&start={_start_in_url}&timeframe={timeframe}&limit={limit}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 702,
+      "sha256": "9e2b8098f6106ce99d777a5dd8df5d0bb59c8bae727add668896cb80c177c50e",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_stock_data::test_get_bars_desc::GET /v2/stocks/bars#0",
+      "file": "data/test_historical_stock_data/test_get_bars_desc/get-v2-stocks-bars-0.json",
+      "source": {
+        "path": "tests/data/test_historical_stock_data.py",
+        "line": 89,
+        "qualname": "test_get_bars_desc"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v2/stocks/bars",
+      "query": "symbols={symbol}&start={_start_in_url}&end={_end_in_url}&timeframe={timeframe}&limit={limit}&sort=desc",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 979,
+      "sha256": "406700ef9ada3d787c7b27d23d7e9eb4e4ac2a28029302f062435d0d64198c47",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_stock_data::test_get_bars_multi_empty_response::GET /v2/stocks/bars#0",
+      "file": "data/test_historical_stock_data/test_get_bars_multi_empty_response/get-v2-stocks-bars-0.json",
+      "source": {
+        "path": "tests/data/test_historical_stock_data.py",
+        "line": 256,
+        "qualname": "test_get_bars_multi_empty_response"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v2/stocks/bars",
+      "query": "symbols={symbol}&start={_start_in_url}&timeframe={timeframe}&limit={limit}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 73,
+      "sha256": "ad4ccc463273d41cee792112b193b55f8e45e0cd47564ffbbea310ac16f703cc",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_stock_data::test_get_bars_single_empty_response::GET /v2/stocks/bars#0",
+      "file": "data/test_historical_stock_data/test_get_bars_single_empty_response/get-v2-stocks-bars-0.json",
+      "source": {
+        "path": "tests/data/test_historical_stock_data.py",
+        "line": 223,
+        "qualname": "test_get_bars_single_empty_response"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v2/stocks/bars",
+      "query": "symbols={symbol}&start={_start_in_url}&timeframe={timeframe}&limit={limit}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 73,
+      "sha256": "ad4ccc463273d41cee792112b193b55f8e45e0cd47564ffbbea310ac16f703cc",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_stock_data::test_get_latest_quote::GET /v2/stocks/quotes/latest#0",
+      "file": "data/test_historical_stock_data/test_get_latest_quote/get-v2-stocks-quotes-latest-0.json",
+      "source": {
+        "path": "tests/data/test_historical_stock_data.py",
+        "line": 736,
+        "qualname": "test_get_latest_quote"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v2/stocks/quotes/latest",
+      "query": "symbols=AAPL",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 329,
+      "sha256": "f7685e5af60bc5657d85711fe21f6c5d8a27734896aaea0cf2041a4882ce8baa",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_stock_data::test_get_latest_quote_multi_empty_response::GET /v2/stocks/quotes/latest#0",
+      "file": "data/test_historical_stock_data/test_get_latest_quote_multi_empty_response/get-v2-stocks-quotes-latest-0.json",
+      "source": {
+        "path": "tests/data/test_historical_stock_data.py",
+        "line": 782,
+        "qualname": "test_get_latest_quote_multi_empty_response"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v2/stocks/quotes/latest",
+      "query": "symbols={symbol}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 42,
+      "sha256": "2bdcc1c8d4f46d70961f8aa1d1b02a2ac81e51ea77f3320c0f1f975f6ef0a74e",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_stock_data::test_get_latest_trade::GET /v2/stocks/trades/latest#0",
+      "file": "data/test_historical_stock_data/test_get_latest_trade/get-v2-stocks-trades-latest-0.json",
+      "source": {
+        "path": "tests/data/test_historical_stock_data.py",
+        "line": 617,
+        "qualname": "test_get_latest_trade"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v2/stocks/trades/latest",
+      "query": "symbols=AAPL&feed=IEX",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 284,
+      "sha256": "3415e18d0e2859da0ca07f03181ddc63efea5a2d500b4b348325f8f5ceb1c44e",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_stock_data::test_get_latest_trade_multi_not_found::GET /v2/stocks/trades/latest#0",
+      "file": "data/test_historical_stock_data/test_get_latest_trade_multi_not_found/get-v2-stocks-trades-latest-0.json",
+      "source": {
+        "path": "tests/data/test_historical_stock_data.py",
+        "line": 713,
+        "qualname": "test_get_latest_trade_multi_not_found"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v2/stocks/trades/latest",
+      "query": "symbols={symbol}&feed=IEX",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 42,
+      "sha256": "52bb61a7362924f01975abdd13a3edab468311c06b3b704a71698751f48987e0",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_stock_data::test_get_multisymbol_latest_trade::GET /v2/stocks/trades/latest#0",
+      "file": "data/test_historical_stock_data/test_get_multisymbol_latest_trade/get-v2-stocks-trades-latest-0.json",
+      "source": {
+        "path": "tests/data/test_historical_stock_data.py",
+        "line": 659,
+        "qualname": "test_get_multisymbol_latest_trade"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v2/stocks/trades/latest",
+      "query": "symbols={_symbols_in_url}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 544,
+      "sha256": "a44f8f305d6a40d68840a96c55e279ca457dc99a634fc9920ff73ba5dc7672f2",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_stock_data::test_get_quotes::GET /v2/stocks/quotes#0",
+      "file": "data/test_historical_stock_data/test_get_quotes/get-v2-stocks-quotes-0.json",
+      "source": {
+        "path": "tests/data/test_historical_stock_data.py",
+        "line": 290,
+        "qualname": "test_get_quotes"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v2/stocks/quotes",
+      "query": "symbols={symbol}&start={_start_in_url}&limit={limit}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 820,
+      "sha256": "dfa983385d6643fa7f1e6afd385aeedc32f675f2305ef5c1997ccc978b59be52",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_stock_data::test_get_quotes_multi_empty_response::GET /v2/stocks/quotes#0",
+      "file": "data/test_historical_stock_data/test_get_quotes_multi_empty_response/get-v2-stocks-quotes-0.json",
+      "source": {
+        "path": "tests/data/test_historical_stock_data.py",
+        "line": 422,
+        "qualname": "test_get_quotes_multi_empty_response"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v2/stocks/quotes",
+      "query": "symbols={symbol}&start={_start_in_url}&limit={limit}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 75,
+      "sha256": "0ded8eaeb77336998879f04db1eb72cdb689ff681391e2c932754a5e79f25cb1",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_stock_data::test_get_snapshot::GET /v2/stocks/snapshots#0",
+      "file": "data/test_historical_stock_data/test_get_snapshot/get-v2-stocks-snapshots-0.json",
+      "source": {
+        "path": "tests/data/test_historical_stock_data.py",
+        "line": 806,
+        "qualname": "test_get_snapshot"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v2/stocks/snapshots",
+      "query": "symbols=AAPL",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1352,
+      "sha256": "a0e2e68e549ae1c23b531c35e14af62d20894498a884dfc6421a6fd651c19dcc",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_stock_data::test_get_snapshot_multi_empty_response::GET /v2/stocks/snapshots#0",
+      "file": "data/test_historical_stock_data/test_get_snapshot_multi_empty_response/get-v2-stocks-snapshots-0.json",
+      "source": {
+        "path": "tests/data/test_historical_stock_data.py",
+        "line": 895,
+        "qualname": "test_get_snapshot_multi_empty_response"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v2/stocks/snapshots",
+      "query": "symbols={symbol}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 16,
+      "sha256": "3dd9db8d73e48ff1e2cbb997171ee0a5a6748f7961888fbfbae9bec9f126b65f",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_stock_data::test_get_trades::GET /v2/stocks/trades#0",
+      "file": "data/test_historical_stock_data/test_get_trades/get-v2-stocks-trades-0.json",
+      "source": {
+        "path": "tests/data/test_historical_stock_data.py",
+        "line": 454,
+        "qualname": "test_get_trades"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v2/stocks/trades",
+      "query": "symbols=AAPL&start={_start_in_url}&limit={limit}&asof=2022-03-09",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 816,
+      "sha256": "d89bff33d2f6508eb16e59cda8f8649ecae454c2f758289965acb6333b07b50a",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_stock_data::test_get_trades_multi_empty_response::GET /v2/stocks/trades#0",
+      "file": "data/test_historical_stock_data/test_get_trades_multi_empty_response/get-v2-stocks-trades-0.json",
+      "source": {
+        "path": "tests/data/test_historical_stock_data.py",
+        "line": 590,
+        "qualname": "test_get_trades_multi_empty_response"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v2/stocks/trades",
+      "query": "symbols={symbol}&start={_start_in_url}&limit={limit}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 75,
+      "sha256": "24e0861710462f02fb98d8207175a86307d9db7254fd8fbc30cf76b1b824b084",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_stock_data::test_multi_stock_latest_bar::GET /v2/stocks/bars/latest#0",
+      "file": "data/test_historical_stock_data/test_multi_stock_latest_bar/get-v2-stocks-bars-latest-0.json",
+      "source": {
+        "path": "tests/data/test_historical_stock_data.py",
+        "line": 953,
+        "qualname": "test_multi_stock_latest_bar"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v2/stocks/bars/latest",
+      "query": "symbols={_symbols_in_url}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 606,
+      "sha256": "0d2f3da4d69e26828c5f342f3e19aa23f2ce6e006c889e6253239e263d290dfe",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_stock_data::test_multisymbol_get_bars::GET /v2/stocks/bars#0",
+      "file": "data/test_historical_stock_data/test_multisymbol_get_bars/get-v2-stocks-bars-0.json",
+      "source": {
+        "path": "tests/data/test_historical_stock_data.py",
+        "line": 163,
+        "qualname": "test_multisymbol_get_bars"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v2/stocks/bars",
+      "query": "timeframe={timeframe}&start={_start_in_url}&end={_end_in_url}&symbols={_symbols_in_url}&limit=10000",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 796,
+      "sha256": "45fc0a9a3f2da7df501f4a7b3d073a856b049b1f8d46ad47ce68b27b9830a7ae",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_stock_data::test_multisymbol_get_trades::GET /v2/stocks/trades#0",
+      "file": "data/test_historical_stock_data/test_multisymbol_get_trades/get-v2-stocks-trades-0.json",
+      "source": {
+        "path": "tests/data/test_historical_stock_data.py",
+        "line": 521,
+        "qualname": "test_multisymbol_get_trades"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v2/stocks/trades",
+      "query": "start={_start_in_url}&symbols={_symbols_in_url}&limit=10000",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 904,
+      "sha256": "0e53dcdad35b6a9f5a71398af763f821fcb1ac6f6b82b90d9486a5160d56020a",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_stock_data::test_multisymbol_quotes::GET /v2/stocks/quotes#0",
+      "file": "data/test_historical_stock_data/test_multisymbol_quotes/get-v2-stocks-quotes-0.json",
+      "source": {
+        "path": "tests/data/test_historical_stock_data.py",
+        "line": 354,
+        "qualname": "test_multisymbol_quotes"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v2/stocks/quotes",
+      "query": "start={_start_in_url}&symbols={_symbols_in_url}&asof=-&limit=10000",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 928,
+      "sha256": "55302beba037ed200ffa62ec877491c1716d1babb41d0cb78b1ec12136932348",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_stock_data::test_stock_latest_bar::GET /v2/stocks/bars/latest#0",
+      "file": "data/test_historical_stock_data/test_stock_latest_bar/get-v2-stocks-bars-latest-0.json",
+      "source": {
+        "path": "tests/data/test_historical_stock_data.py",
+        "line": 915,
+        "qualname": "test_stock_latest_bar"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v2/stocks/bars/latest",
+      "query": "symbols=SPY",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 265,
+      "sha256": "b3b6544ec65b0c7d037d78b49591f9a9323e7894a30478f19520636acf84a9a5",
+      "notes": []
+    },
+    {
+      "id": "data/test_historical_stock_data::test_stock_latest_bar_multi_empty_response::GET /v2/stocks/bars/latest#0",
+      "file": "data/test_historical_stock_data/test_stock_latest_bar_multi_empty_response/get-v2-stocks-bars-latest-0.json",
+      "source": {
+        "path": "tests/data/test_historical_stock_data.py",
+        "line": 1002,
+        "qualname": "test_stock_latest_bar_multi_empty_response"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v2/stocks/bars/latest",
+      "query": "symbols={symbol}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 36,
+      "sha256": "b728ed714bc6e1438c35f3fc9ede8dc188a1a078ae90e73a8cef951f648d8185",
+      "notes": []
+    },
+    {
+      "id": "data/test_screener::test_get_market_movers::GET /v1beta1/screener/stocks/movers#0",
+      "file": "data/test_screener/test_get_market_movers/get-v1beta1-screener-stocks-movers-0.json",
+      "source": {
+        "path": "tests/data/test_screener.py",
+        "line": 9,
+        "qualname": "test_get_market_movers"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta1/screener/stocks/movers",
+      "query": "top={num_movers}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 3091,
+      "sha256": "2687088145eeb38a8a7c82472184f7f43ca69de8f1dd7e3e47dbfae8cf24dd46",
+      "notes": []
+    },
+    {
+      "id": "data/test_screener::test_get_most_actives::GET /v1beta1/screener/stocks/most-actives#0",
+      "file": "data/test_screener/test_get_most_actives/get-v1beta1-screener-stocks-most-actives-0.json",
+      "source": {
+        "path": "tests/data/test_screener.py",
+        "line": 150,
+        "qualname": "test_get_most_actives"
+      },
+      "family": "data",
+      "method": "GET",
+      "path": "/v1beta1/screener/stocks/most-actives",
+      "query": "by=volume&top={num_movers}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1264,
+      "sha256": "d5f0363a71b07d3381696e89b569e16f239ae35e16b1380666175f440251aef6",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_account_routes::test_get_account::GET /v2/account#0",
+      "file": "trading/trading_client/test_account_routes/test_get_account/get-v2-account-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_account_routes.py",
+        "line": 9,
+        "qualname": "test_get_account"
+      },
+      "family": "trading",
+      "method": "GET",
+      "path": "/v2/account",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1254,
+      "sha256": "b4832d25b107a0dfd3e2d8afa01a3be377c3fbebc2099db2effd0b1651e3716b",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_account_routes::test_get_account_configurations::GET /v2/account/configurations#0",
+      "file": "trading/trading_client/test_account_routes/test_get_account_configurations/get-v2-account-configurations-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_account_routes.py",
+        "line": 86,
+        "qualname": "test_get_account_configurations"
+      },
+      "family": "trading",
+      "method": "GET",
+      "path": "/v2/account/configurations",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 360,
+      "sha256": "5c9b8e73f8c6ca3f0efc6911c5f1867fd7fc6bc27c65f61415253875b901cfb4",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_account_routes::test_get_account_configurations_without_deprecated_pdt_fields::GET /v2/account/configurations#0",
+      "file": "trading/trading_client/test_account_routes/test_get_account_configurations_without_deprecated_pdt_fields/get-v2-account-configurations-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_account_routes.py",
+        "line": 115,
+        "qualname": "test_get_account_configurations_without_deprecated_pdt_fields"
+      },
+      "family": "trading",
+      "method": "GET",
+      "path": "/v2/account/configurations",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 295,
+      "sha256": "244cf24a33bbb62cb534d37ea5bf94e9837ce2faf7bff890dfcd6f3288c83353",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_account_routes::test_get_account_parses_buying_power_fields::GET /v2/account#0",
+      "file": "trading/trading_client/test_account_routes/test_get_account_parses_buying_power_fields/get-v2-account-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_account_routes.py",
+        "line": 63,
+        "qualname": "test_get_account_parses_buying_power_fields"
+      },
+      "family": "trading",
+      "method": "GET",
+      "path": "/v2/account",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 277,
+      "sha256": "bc4db2a541eb6df1a4b5b5191985ea1301b0e333cc60d64d4657d5cb32b5f494",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_account_routes::test_set_account_configurations_disable_overnight_trading_request_body::PATCH /v2/account/configurations#0",
+      "file": "trading/trading_client/test_account_routes/test_set_account_configurations_disable_overnight_trading_request_body/patch-v2-account-configurations-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_account_routes.py",
+        "line": 169,
+        "qualname": "test_set_account_configurations_disable_overnight_trading_request_body"
+      },
+      "family": "trading",
+      "method": "PATCH",
+      "path": "/v2/account/configurations",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 320,
+      "sha256": "9590187b3d9684fc84b884a58d539d52ac35df9c71e96e88481386a114e1378b",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_asset_routes::test_get_all_assets::GET /v2/assets#0",
+      "file": "trading/trading_client/test_asset_routes/test_get_all_assets/get-v2-assets-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_asset_routes.py",
+        "line": 15,
+        "qualname": "test_get_all_assets"
+      },
+      "family": "trading",
+      "method": "GET",
+      "path": "/v2/assets",
+      "query": "status=active",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 665,
+      "sha256": "12355bc71bccf22fee4892b002a8840ae6d2f63ac87a69957c9cb24d99fd5341",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_asset_routes::test_get_all_assets_params::GET /v2/assets#0",
+      "file": "trading/trading_client/test_asset_routes/test_get_all_assets_params/get-v2-assets-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_asset_routes.py",
+        "line": 54,
+        "qualname": "test_get_all_assets_params"
+      },
+      "family": "trading",
+      "method": "GET",
+      "path": "/v2/assets",
+      "query": "status=active&asset_class=us_equity&exchange=NASDAQ&attributes=attribute1%2Cattribute2",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 665,
+      "sha256": "12355bc71bccf22fee4892b002a8840ae6d2f63ac87a69957c9cb24d99fd5341",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_asset_routes::test_get_asset::GET /v2/assets/{symbol}#0",
+      "file": "trading/trading_client/test_asset_routes/test_get_asset/get-v2-assets-symbol-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_asset_routes.py",
+        "line": 104,
+        "qualname": "test_get_asset"
+      },
+      "family": "trading",
+      "method": "GET",
+      "path": "/v2/assets/{symbol}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 653,
+      "sha256": "280eca719c6de6a2af8d21b66d90b560101a8e489e18624fbd568057a5ad9215",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_corporate_announcements::test_get_announcements::GET /v2/corporate_actions/announcements#0",
+      "file": "trading/trading_client/test_corporate_announcements/test_get_announcements/get-v2-corporate-actions-announcements-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_corporate_announcements.py",
+        "line": 16,
+        "qualname": "test_get_announcements"
+      },
+      "family": "trading",
+      "method": "GET",
+      "path": "/v2/corporate_actions/announcements",
+      "query": "ca_types={ca_types}&since={since}&until={until}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1737,
+      "sha256": "be777846b03cea2798c2da751dd4288a177bbd7c16f69e2c628baf234ffe3488",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_option_routes::test_get_option_contract::GET /v2/options/contracts/{symbol}#0",
+      "file": "trading/trading_client/test_option_routes/test_get_option_contract/get-v2-options-contracts-symbol-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_option_routes.py",
+        "line": 181,
+        "qualname": "test_get_option_contract"
+      },
+      "family": "trading",
+      "method": "GET",
+      "path": "/v2/options/contracts/{symbol}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1366,
+      "sha256": "68fbfbe1c65c56b2b9fc19e63b7c1dc5caa6b4ed59b3ec6ee0e417460ab81006",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_option_routes::test_get_option_contract_cash_deliverable_omits_asset_id::GET /v2/options/contracts/{symbol}#0",
+      "file": "trading/trading_client/test_option_routes/test_get_option_contract_cash_deliverable_omits_asset_id/get-v2-options-contracts-symbol-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_option_routes.py",
+        "line": 243,
+        "qualname": "test_get_option_contract_cash_deliverable_omits_asset_id"
+      },
+      "family": "trading",
+      "method": "GET",
+      "path": "/v2/options/contracts/{symbol}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1289,
+      "sha256": "5b7698ab516c08e10b5262b184707cc470386be5c1251b00fbb920d0f35a55e8",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_option_routes::test_get_option_contract_delayed_settlement_null_amount::GET /v2/options/contracts/{symbol}#0",
+      "file": "trading/trading_client/test_option_routes/test_get_option_contract_delayed_settlement_null_amount/get-v2-options-contracts-symbol-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_option_routes.py",
+        "line": 305,
+        "qualname": "test_get_option_contract_delayed_settlement_null_amount"
+      },
+      "family": "trading",
+      "method": "GET",
+      "path": "/v2/options/contracts/{symbol}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1364,
+      "sha256": "8a64740287613830e909577193ec43d29ac469bf14e049a6e1e9e68931c14dab",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_option_routes::test_get_option_contracts::GET /v2/options/contracts#0",
+      "file": "trading/trading_client/test_option_routes/test_get_option_contracts/get-v2-options-contracts-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_option_routes.py",
+        "line": 23,
+        "qualname": "test_get_option_contracts"
+      },
+      "family": "trading",
+      "method": "GET",
+      "path": "/v2/options/contracts",
+      "query": "underlying_symbols=AAPL",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 971,
+      "sha256": "183da023120dbf2d832ab5025fa29940483447fb20f29553a61c17f481a21c2e",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_option_routes::test_get_option_contracts_with_deliverables_and_ppind::GET /v2/options/contracts#0",
+      "file": "trading/trading_client/test_option_routes/test_get_option_contracts_with_deliverables_and_ppind/get-v2-options-contracts-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_option_routes.py",
+        "line": 115,
+        "qualname": "test_get_option_contracts_with_deliverables_and_ppind"
+      },
+      "family": "trading",
+      "method": "GET",
+      "path": "/v2/options/contracts",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1603,
+      "sha256": "45da1c9207d43a2f7ae4a742e60892ae2818082147eedb1bf429522313628300",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_option_routes::test_get_option_contracts_with_multiple_symbols::GET /v2/options/contracts#0",
+      "file": "trading/trading_client/test_option_routes/test_get_option_contracts_with_multiple_symbols/get-v2-options-contracts-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_option_routes.py",
+        "line": 70,
+        "qualname": "test_get_option_contracts_with_multiple_symbols"
+      },
+      "family": "trading",
+      "method": "GET",
+      "path": "/v2/options/contracts",
+      "query": "underlying_symbols=AAPL,SPY",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 973,
+      "sha256": "bff7f8e40d1c951537f5fbcee683dec3b9d6f640a6ac480dc304b1800dc0dc49",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_order_routes::test_cancel_order_by_id::DELETE /v2/orders/{order_id}#0",
+      "file": "trading/trading_client/test_order_routes/test_cancel_order_by_id/delete-v2-orders-order-id-0.empty",
+      "source": {
+        "path": "tests/trading/trading_client/test_order_routes.py",
+        "line": 362,
+        "qualname": "test_cancel_order_by_id"
+      },
+      "family": "trading",
+      "method": "DELETE",
+      "path": "/v2/orders/{order_id}",
+      "query": null,
+      "status": 204,
+      "headers": {},
+      "kind": "empty",
+      "origin": "none",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_order_routes::test_cancel_order_throws_not_found_error::DELETE /v2/orders/{order_id}#0",
+      "file": "trading/trading_client/test_order_routes/test_cancel_order_throws_not_found_error/delete-v2-orders-order-id-0.empty",
+      "source": {
+        "path": "tests/trading/trading_client/test_order_routes.py",
+        "line": 391,
+        "qualname": "test_cancel_order_throws_not_found_error"
+      },
+      "family": "trading",
+      "method": "DELETE",
+      "path": "/v2/orders/{order_id}",
+      "query": null,
+      "status": 404,
+      "headers": {},
+      "kind": "empty",
+      "origin": "none",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_order_routes::test_cancel_order_throws_uncancelable_error::DELETE /v2/orders/{order_id}#0",
+      "file": "trading/trading_client/test_order_routes/test_cancel_order_throws_uncancelable_error/delete-v2-orders-order-id-0.empty",
+      "source": {
+        "path": "tests/trading/trading_client/test_order_routes.py",
+        "line": 376,
+        "qualname": "test_cancel_order_throws_uncancelable_error"
+      },
+      "family": "trading",
+      "method": "DELETE",
+      "path": "/v2/orders/{order_id}",
+      "query": null,
+      "status": 422,
+      "headers": {},
+      "kind": "empty",
+      "origin": "none",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_order_routes::test_cancel_orders::DELETE /v2/orders#0",
+      "file": "trading/trading_client/test_order_routes/test_cancel_orders/delete-v2-orders-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_order_routes.py",
+        "line": 405,
+        "qualname": "test_cancel_orders"
+      },
+      "family": "trading",
+      "method": "DELETE",
+      "path": "/v2/orders",
+      "query": null,
+      "status": 207,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 317,
+      "sha256": "c5b7e4aff7e084e3e5a966e99d2e724434877698e49e0e8c41a88837d7dc16ce",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_order_routes::test_get_order_by_client_id::GET /v2/orders:by_client_order_id#0",
+      "file": "trading/trading_client/test_order_routes/test_get_order_by_client_id/get-v2-orders-by-client-order-id-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_order_routes.py",
+        "line": 193,
+        "qualname": "test_get_order_by_client_id"
+      },
+      "family": "trading",
+      "method": "GET",
+      "path": "/v2/orders:by_client_order_id",
+      "query": "client_order_id={client_id}",
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1160,
+      "sha256": "12b3cb412603232c61fdb21344b7902324e5d9d4bb75b9f3545ef15285847579",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_order_routes::test_get_order_by_id::GET /v2/orders/{order_id}#0",
+      "file": "trading/trading_client/test_order_routes/test_get_order_by_id/get-v2-orders-order-id-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_order_routes.py",
+        "line": 141,
+        "qualname": "test_get_order_by_id"
+      },
+      "family": "trading",
+      "method": "GET",
+      "path": "/v2/orders/{order_id}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1160,
+      "sha256": "12b3cb412603232c61fdb21344b7902324e5d9d4bb75b9f3545ef15285847579",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_order_routes::test_get_orders::GET /v2/orders#0",
+      "file": "trading/trading_client/test_order_routes/test_get_orders/get-v2-orders-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_order_routes.py",
+        "line": 89,
+        "qualname": "test_get_orders"
+      },
+      "family": "trading",
+      "method": "GET",
+      "path": "/v2/orders",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1452,
+      "sha256": "7963adb55c5615b41f06c58890583ff3503797b8d7ac26df53bcd16318717412",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_order_routes::test_limit_order::POST /v2/orders#0",
+      "file": "trading/trading_client/test_order_routes/test_limit_order/post-v2-orders-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_order_routes.py",
+        "line": 437,
+        "qualname": "test_limit_order"
+      },
+      "family": "trading",
+      "method": "POST",
+      "path": "/v2/orders",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1237,
+      "sha256": "5bab010f3082b84cde6ad18910f87a479d0276c96618b796b4ef0d33bdaa8e6d",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_order_routes::test_market_order::POST /v2/orders#0",
+      "file": "trading/trading_client/test_order_routes/test_market_order/post-v2-orders-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_order_routes.py",
+        "line": 33,
+        "qualname": "test_market_order"
+      },
+      "family": "trading",
+      "method": "POST",
+      "path": "/v2/orders",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1240,
+      "sha256": "e4d4e6849a937581bca3b642373a78a15cd59ad818561b239a97e296832eea3b",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_order_routes::test_order_position_intent::POST /v2/orders#0",
+      "file": "trading/trading_client/test_order_routes/test_order_position_intent/post-v2-orders-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_order_routes.py",
+        "line": 555,
+        "qualname": "test_order_position_intent"
+      },
+      "family": "trading",
+      "method": "POST",
+      "path": "/v2/orders",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1239,
+      "sha256": "09243ab5ace31a261bbe6819a1ea01d2b495f74b28eb6fc47ccf2164f79c059e",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_order_routes::test_order_position_intent::POST /v2/orders#1",
+      "file": "trading/trading_client/test_order_routes/test_order_position_intent/post-v2-orders-1.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_order_routes.py",
+        "line": 612,
+        "qualname": "test_order_position_intent"
+      },
+      "family": "trading",
+      "method": "POST",
+      "path": "/v2/orders",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1239,
+      "sha256": "f95830d97e128fc6a262772bb051c091cb97a660fb023e1701f2665ecae7e07f",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_order_routes::test_replace_order::PATCH /v2/orders/{order_id}#0",
+      "file": "trading/trading_client/test_order_routes/test_replace_order/patch-v2-orders-order-id-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_order_routes.py",
+        "line": 243,
+        "qualname": "test_replace_order"
+      },
+      "family": "trading",
+      "method": "PATCH",
+      "path": "/v2/orders/{order_id}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1160,
+      "sha256": "12b3cb412603232c61fdb21344b7902324e5d9d4bb75b9f3545ef15285847579",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_position_routes::test_close_all_positions::DELETE /v2/positions#0",
+      "file": "trading/trading_client/test_position_routes/test_close_all_positions/delete-v2-positions-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_position_routes.py",
+        "line": 151,
+        "qualname": "test_close_all_positions"
+      },
+      "family": "trading",
+      "method": "DELETE",
+      "path": "/v2/positions",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 2197,
+      "sha256": "ecb6978c4ae9a7473b7352b4cde5ed4d9b579d8781f4864380432be140d2ad70",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_position_routes::test_close_position_with_id::DELETE /v2/positions/{asset_id}#0",
+      "file": "trading/trading_client/test_position_routes/test_close_position_with_id/delete-v2-positions-asset-id-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_position_routes.py",
+        "line": 231,
+        "qualname": "test_close_position_with_id"
+      },
+      "family": "trading",
+      "method": "DELETE",
+      "path": "/v2/positions/{asset_id}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1387,
+      "sha256": "811094a8be6524a9ac0ee9aa32ae9b7cf3cef8f9a5fd1a37527116efb966ecc8",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_position_routes::test_close_position_with_percentage::DELETE /v2/positions/{asset_id}#0",
+      "file": "trading/trading_client/test_position_routes/test_close_position_with_percentage/delete-v2-positions-asset-id-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_position_routes.py",
+        "line": 390,
+        "qualname": "test_close_position_with_percentage"
+      },
+      "family": "trading",
+      "method": "DELETE",
+      "path": "/v2/positions/{asset_id}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1240,
+      "sha256": "2c8e7fd7404b4f442d9b900e8d96b45724daf958c7527c8ac67dae1c9791b684",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_position_routes::test_close_position_with_qty::DELETE /v2/positions/{asset_id}#0",
+      "file": "trading/trading_client/test_position_routes/test_close_position_with_qty/delete-v2-positions-asset-id-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_position_routes.py",
+        "line": 337,
+        "qualname": "test_close_position_with_qty"
+      },
+      "family": "trading",
+      "method": "DELETE",
+      "path": "/v2/positions/{asset_id}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1240,
+      "sha256": "2c8e7fd7404b4f442d9b900e8d96b45724daf958c7527c8ac67dae1c9791b684",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_position_routes::test_close_position_with_symbol::DELETE /v2/positions/{symbol}#0",
+      "file": "trading/trading_client/test_position_routes/test_close_position_with_symbol/delete-v2-positions-symbol-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_position_routes.py",
+        "line": 284,
+        "qualname": "test_close_position_with_symbol"
+      },
+      "family": "trading",
+      "method": "DELETE",
+      "path": "/v2/positions/{symbol}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1387,
+      "sha256": "811094a8be6524a9ac0ee9aa32ae9b7cf3cef8f9a5fd1a37527116efb966ecc8",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_position_routes::test_exercise_options_position_with_id::POST /v2/positions/{contract_id}/exercise#0",
+      "file": "trading/trading_client/test_position_routes/test_exercise_options_position_with_id/post-v2-positions-contract-id-exercise-0.empty",
+      "source": {
+        "path": "tests/trading/trading_client/test_position_routes.py",
+        "line": 462,
+        "qualname": "test_exercise_options_position_with_id"
+      },
+      "family": "trading",
+      "method": "POST",
+      "path": "/v2/positions/{contract_id}/exercise",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "empty",
+      "origin": "text",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_position_routes::test_exercise_options_position_with_symbol::POST /v2/positions/{symbol}/exercise#0",
+      "file": "trading/trading_client/test_position_routes/test_exercise_options_position_with_symbol/post-v2-positions-symbol-exercise-0.empty",
+      "source": {
+        "path": "tests/trading/trading_client/test_position_routes.py",
+        "line": 445,
+        "qualname": "test_exercise_options_position_with_symbol"
+      },
+      "family": "trading",
+      "method": "POST",
+      "path": "/v2/positions/{symbol}/exercise",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "empty",
+      "origin": "text",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_position_routes::test_get_all_positions::GET /v2/positions#0",
+      "file": "trading/trading_client/test_position_routes/test_get_all_positions/get-v2-positions-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_position_routes.py",
+        "line": 13,
+        "qualname": "test_get_all_positions"
+      },
+      "family": "trading",
+      "method": "GET",
+      "path": "/v2/positions",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1261,
+      "sha256": "a9122b5a419bca1cebaa6d0864e7545d5c0041d03dd9b180719fd46dba91d269",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_position_routes::test_get_open_position_with_asset_id::GET /v2/positions/{asset_id}#0",
+      "file": "trading/trading_client/test_position_routes/test_get_open_position_with_asset_id/get-v2-positions-asset-id-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_position_routes.py",
+        "line": 61,
+        "qualname": "test_get_open_position_with_asset_id"
+      },
+      "family": "trading",
+      "method": "GET",
+      "path": "/v2/positions/{asset_id}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1121,
+      "sha256": "03d99ae1912404d5d78f35ab21186cfd4d8d9c336b6aef70d835a990fdc536a4",
+      "notes": []
+    },
+    {
+      "id": "trading/trading_client/test_position_routes::test_get_open_position_with_symbol::GET /v2/positions/{symbol}#0",
+      "file": "trading/trading_client/test_position_routes/test_get_open_position_with_symbol/get-v2-positions-symbol-0.json",
+      "source": {
+        "path": "tests/trading/trading_client/test_position_routes.py",
+        "line": 107,
+        "qualname": "test_get_open_position_with_symbol"
+      },
+      "family": "trading",
+      "method": "GET",
+      "path": "/v2/positions/{symbol}",
+      "query": null,
+      "status": 200,
+      "headers": {},
+      "kind": "json",
+      "origin": "text",
+      "bytes": 1121,
+      "sha256": "03d99ae1912404d5d78f35ab21186cfd4d8d9c336b6aef70d835a990fdc536a4",
+      "notes": []
+    }
+  ],
+  "skipped": [
+    {
+      "id": "broker/broker_client/test_accounts_routes::test_exercise_options_position_raw_data_returns_dict::POST /v1/trading/accounts/{account_id}/positions/{symbol_or_contract_id}/exercise#0",
+      "source": {
+        "path": "tests/broker/broker_client/test_accounts_routes.py",
+        "line": 1233,
+        "qualname": "test_exercise_options_position_raw_data_returns_dict"
+      },
+      "method": "POST",
+      "path": "/v1/trading/accounts/{account_id}/positions/{symbol_or_contract_id}/exercise",
+      "reason": "body-not-literal",
+      "detail": "body"
+    },
+    {
+      "id": "broker/broker_client/test_rebalancing_routes::test_get_all_runs_none_raw_data_returns_item_dicts::GET /v1/rebalancing/runs#0",
+      "source": {
+        "path": "tests/broker/broker_client/test_rebalancing_routes.py",
+        "line": 765,
+        "qualname": "test_get_all_runs_none_raw_data_returns_item_dicts"
+      },
+      "method": "GET",
+      "path": "/v1/rebalancing/runs",
+      "reason": "body-not-literal",
+      "detail": "run"
+    },
+    {
+      "id": "broker/broker_client/test_rebalancing_routes::test_get_all_runs_none_returns_first_page_as_list::GET /v1/rebalancing/runs#0",
+      "source": {
+        "path": "tests/broker/broker_client/test_rebalancing_routes.py",
+        "line": 746,
+        "qualname": "test_get_all_runs_none_returns_first_page_as_list"
+      },
+      "method": "GET",
+      "path": "/v1/rebalancing/runs",
+      "reason": "body-not-literal",
+      "detail": "run"
+    },
+    {
+      "id": "broker/broker_client/test_rebalancing_routes::test_get_all_subscriptions_none_raw_data_returns_item_dicts::GET /v1/rebalancing/subscriptions#0",
+      "source": {
+        "path": "tests/broker/broker_client/test_rebalancing_routes.py",
+        "line": 703,
+        "qualname": "test_get_all_subscriptions_none_raw_data_returns_item_dicts"
+      },
+      "method": "GET",
+      "path": "/v1/rebalancing/subscriptions",
+      "reason": "body-not-literal",
+      "detail": "subscription"
+    },
+    {
+      "id": "trading/trading_client/test_account_routes::test_set_account_configurations::PATCH /v2/account/configurations#0",
+      "source": {
+        "path": "tests/trading/trading_client/test_account_routes.py",
+        "line": 151,
+        "qualname": "test_set_account_configurations"
+      },
+      "method": "PATCH",
+      "path": "/v2/account/configurations",
+      "reason": "body-not-literal",
+      "detail": "Call"
+    }
+  ]
+}

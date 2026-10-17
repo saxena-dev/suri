@@ -1,0 +1,46 @@
+
+    [
+      {
+        "id": "20220419000000000::fd84741b-59c5-4ddd-a303-69f70eb7753f",
+        "account_id": "aba134b6-217d-4fd2-b460-e3c80bbfb9b4",
+        "activity_type": "CSD",
+        "date": "2022-04-19",
+        "net_amount": "33324.35",
+        "description": "",
+        "status": "executed"
+      },
+      {
+        "id": "20220419000000000::fb876acb-76b0-405c-8c7f-96a1c171ec5c",
+        "account_id": "673272aa-2aa7-484b-9d5b-dd2bd19e9bca",
+        "activity_type": "CSD",
+        "date": "2022-04-19",
+        "net_amount": "29161.91",
+        "description": "",
+        "status": "executed"
+      },
+      {
+        "id": "20220304095318500::092cd749-b783-49cb-a36e-4d8666be201f",
+        "account_id": "6e8cb861-e8b9-4278-8ed2-c8452535a165",
+        "activity_type": "FILL",
+        "transaction_time": "2022-03-04T14:53:18.500245Z",
+        "type": "fill",
+        "price": "2630.95",
+        "qty": "9",
+        "side": "buy",
+        "symbol": "GOOGL",
+        "leaves_qty": "0",
+        "order_id": "b677e464-c2d0-4fdd-a4b1-8830b386aa50",
+        "cum_qty": "10.177047834",
+        "order_status": "filled"
+      },
+      {
+        "id": "20220419000000000::f77b60bf-ea39-4551-a3d6-000548e6f11c",
+        "account_id": "6188a8e4-4551-4c00-9387-fcb38ff8eef3",
+        "activity_type": "CSD",
+        "date": "2022-04-19",
+        "net_amount": "45850.47",
+        "description": "",
+        "status": "executed"
+      }
+    ]
+    

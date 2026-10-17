@@ -1,0 +1,3 @@
+[submodule "vendor/alpaca-py"]
+	path = vendor/alpaca-py
+	url = https://github.com/alpacahq/alpaca-py

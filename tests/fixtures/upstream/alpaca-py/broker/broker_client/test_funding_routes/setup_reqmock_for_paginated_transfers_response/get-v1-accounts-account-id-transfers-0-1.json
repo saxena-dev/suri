@@ -1,0 +1,52 @@
+
+    [
+        {
+          "id": "87d1fb30-4fab-4af1-a770-d1936ec24eca",
+          "relationship_id": "0f08c6bc-8e9f-463d-a73f-fd047fdb5e94",
+          "account_id": "2a87c088-ffb6-472b-a4a3-cd9305c8605c",
+          "type": "ach",
+          "status": "COMPLETE",
+          "reason": null,
+          "amount": "498",
+          "direction": "INCOMING",
+          "created_at": "2021-05-05T07:55:31.190788Z",
+          "updated_at": "2021-05-05T08:13:33.029539Z",
+          "expires_at": "2021-05-12T07:55:31.190719Z",
+          "requested_amount": "500",
+          "fee": "2",
+          "fee_payment_method": "user"
+        },
+        {
+          "id": "99224cf2-afe4-4a7f-8244-c17d61b19512",
+          "relationship_id": "0f08c6bc-8e9f-463d-a73f-fd047fdb5e94",
+          "account_id": "2a87c088-ffb6-472b-a4a3-cd9305c8605c",
+          "type": "ach",
+          "status": "COMPLETE",
+          "reason": null,
+          "amount": "692.0",
+          "direction": "OUTGOING",
+          "created_at": "2021-05-05T07:55:31.190788Z",
+          "updated_at": "2021-05-05T08:13:33.029539Z",
+          "expires_at": "2021-05-12T07:55:31.190719Z",
+          "requested_amount": "695.0",
+          "fee": "3",
+          "fee_payment_method": "user"
+        },
+        {
+          "id": "e45b6b24-4e63-467e-9674-3527643a3767",
+          "relationship_id": "0f08c6bc-8e9f-463d-a73f-fd047fdb5e94",
+          "account_id": "2a87c088-ffb6-472b-a4a3-cd9305c8605c",
+          "type": "ach",
+          "status": "COMPLETE",
+          "reason": "reason reason reason",
+          "amount": "3921.23",
+          "direction": "INCOMING",
+          "created_at": "2021-05-05T07:55:31.190788Z",
+          "updated_at": "2021-05-05T08:13:33.029539Z",
+          "expires_at": "2021-05-12T07:55:31.190719Z",
+          "requested_amount": "3923.23",
+          "fee": "2",
+          "fee_payment_method": "user"
+        }
+    ]
+    

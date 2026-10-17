@@ -1,0 +1,40 @@
+
+    [
+      {
+        "id": "20220419000000000::ed22fc4d-897c-474b-876a-b492d40f83d2",
+        "account_id": "e1bade5e-7988-4449-8791-86d47d721d19",
+        "activity_type": "CSD",
+        "date": "2022-04-19",
+        "net_amount": "43864.18",
+        "description": "",
+        "status": "executed"
+      },
+      {
+        "id": "20220419000000000::ec75b06d-1d29-4d1e-9143-c7e59aa842bc",
+        "account_id": "a3f59eac-7c03-42b2-a336-d078b3671308",
+        "activity_type": "CSD",
+        "date": "2022-04-19",
+        "net_amount": "32155.97",
+        "description": "",
+        "status": "executed"
+      },
+      {
+        "id": "20220419000000000::ec624f60-ca70-42d6-9086-f47a1eeebeb7",
+        "account_id": "34f33a89-390d-4001-aced-a5e978864b8d",
+        "activity_type": "CSD",
+        "date": "2022-04-19",
+        "net_amount": "20979.69",
+        "description": "",
+        "status": "executed"
+      },
+      {
+        "id": "20220419000000000::e96b84c0-15b8-4821-9c78-cce1d836ff5b",
+        "account_id": "f78eb5ae-76c0-48ef-b5d9-07613da2e827",
+        "activity_type": "CSD",
+        "date": "2022-04-19",
+        "net_amount": "22386.64",
+        "description": "",
+        "status": "executed"
+      }
+    ]
+    

@@ -1,0 +1,21 @@
+
+        [
+          {
+            "id": "be3c368a-4c7c-4384-808e-f02c9f5a8afe",
+            "account_id": "2a87c088-ffb6-472b-a4a3-cd9305c8605c",
+            "type": "ach",
+            "status": "COMPLETE",
+            "amount": "498",
+            "direction": "INCOMING",
+            "created_at": "2021-05-05T07:55:31.190788Z",
+            "ira": {
+              "distribution_reason": "normal",
+              "fed_withholding_amount": "102.5",
+              "fed_withholding_pct": "10.25",
+              "state_withholding_amount": "97.5",
+              "state_withholding_pct": "9.75",
+              "tax_year": "2024"
+            }
+          }
+        ]
+        

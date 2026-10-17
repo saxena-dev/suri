@@ -1,7 +1,11 @@
-# Runs the same verification gate as a local `scripts/verify.sh --full`:
+# Runs the same verification gate as a local `scripts/verify.sh --full --msrv`:
 # formatting, clippy with warnings denied and the tests on every feature row,
-# rustdoc with warnings denied, and the package-content check. The feature
-# rows live in the script, so this file does not change when features do.
+# the tests with serde_json's arbitrary_precision on, rustdoc with warnings
+# denied, the package-content check, and a check and test run on the minimum
+# supported Rust version (`rust-version` in Cargo.toml). Stable stays the
+# default toolchain; the minimum version is used only for the MSRV run. The
+# feature rows live in the script, so this file does not change when features
+# do.
 name: ci
 
 on:
@@ -16,7 +20,7 @@ env:
 
 jobs:
   verify:
-    name: verify (stable)
+    name: verify (stable and MSRV)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,5 +29,10 @@ jobs:
           rustup toolchain install stable --profile minimal --component rustfmt,clippy
           rustup default stable
           rustc --version
+      - name: Install the minimum supported Rust version
+        run: |
+          rv=$(sed -n 's/^rust-version *= *"\(.*\)"/\1/p' Cargo.toml)
+          rustup toolchain install "$rv" --profile minimal
+          rustc "+$rv" --version
       - name: Verify
-        run: scripts/verify.sh --full
+        run: scripts/verify.sh --full --msrv

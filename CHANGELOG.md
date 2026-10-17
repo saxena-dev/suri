@@ -5,3 +5,7 @@ All notable changes to suri are listed here. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+### Added
+
+- `Decimal`, an exact decimal value kept as text.

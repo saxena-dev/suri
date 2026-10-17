@@ -2,6 +2,9 @@
 name = "suri"
 version = "0.0.0"
 edition = "2024"
+# 1.88 is the first release with let chains (edition 2024), which suri's code
+# may use. Dependencies alone would allow 1.85, the edition's own floor.
+rust-version = "1.88.0"
 description = "A Rust client for the Alpaca Trading and Market Data APIs"
 repository = "https://github.com/saxena-dev/suri"
 readme = "README.md"
@@ -14,9 +17,12 @@ license = "MIT"
 exclude = ["/.github", "/vendor", "/tools", "/tests"]
 
 [dependencies]
+# Decoding and encoding of suri's value types. No derive: the types implement
+# their serde traits by hand to control exactly what they accept.
+serde = { version = "1.0.229", default-features = false, features = ["std"] }
 
 [dev-dependencies]
 # Re-hashes the fixture tree in tests/fixture_manifest.rs.
 sha2 = "0.10.9"
-# Reads the upstream fixture index.
+# Reads the upstream fixture index, and drives the JSON decoding tests.
 serde_json = "1.0.154"

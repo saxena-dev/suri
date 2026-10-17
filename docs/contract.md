@@ -26,3 +26,29 @@ and a behaviour that is not written here is not promised.
 When the documentation leaves a choice open, suri chooses correctness first,
 then performance, then simplicity, and leans towards the simpler option when
 the last two pull against each other.
+
+## Decimal values
+
+Prices, quantities and amounts that Alpaca sends as decimal strings arrive as
+`Decimal`, which keeps the text exactly as sent: every digit, however many,
+and no conversion through a binary float on the way in or out. A `Decimal` is
+written back as a JSON string of the same text.
+
+- **Accepted:** a JSON string of an optional `-`, one or more digits, and
+  optionally a `.` followed by one or more digits (`"0"`, `"-0"`, `"007"`,
+  `"1.00"`), and a JSON integer within 64 bits, kept as its digits.
+- **Rejected:** any other string (`"1e5"`, `".5"`, `"+1"`, `""`), a number
+  with a fraction or an exponent, the number `-0`, an integer beyond 64 bits,
+  `true`, `null`, arrays and objects, when the value is decoded directly. A
+  nullable field is an `Option<Decimal>`.
+- **Equality is equality of the text.** `"5"` and `"5.0"` are different
+  values, as they are on the wire; Alpaca's own position examples mix
+  `"5"` and `"100.0"`. There is no ordering and no arithmetic: read
+  `as_str()` into the decimal type of your choice to compare or compute.
+
+## Decisions
+
+| Topic | Decision | Reason |
+|---|---|---|
+| Decimal representation | The exact text, with no arithmetic | suri does no arithmetic, and Alpaca's money strings can exceed the range of common decimal crates |
+| Decimal equality | Text equality | It is the value as sent; numeric equality would need a normalisation suri has no use for |

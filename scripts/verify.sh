@@ -8,8 +8,10 @@
 #                               targets with warnings denied; use when a change
 #                               adds or alters build targets or features
 #   scripts/verify.sh --full    formatting, clippy and tests on every feature
-#                               row, rustdoc with warnings denied, package
-#                               contents; use at epic close and before a release
+#                               row, the tests again with serde_json's
+#                               arbitrary_precision on, rustdoc with warnings
+#                               denied, package contents; use at epic close and
+#                               before a release
 #   scripts/verify.sh --full --msrv
 #                               also checks every row and runs the tests on the
 #                               toolchain named by rust-version in Cargo.toml
@@ -100,6 +102,9 @@ if [ "$mode" = full ]; then
     # shellcheck disable=SC2046
     run cargo test --locked $(row_args "$row")
   done
+  # A downstream crate can turn on serde_json's arbitrary_precision, which
+  # changes how numbers reach suri's decoders; suri's results must not change.
+  run cargo test --locked --all-features --features serde_json/arbitrary_precision
   RUSTDOCFLAGS="-D warnings" run cargo doc --locked --all-features --no-deps
 
   # The package never ships vendored sources, tooling, tests and their

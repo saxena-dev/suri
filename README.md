@@ -17,7 +17,8 @@ Alpaca's US hosts.
 ## Building
 
 suri needs Rust 1.88 or later. With its default `rest` feature, building it
-also needs a C compiler, for the TLS library's cryptography.
+also needs a C compiler, for the TLS library's cryptography, and on 32-bit
+x86 Windows the NASM assembler as well.
 
 ## What suri promises
 

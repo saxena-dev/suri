@@ -122,9 +122,9 @@ bad value fails when the client is built, never at request time.
   credentials. `Debug` of a `Config` prints it as `Some(..)`.
 - **Environment:** suri reads no environment variable: not Alpaca's
   `APCA_API_*` variables, and not the proxy variables. The one exception is
-  the TLS library's certificate verifier, which on Unix systems other than
-  macOS, iOS and Android reads `SSL_CERT_FILE` and `SSL_CERT_DIR` in place of
-  the system's certificate store.
+  the TLS library's certificate verifier, which on some systems reads
+  `SSL_CERT_FILE` and `SSL_CERT_DIR` in place of the system's certificate
+  store.
 
 ## Requests
 
@@ -170,8 +170,10 @@ error carries its status and `ResponseMeta`.
 
 `may_have_reached_broker()` is false only at `NotStarted`. When it is true
 for a request that changes state, such as an order, the request may have
-taken effect: as Alpaca advises for a timed-out order, find out (look the
-order up) before sending it again, never resend it blindly.
+taken effect: do not send it again until you know. For a timed-out order,
+Alpaca advises against resending it or treating it as canceled until that
+is confirmed, and advises checking the dashboard and contacting its
+support.
 
 For an `Api` error, suri reads the response body, up to `max_body_bytes`,
 for Alpaca's error code and message:
@@ -211,7 +213,7 @@ suri retries reads, and only reads; every endpoint it calls so far is one.
   most `retry_cap`. After a 429 with an `X-RateLimit-Reset`, the wait is the
   later of the backoff and the reset. Up to half the backoff is then added
   at random, so that many clients do not retry in step. A retry never comes
-  before the backoff or the reset.
+  before the backoff, or before the reset as this machine's clock reads it.
 
 ## Observability
 
@@ -240,10 +242,8 @@ is recorded.
     when a socket option cannot be set (targets under
     `hyper_util::client::legacy`);
   - the certificate verifier, through `log` (targets under
-    `rustls_platform_verifier`): ERROR when a certificate fails
-    verification and, on Linux and other Unix systems except macOS, iOS and
-    Android, WARN and DEBUG when `Client::new` loads the system's root
-    certificates.
+    `rustls_platform_verifier`): certificate errors and, on some systems,
+    the loading of the system's root certificates when `Client::new` runs.
 
   These records name hosts, ports, certificate errors and counts, not
   credentials: suri's tests capture every record from suri and its HTTP
@@ -270,4 +270,6 @@ is open, and the next open and close, each a `Timestamp`.
 | Redirects | Never followed; an error naming only the target's origin | A followed redirect could resend the key pair or a request that changes state to another host |
 | Unknown JSON fields | Ignored | Alpaca adds response fields without changing the API version |
 | Market clock version | `/v2/clock` | It reports the US equity market the first release covers; the newer clock adds other markets |
-| Retries | Reads only, on 429, 500, 502, 503, 504 and failed connections, with capped exponential backoff and added jitter, never before a rate-limit reset, within a deadline | A read is safe to repeat; Alpaca asks clients to back off, wait for the reset and add jitter, and documents 500 as worth retrying later |
+| Retries | Reads only, on 429, 500, 502, 503, 504 and failed connections, with capped exponential backoff and added jitter, never before a rate-limit reset by this machine's clock, within a deadline | A read is safe to repeat; Alpaca asks clients to back off, wait for the reset and add jitter, and documents 500 as worth retrying later |
+| HTTP version | HTTP/1.1 only | One connection model to reason about and test; the documentation leaves the protocol version open and lists new HTTP versions among the changes Alpaca makes without notice |
+| Compression | Uncompressed responses requested (`Accept-Encoding: identity`); nothing is decompressed | No decompression code or limits to get right; Alpaca says it may add gzip, so suri asks for none rather than accept any |

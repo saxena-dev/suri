@@ -317,3 +317,23 @@ pub(crate) fn check(config: &Config) -> Result<url::Url, ConfigError> {
     }
     Ok(base_url)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn each_environment_uses_its_documented_host() {
+        let config = |environment| {
+            Config::new(
+                Region::US,
+                environment,
+                Credentials::api_key("PKSENTINELKEY0001", "SECRETSENTINELVALUE0001"),
+            )
+        };
+        let paper = check(&config(Environment::Paper)).unwrap();
+        let live = check(&config(Environment::Live)).unwrap();
+        assert_eq!(paper.as_str(), "https://paper-api.alpaca.markets/");
+        assert_eq!(live.as_str(), "https://api.alpaca.markets/");
+    }
+}

@@ -4,7 +4,6 @@
 //! file that is missing, and a size or SHA-256 mismatch each fail, so fixture
 //! bytes can neither drift nor grow silently.
 
-#[allow(dead_code)]
 #[path = "support/fixture.rs"]
 mod fixture;
 
@@ -35,8 +34,8 @@ struct Listed {
 }
 
 /// Parse `MANIFEST.toml`: comments, `[[file]]` tables and `key = "string"` or
-/// `key = integer` lines, each table with exactly [`KEYS`]. Anything else is
-/// an error.
+/// `key = integer` lines, each table with exactly [`KEYS`], `size` an integer
+/// and every other key a string. Anything else is an error.
 fn parse_manifest(text: &str) -> Result<Vec<BTreeMap<String, String>>, String> {
     let mut entries: Vec<BTreeMap<String, String>> = Vec::new();
     for (n, raw) in text.lines().enumerate() {
@@ -52,6 +51,7 @@ fn parse_manifest(text: &str) -> Result<Vec<BTreeMap<String, String>>, String> {
         let (key, value) = line
             .split_once(" = ")
             .ok_or_else(|| format!("line {n}: not `key = value`: {raw}"))?;
+        let quoted = value.starts_with('"');
         let value = if let Some(s) = value.strip_prefix('"') {
             let s = s
                 .strip_suffix('"')
@@ -60,13 +60,23 @@ fn parse_manifest(text: &str) -> Result<Vec<BTreeMap<String, String>>, String> {
                 return Err(format!("line {n}: a quote or backslash inside a string"));
             }
             s.to_owned()
-        } else if value.bytes().all(|b| b.is_ascii_digit()) {
+        } else if value == "0"
+            || (!value.starts_with('0') && value.bytes().all(|b| b.is_ascii_digit()))
+        {
             value.to_owned()
         } else {
             return Err(format!("line {n}: unsupported value {value}"));
         };
         if !KEYS.contains(&key) {
             return Err(format!("line {n}: unknown key {key}"));
+        }
+        if (key == "size") == quoted {
+            let kind = if key == "size" {
+                "an integer"
+            } else {
+                "a string"
+            };
+            return Err(format!("line {n}: {key} must be {kind}"));
         }
         let entry = entries
             .last_mut()
@@ -160,13 +170,11 @@ fn upstream_listing(root: &Path) -> Result<Vec<(String, Listed)>, String> {
     Ok(out)
 }
 
-/// A relative path that stays inside its directory: no leading `/`, and no
-/// empty, `.` or `..` component.
+/// A relative path that stays inside its directory: no empty, `.` or `..`
+/// component (so no leading `/`, which makes the first component empty).
 fn confined(path: &str) -> bool {
-    !path.starts_with('/')
-        && path
-            .split('/')
-            .all(|part| !part.is_empty() && part != "." && part != "..")
+    path.split('/')
+        .all(|part| !part.is_empty() && part != "." && part != "..")
 }
 
 fn manifest_listing(root: &Path) -> Result<Vec<(String, Listed)>, String> {
@@ -369,6 +377,12 @@ fn a_manifest_line_outside_the_subset_fails() {
         ("[[file]]\npath = 'a.json'\n", "line 2: unsupported value"),
         ("[[file]]\nsize = 1.5\n", "line 2: unsupported value"),
         ("[[file]]\nsize = -1\n", "line 2: unsupported value"),
+        ("[[file]]\nsize = 009\n", "line 2: unsupported value"),
+        (
+            "[[file]]\nsize = \"9\"\n",
+            "line 2: size must be an integer",
+        ),
+        ("[[file]]\npath = 1\n", "line 2: path must be a string"),
         (
             "path = \"a.json\"\n",
             "line 1: path outside a [[file]] table",
@@ -427,6 +441,8 @@ fn a_synthetic_entry_is_checked_and_only_that_class_is_accepted() {
         "upstream/alpaca-py/order.json",
         "../order.json",
         "trading//order.json",
+        "./trading/order.json",
+        "/trading/order.json",
     ] {
         std::fs::write(&manifest, entry(path, "synthetic")).unwrap();
         let problems = copy.problems();
@@ -452,6 +468,24 @@ fn an_index_path_outside_its_directory_fails() {
         &copy.problems(),
         "index.json: ../../stray.txt is not a path inside its directory"
     ));
+}
+
+#[test]
+fn a_zero_size_is_accepted_and_an_overflowing_size_fails() {
+    let base =
+        "[[file]]\npath = \"e.json\"\nsha256 = \"x\"\nclass = \"synthetic\"\nsource = \"s\"\n";
+    assert!(parse_manifest(&format!("{base}size = 0\n")).is_ok());
+    let copy = Scratch::new("overflow");
+    std::fs::write(
+        copy.0.join("MANIFEST.toml"),
+        format!("{base}size = 18446744073709551616\n"),
+    )
+    .unwrap();
+    let problems = copy.problems();
+    assert!(
+        any(&problems, "e.json: size: number too large"),
+        "{problems:?}"
+    );
 }
 
 #[test]

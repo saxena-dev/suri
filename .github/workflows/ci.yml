@@ -1,0 +1,29 @@
+# Runs the same verification gate as a local `scripts/verify.sh --full`:
+# formatting, clippy with warnings denied and the tests on every feature row,
+# rustdoc with warnings denied, and the package-content check. The feature
+# rows live in the script, so this file does not change when features do.
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  verify:
+    name: verify (stable)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust stable
+        run: |
+          rustup toolchain install stable --profile minimal --component rustfmt,clippy
+          rustup default stable
+          rustc --version
+      - name: Verify
+        run: scripts/verify.sh --full

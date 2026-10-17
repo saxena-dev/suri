@@ -75,6 +75,20 @@ compatible change. Such fields arrive as `Inbound<T>`: a value suri knows is
 A new value is never an error and never read as a different known value. An
 `Inbound` cannot be sent back to the server: requests take the plain enum.
 
+## Path values
+
+A value that becomes part of a request's URL path, such as a symbol or an
+order ID, is a checked type, so a value that would turn one request into
+another cannot be built.
+
+- **`Symbol`:** printable ASCII other than space (bytes `!` to `~`), not empty,
+  and not `.` or `..`, which would remove or keep a path segment and send the
+  request elsewhere. A `/`, as in the crypto pair `BTC/USD`, is allowed.
+  Symbols compare as text.
+- **`Id`:** a UUID of 8-4-4-4-12 hexadecimal digits in either case, written
+  back exactly as given and compared ignoring case, so one ID in two cases is
+  one value.
+
 ## Decisions
 
 | Topic | Decision | Reason |
@@ -84,3 +98,4 @@ A new value is never an error and never read as a different known value. An
 | Time precision | Nanoseconds, UTC; the offset is applied and dropped | Alpaca documents nanosecond precision, and a single instant type compares correctly whatever offset each value was sent with |
 | Leap seconds and long fractions | Rejected, never folded or trimmed | Silent adjustment would change a value without saying so |
 | Unknown enum values | Kept as `Unknown` with their text | A new status must not fail a whole response, and an unknown value must not pass for a known one |
+| Path values | Checked types with an allowlist of bytes | A `.` or `..` segment would silently change which endpoint a request reaches |

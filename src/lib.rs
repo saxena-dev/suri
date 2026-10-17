@@ -7,8 +7,10 @@
 
 mod decimal;
 mod inbound;
+mod path;
 mod time;
 
 pub use decimal::{Decimal, ParseDecimalError};
 pub use inbound::Inbound;
+pub use path::{Id, ParsePathValueError, Symbol};
 pub use time::{Date, ParseTimeError, Timestamp};

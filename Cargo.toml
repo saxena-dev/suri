@@ -10,3 +10,9 @@ license = "MIT"
 exclude = ["/vendor", "/tools", "/tests"]
 
 [dependencies]
+
+[dev-dependencies]
+# Re-hashes the fixture tree in tests/fixture_manifest.rs.
+sha2 = "0.10.9"
+# Reads the upstream fixture index.
+serde_json = "1.0.154"

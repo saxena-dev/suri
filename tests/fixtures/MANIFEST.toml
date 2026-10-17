@@ -1,0 +1,15 @@
+# Every file under tests/fixtures/ outside upstream/alpaca-py/ (whose files
+# the upstream index.json lists), with its size and SHA-256. The format is a
+# flat subset of TOML: comments, [[file]] tables, and `key = "string"` or
+# `key = integer` lines. Each entry has exactly these keys:
+#
+# [[file]]
+# path = "<path relative to tests/fixtures/>"
+# sha256 = "<lower-case hex SHA-256 of the file>"
+# size = <size in bytes>
+# class = "synthetic"
+# source = "alpaca:<region>/<page>:<lines>"
+#
+# `source` cites the documentation example or schema the file follows.
+#
+# No entries yet.

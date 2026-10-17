@@ -66,6 +66,15 @@ arrive as `Date` (`YYYY-MM-DD`).
   build any time crate's value. There is no conversion to
   `std::time::SystemTime`, which cannot hold every instant on every platform.
 
+## Unknown values
+
+Alpaca adds values to its enumerations, such as a new order status or a new
+activity type, without changing the API version, and treats that as a
+compatible change. Such fields arrive as `Inbound<T>`: a value suri knows is
+`Known`, and any other value is `Unknown` with the exact text the server sent.
+A new value is never an error and never read as a different known value. An
+`Inbound` cannot be sent back to the server: requests take the plain enum.
+
 ## Decisions
 
 | Topic | Decision | Reason |
@@ -74,3 +83,4 @@ arrive as `Date` (`YYYY-MM-DD`).
 | Decimal equality | Text equality | It is the value as sent; numeric equality would need a normalisation suri has no use for |
 | Time precision | Nanoseconds, UTC; the offset is applied and dropped | Alpaca documents nanosecond precision, and a single instant type compares correctly whatever offset each value was sent with |
 | Leap seconds and long fractions | Rejected, never folded or trimmed | Silent adjustment would change a value without saying so |
+| Unknown enum values | Kept as `Unknown` with their text | A new status must not fail a whole response, and an unknown value must not pass for a known one |

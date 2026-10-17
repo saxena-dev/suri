@@ -173,7 +173,7 @@ async fn an_error_status_is_an_api_error_with_its_metadata() {
     assert_eq!(error.attempt(), 1);
     assert_eq!(
         error.to_string(),
-        "Alpaca returned HTTP 500 [GET /v2/clock, attempt 1] [request id req-0500]"
+        "Alpaca returned HTTP 500: internal server error [GET /v2/clock, attempt 1] [request id req-0500]"
     );
 }
 

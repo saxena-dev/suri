@@ -169,6 +169,28 @@ for a request that changes state, such as an order, the request may have
 taken effect: as Alpaca advises for a timed-out order, find out (look the
 order up) before sending it again, never resend it blindly.
 
+For an `Api` error, suri reads the response body, up to `max_body_bytes`,
+for Alpaca's error code and message:
+
+- `code()` is the body's `code` when it is a non-negative integer written
+  without a fraction or exponent, at most 18446744073709551615, and
+  `message()` its `message` when it is a string; each is read on its own.
+  A body that is a JSON string gives that string as the message, and any
+  other non-empty body with neither field gives its whole text (bytes that
+  are not UTF-8 become U+FFFD), so nothing Alpaca said is lost. A body that
+  is empty, larger than `max_body_bytes` or cut short gives neither; the
+  error is still `Api`, decided by the status alone.
+- The status and `code()` are what to match on. Alpaca states that message
+  texts can change without notice.
+- Before it is kept, the message has the request's key ID and secret
+  replaced with `[REDACTED]`, as well as a prefix of 8 or more characters of
+  either that ends the text; control characters become spaces, so the
+  message stays on one line; and it is cut to 1,024 bytes at a character
+  boundary. The scrubbing cannot recognise a credential that a cut leaves
+  shorter than 8 characters, or a partial credential followed by other text.
+- A request with missing or wrong credentials may be answered 401 or 403;
+  Alpaca's documentation shows both.
+
 ## Market clock
 
 `Client::clock` reads `GET /v2/clock`: the server's time, whether the market

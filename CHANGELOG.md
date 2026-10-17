@@ -19,3 +19,5 @@ All notable changes to suri are listed here. The format follows
 - `Response` and `ResponseMeta`, with the request ID and rate-limit headers.
 - `Error`, with its kind, its stage and whether the request may have reached
   Alpaca.
+- `Error::code` and `Error::message`: Alpaca's error code and message, with
+  credentials redacted and the message bounded to one line of 1,024 bytes.

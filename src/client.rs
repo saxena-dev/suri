@@ -9,7 +9,8 @@ use reqwest::header::{HeaderValue, LOCATION, USER_AGENT};
 use secrecy::{ExposeSecret, SecretString};
 use serde::de::DeserializeOwned;
 
-use crate::config::{self, Config, ConfigError};
+use crate::config::{self, Config, ConfigError, Credentials};
+use crate::error::details;
 use crate::{Error, ErrorKind, Response, ResponseMeta, Stage};
 
 /// An endpoint: its method, and the path template that errors name in place
@@ -29,6 +30,8 @@ struct Inner {
     base_url: url::Url,
     key_id: HeaderValue,
     secret: HeaderValue,
+    /// Kept to scrub them from anything Alpaca echoes back.
+    credentials: Credentials,
     request_timeout: Duration,
     max_body_bytes: u64,
 }
@@ -54,6 +57,33 @@ fn request_url(base_url: &url::Url, segments: &[&str]) -> url::Url {
         .expect("an http or https base URL has a path")
         .extend(segments);
     url
+}
+
+/// Why a response body could not be read whole.
+enum BodyError {
+    TooLarge,
+    Failed { timeout: bool },
+}
+
+/// Reads a whole response body, failing as soon as it exceeds `limit` bytes.
+async fn read_body(response: &mut reqwest::Response, limit: u64) -> Result<Vec<u8>, BodyError> {
+    let mut body = Vec::new();
+    loop {
+        match response.chunk().await {
+            Ok(Some(chunk)) => {
+                if (body.len() + chunk.len()) as u64 > limit {
+                    return Err(BodyError::TooLarge);
+                }
+                body.extend_from_slice(&chunk);
+            }
+            Ok(None) => return Ok(body),
+            Err(e) => {
+                return Err(BodyError::Failed {
+                    timeout: e.is_timeout(),
+                });
+            }
+        }
+    }
 }
 
 /// The scheme, host and port of an absolute http or https `Location`, never
@@ -95,6 +125,7 @@ impl Client {
             base_url,
             key_id: sensitive_header(&config.credentials.key_id),
             secret: sensitive_header(&config.credentials.secret),
+            credentials: config.credentials,
             request_timeout: config.request_timeout,
             max_body_bytes: config.max_body_bytes,
         })))
@@ -148,31 +179,33 @@ impl Client {
                 .with_meta(meta)
                 .with_location(location));
         }
+        let body = read_body(&mut response, inner.max_body_bytes).await;
         if !response.status().is_success() {
-            return Err(error(ErrorKind::Api, Stage::ResponseReceived).with_meta(meta));
+            // The status decides the kind; the body is read on a best-effort
+            // basis for Alpaca's code and message.
+            let credentials = [
+                inner.credentials.key_id.expose_secret(),
+                inner.credentials.secret.expose_secret(),
+            ];
+            let (code, message) = details(body.as_deref().ok(), &credentials);
+            return Err(error(ErrorKind::Api, Stage::ResponseReceived)
+                .with_meta(meta)
+                .with_details(code, message));
         }
-        let mut body = Vec::new();
-        loop {
-            match response.chunk().await {
-                Ok(Some(chunk)) => {
-                    if (body.len() + chunk.len()) as u64 > inner.max_body_bytes {
-                        return Err(
-                            error(ErrorKind::BodyTooLarge, Stage::ResponseReceived).with_meta(meta)
-                        );
-                    }
-                    body.extend_from_slice(&chunk);
-                }
-                Ok(None) => break,
-                Err(e) => {
-                    let kind = if e.is_timeout() {
-                        ErrorKind::Timeout
-                    } else {
-                        ErrorKind::Transport
-                    };
-                    return Err(error(kind, Stage::ResponseReceived).with_meta(meta));
-                }
+        let body = match body {
+            Ok(body) => body,
+            Err(BodyError::TooLarge) => {
+                return Err(error(ErrorKind::BodyTooLarge, Stage::ResponseReceived).with_meta(meta));
             }
-        }
+            Err(BodyError::Failed { timeout }) => {
+                let kind = if timeout {
+                    ErrorKind::Timeout
+                } else {
+                    ErrorKind::Transport
+                };
+                return Err(error(kind, Stage::ResponseReceived).with_meta(meta));
+            }
+        };
         match serde_json::from_slice(&body) {
             Ok(data) => Ok(Response::new(data, meta)),
             Err(_) => Err(error(ErrorKind::Decode, Stage::ResponseReceived).with_meta(meta)),

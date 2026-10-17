@@ -132,7 +132,7 @@ bad value fails when the client is built, never at request time.
   `APCA-API-SECRET-KEY` headers, marked sensitive, and
   `User-Agent: suri/<version>`.
 - suri speaks HTTP/1.1 directly to the host: no proxy, and no compression
-  (no `Accept-Encoding` is sent, and nothing is decompressed).
+  (it sends `Accept-Encoding: identity` and decompresses nothing).
 - A redirect is never followed; it is an error (below).
 - A value placed in a URL path, such as a symbol, is sent as one encoded
   segment: `BTC/USD` is sent as `BTC%2FUSD`.

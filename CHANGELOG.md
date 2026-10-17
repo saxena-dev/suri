@@ -26,3 +26,4 @@ All notable changes to suri are listed here. The format follows
   `read_deadline` and `max_read_attempts`.
 - A `tracing` span, `suri.request`, for every call, with `retry` and `error`
   events; suri installs no subscriber.
+- Requests ask for uncompressed responses (`Accept-Encoding: identity`).

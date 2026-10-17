@@ -68,7 +68,7 @@ async fn unknown_fields_are_ignored() {
 }
 
 #[tokio::test]
-async fn the_request_carries_the_key_pair_and_user_agent_and_no_encoding() {
+async fn the_request_carries_the_key_pair_user_agent_and_identity_encoding() {
     let server = Server::start(vec![Step::Respond(response(
         "200 OK",
         &[],
@@ -86,7 +86,7 @@ async fn the_request_carries_the_key_pair_and_user_agent_and_no_encoding() {
         request.header("User-Agent"),
         Some(format!("suri/{}", env!("CARGO_PKG_VERSION")).as_str())
     );
-    assert_eq!(request.header("Accept-Encoding"), None);
+    assert_eq!(request.header("Accept-Encoding"), Some("identity"));
     assert!(request.body.is_empty());
 }
 

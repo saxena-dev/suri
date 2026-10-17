@@ -6,7 +6,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant, SystemTime};
 
 use reqwest::Method;
-use reqwest::header::{HeaderValue, LOCATION, USER_AGENT};
+use reqwest::header::{ACCEPT_ENCODING, HeaderValue, LOCATION, USER_AGENT};
 use secrecy::{ExposeSecret, SecretString};
 use serde::de::DeserializeOwned;
 use tracing::{Instrument, Span};
@@ -257,6 +257,9 @@ impl Client {
             .header("APCA-API-KEY-ID", inner.key_id.clone())
             .header("APCA-API-SECRET-KEY", inner.secret.clone())
             .header(USER_AGENT, concat!("suri/", env!("CARGO_PKG_VERSION")))
+            // suri decompresses nothing, so it asks for uncompressed bodies:
+            // without this header any coding would be acceptable.
+            .header(ACCEPT_ENCODING, "identity")
             .timeout(timeout)
             .send()
             .await;

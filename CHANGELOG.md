@@ -12,3 +12,10 @@ All notable changes to suri are listed here. The format follows
 - `Timestamp` and `Date`, read from RFC 3339 text to the nanosecond.
 - `Inbound`, which keeps enum values suri does not know yet.
 - `Symbol` and `Id`, checked values for URL paths.
+- The `rest` feature, on by default, and `Client` with `Client::clock`, which
+  reads the market clock.
+- `Config`, `Credentials`, `Region` and `Environment`, checked when the client
+  is built, with `ConfigError` naming the first problem.
+- `Response` and `ResponseMeta`, with the request ID and rate-limit headers.
+- `Error`, with its kind, its stage and whether the request may have reached
+  Alpaca.

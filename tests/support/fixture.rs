@@ -1,6 +1,8 @@
 //! Upstream response fixtures, looked up by identity in the index the
 //! extractor writes beside them under `tests/fixtures/upstream/alpaca-py/`.
 
+#![allow(dead_code, reason = "most callers read only the body")]
+
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;

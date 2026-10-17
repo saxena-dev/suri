@@ -3,8 +3,8 @@
 A Rust client for the [Alpaca](https://alpaca.markets) Trading and Market
 Data APIs. Support for the Broker API is planned after the first release.
 
-**Status: pre-release.** There is no client yet; the crate is being built in
-the open, one tested piece at a time.
+**Status: pre-release.** The client reads the market clock and nothing else
+yet; the crate is being built in the open, one tested piece at a time.
 
 ## Scope of 0.1.0
 
@@ -13,6 +13,11 @@ positions, assets, option contracts, the clock and calendar, watchlists, and
 account activities and history), the `trade_updates` stream, and the Market
 Data API's REST endpoints and streams for stocks, crypto, options and news, on
 Alpaca's US hosts.
+
+## Building
+
+suri needs Rust 1.88 or later. With its default `rest` feature, building it
+also needs a C compiler, for the TLS library's cryptography.
 
 ## What suri promises
 

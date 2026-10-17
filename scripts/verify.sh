@@ -54,9 +54,9 @@ if [ "$msrv" = 1 ] && [ "$mode" != full ]; then
   exit 2
 fi
 
-# Feature rows: no features, each feature alone, every feature. The crate has
-# no features yet; add a row for each feature when one lands.
-ROWS=(none all)
+# Feature rows: no features, each feature alone, every feature. Add a row for
+# each feature when one lands.
+ROWS=(none rest all)
 
 row_args() {
   case "$1" in

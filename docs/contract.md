@@ -89,6 +89,91 @@ another cannot be built.
   back exactly as given and compared ignoring case, so one ID in two cases is
   one value.
 
+## Configuration
+
+A `Client` is built from a `Config`: a region, an environment and an API key
+pair, with every limit at a documented default. `Client::new` checks the
+whole configuration and reports the first problem as a `ConfigError`, so a
+bad value fails when the client is built, never at request time.
+
+- **Hosts:** region `US` with environment `Paper` uses
+  `https://paper-api.alpaca.markets`, and `Live` uses
+  `https://api.alpaca.markets`. Each endpoint carries its own version prefix,
+  such as `/v2`.
+- **Credentials:** the key ID and secret must be non-empty printable ASCII
+  (bytes `!` to `~`), so a trailing newline read from a file is caught here.
+  Neither can be read back from suri, and `Debug` prints `Credentials { .. }`.
+- **Limits:**
+
+  | Value | Default | Allowed |
+  |---|---|---|
+  | `connect_timeout`: connecting, TLS included | 10 s | 1 ms to 60 s, and no longer than `request_timeout` |
+  | `request_timeout`: one request, from connecting until the whole body has arrived | 30 s | 1 ms to 10 min |
+  | `max_body_bytes`: the largest response body read | 32 MiB | 1 KiB to 1 GiB |
+
+  Idle connections are closed after 30 s.
+- **Base URL override:** `with_base_url` points the client at another server,
+  for tests. It must use https unless its host is loopback (`localhost`,
+  `127.0.0.0/8` or `::1`), and must have no path, query, fragment or
+  credentials. `Debug` of a `Config` prints it as `Some(..)`.
+- **Environment:** suri reads no environment variable: not Alpaca's
+  `APCA_API_*` variables, and not the proxy variables. The one exception is
+  the TLS library's certificate verifier, which on Unix systems other than
+  macOS, iOS and Android reads `SSL_CERT_FILE` and `SSL_CERT_DIR` in place of
+  the system's certificate store.
+
+## Requests
+
+- Each request carries the key pair in the `APCA-API-KEY-ID` and
+  `APCA-API-SECRET-KEY` headers, marked sensitive, and
+  `User-Agent: suri/<version>`.
+- suri speaks HTTP/1.1 directly to the host: no proxy, and no compression
+  (no `Accept-Encoding` is sent, and nothing is decompressed).
+- A redirect is never followed; it is an error (below).
+- A value placed in a URL path, such as a symbol, is sent as one encoded
+  segment: `BTC/USD` is sent as `BTC%2FUSD`.
+
+## Responses
+
+A successful call returns a `Response`: the decoded data and its
+`ResponseMeta`, which holds the status, the `X-Request-ID` header when sent
+(Alpaca's support asks for it) and the rate-limit headers when all three
+(`X-RateLimit-Limit`, `X-RateLimit-Remaining` and `X-RateLimit-Reset`, read
+as Unix seconds) were sent as whole numbers. Fields a response has beyond the
+documented ones are ignored, so a field Alpaca adds never fails a call.
+
+## Errors
+
+Every failed call returns an `Error`. Its `kind()` says what went wrong, its
+`stage()` how far the request got, and it names the method, the endpoint's
+path template (never the URL) and the attempt. When a response arrived, the
+error carries its status and `ResponseMeta`.
+
+| Kind | Meaning |
+|---|---|
+| `Api` | Alpaca answered with an error status |
+| `Redirect` | Alpaca answered with a redirect, which was not followed; `location()` gives its scheme, host and port when it was an absolute http or https URL, never its credentials, path or query |
+| `Transport` | The connection failed |
+| `Timeout` | `connect_timeout` or `request_timeout` expired |
+| `BodyTooLarge` | The body was larger than `max_body_bytes` |
+| `Decode` | The body did not have the documented shape |
+
+| Stage | Meaning |
+|---|---|
+| `NotStarted` | No byte of the request was sent: connecting, TLS included, failed or timed out |
+| `ResponseReceived` | The response's status line arrived |
+| `Unknown` | The request may or may not have reached Alpaca |
+
+`may_have_reached_broker()` is false only at `NotStarted`. When it is true
+for a request that changes state, such as an order, the request may have
+taken effect: as Alpaca advises for a timed-out order, find out (look the
+order up) before sending it again, never resend it blindly.
+
+## Market clock
+
+`Client::clock` reads `GET /v2/clock`: the server's time, whether the market
+is open, and the next open and close, each a `Timestamp`.
+
 ## Decisions
 
 | Topic | Decision | Reason |
@@ -99,3 +184,8 @@ another cannot be built.
 | Leap seconds and long fractions | Rejected, never folded or trimmed | Silent adjustment would change a value without saying so |
 | Unknown enum values | Kept as `Unknown` with their text | A new status must not fail a whole response, and an unknown value must not pass for a known one |
 | Path values | Checked types with an allowlist of bytes | A `.` or `..` segment would silently change which endpoint a request reaches |
+| Hosts | Paper and live Trading hosts for the US region; others arrive with their endpoints | The first release covers Alpaca's US Trading and Market Data APIs |
+| Environment variables | None read | A library that reads its caller's environment can send credentials or requests somewhere the caller did not choose |
+| Redirects | Never followed; an error naming only the target's origin | A followed redirect could resend the key pair or a request that changes state to another host |
+| Unknown JSON fields | Ignored | Alpaca adds response fields without changing the API version |
+| Market clock version | `/v2/clock` | It reports the US equity market the first release covers; the newer clock adds other markets |

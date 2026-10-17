@@ -1,13 +1,17 @@
 //! A Rust client for the Alpaca Trading and Market Data APIs.
 //!
-//! Pre-release: the market clock and the account's endpoints are the only
-//! ones yet.
+//! Pre-release: the market clock and calendar, the account's endpoints,
+//! assets and option contracts are the only ones yet.
 //!
 //! The [contract](https://github.com/saxena-dev/suri/blob/main/docs/contract.md)
 //! states every behaviour suri promises.
 
 #[cfg(feature = "rest")]
 mod account;
+#[cfg(feature = "rest")]
+mod assets;
+#[cfg(feature = "rest")]
+mod calendar;
 #[cfg(feature = "rest")]
 mod client;
 #[cfg(feature = "rest")]
@@ -34,6 +38,14 @@ pub use account::{
     IntradayReporting, NonTradeActivity, PnlReset, PortfolioHistory, PortfolioHistoryQuery,
     TradeActivity, TradeConfirmEmail,
 };
+#[cfg(feature = "rest")]
+pub use assets::{
+    Asset, AssetAttribute, AssetClass, AssetStatus, AssetsQuery, BorrowStatus, ContractType,
+    Deliverable, DeliverableType, Exchange, ExerciseStyle, OptionContract, OptionContracts,
+    OptionContractsQuery, SettlementMethod, SettlementType,
+};
+#[cfg(feature = "rest")]
+pub use calendar::{CalendarDateType, CalendarDay, CalendarQuery, ClockTime};
 #[cfg(feature = "rest")]
 pub use client::Client;
 #[cfg(feature = "rest")]

@@ -35,3 +35,9 @@ All notable changes to suri are listed here. The format follows
   call.
 - `Client::portfolio_history`, with values read as the nearest `f64`.
 - Requests that change state are made once and never retried.
+- `Client::assets` and `Client::asset`; a symbol in a path is sent
+  percent-encoded, so `BTC/USD` goes as `BTC%2FUSD`.
+- `Client::option_contracts` and `Client::option_contract`, one page per
+  call, with strike filters sent as exact decimal text.
+- `Client::calendar`, with `ClockTime` for the day's local market times.
+- An `Id` converts into a `Symbol`.

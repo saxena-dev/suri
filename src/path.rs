@@ -123,6 +123,20 @@ impl FromStr for Id {
     }
 }
 
+/// Every ID is a valid symbol, so an ID can be passed where a symbol or an
+/// ID is accepted.
+impl From<Id> for Symbol {
+    fn from(id: Id) -> Symbol {
+        Symbol(id.0)
+    }
+}
+
+impl From<&Id> for Symbol {
+    fn from(id: &Id) -> Symbol {
+        Symbol(id.0.clone())
+    }
+}
+
 impl fmt::Display for Symbol {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(&self.0)

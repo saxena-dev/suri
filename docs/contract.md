@@ -87,7 +87,11 @@ another cannot be built.
   Symbols compare as text.
 - **`Id`:** a UUID of 8-4-4-4-12 hexadecimal digits in either case, written
   back exactly as given and compared ignoring case, so one ID in two cases is
-  one value.
+  one value. An `Id` converts into a `Symbol`, so an ID can be passed
+  wherever a symbol or an ID is accepted.
+
+A path value is sent percent-encoded as one segment: `BTC/USD` goes as
+`BTC%2FUSD`, the form Alpaca asks for.
 
 ## Configuration
 
@@ -302,10 +306,41 @@ as strings of digits; both read as the same number.
   0000 to 9999 (such as milliseconds) fails the decode. A window is a
   `HistoryRange`: a period, a start, an end, or two of them.
 
+## Assets
+
+`Client::assets` lists `GET /v2/assets`, narrowed by an `AssetsQuery`;
+`Client::asset` reads one asset by symbol or ID (`GET
+/v2/assets/{symbol_or_asset_id}`), a crypto pair such as `BTC/USD` included
+(see "Path values"). Margin requirements, order sizes and increments are
+exact decimals. The deprecated `maintenance_margin_requirement`, a JSON
+number, is read as the nearest `f64`. An exchange sent as `""` reads as
+`Exchange::Empty`.
+
+## Option contracts
+
+`Client::option_contracts` reads one page of `GET /v2/options/contracts`,
+narrowed by an `OptionContractsQuery`; to read the next page, pass the
+page's `next_page_token` as `page_token`. `Client::option_contract` reads
+one contract by symbol or ID (`GET /v2/options/contracts/{symbol_or_id}`).
+The strike filters are sent as their exact decimal text. A deliverable's
+`amount` is `None` while a delayed settlement leaves it undetermined, and
+its `asset_id` is `None` for cash.
+
 ## Market clock
 
 `Client::clock` reads `GET /v2/clock`: the server's time, whether the market
 is open, and the next open and close, each a `Timestamp`.
+
+## Calendar
+
+`Client::calendar` reads `GET /v2/calendar`: each market day's date, the
+market's open and close, the extended session's open and close, and the
+settlement date when it is sent. The four times are `ClockTime`s, a local
+market time to the minute with no date and no time zone, as Alpaca sends
+them: `HH:MM` for the market's hours and `HHMM` for the session's, each
+with two digits per part; a time in any other form fails with a `Decode`
+error. A `CalendarQuery`'s `start` and `end` are sent as dates
+(`YYYY-MM-DD`).
 
 ## Decisions
 
@@ -321,7 +356,7 @@ is open, and the next open and close, each a `Timestamp`.
 | Environment variables | None read | A library that reads its caller's environment can send credentials or requests somewhere the caller did not choose |
 | Redirects | Never followed; an error naming only the target's origin | A followed redirect could resend the key pair or a request that changes state to another host |
 | Unknown JSON fields | Ignored | Alpaca adds response fields without changing the API version |
-| Market clock version | `/v2/clock` | It reports the US equity market the first release covers; the newer clock adds other markets |
+| Market clock and calendar versions | `/v2/clock` and `/v2/calendar` | They report the US equity market the first release covers; the newer clock and calendar add other markets |
 | Retries | Reads only, on 429, 500, 502, 503, 504 and failed connections, with capped exponential backoff and added jitter, never before a rate-limit reset by this machine's clock, within a deadline | A read is safe to repeat; Alpaca asks clients to back off, wait for the reset and add jitter, and documents 500 as worth retrying later |
 | HTTP version | HTTP/1.1 only | One connection model to reason about and test; the documentation leaves the protocol version open and lists new HTTP versions among the changes Alpaca makes without notice |
 | Compression | Uncompressed responses requested (`Accept-Encoding: identity`); nothing is decompressed | No decompression code or limits to get right; Alpaca says it may add gzip, so suri asks for none rather than accept any |
@@ -329,4 +364,5 @@ is open, and the next open and close, each a `Timestamp`.
 | Optional fields | Always present only when the schema requires a field, or every documented example and recorded response carries it, and none omits it; otherwise an `Option` | A field missing from a real response must not fail the call; an `Option` loses nothing, and a missing always-present field is reported as a `Decode` error |
 | Mutations are never retried | One attempt for every request that is not a `GET` | Alpaca advises against resending a request whose outcome is unknown; only the caller can find out whether it took effect |
 | Paging | One page per call; the caller passes the cursor | A loop inside suri would hide how many requests a call makes and when it stops |
-| Numbers received as numbers | Portfolio history's JSON numbers as the correctly rounded nearest `f64` | They are binary floating-point values on the wire; reading them correctly rounded keeps every observed value, and money sent as strings stays exact |
+| Numbers received as numbers | Portfolio history's JSON numbers and an asset's deprecated `maintenance_margin_requirement` as the correctly rounded nearest `f64` | They are binary floating-point values on the wire; reading them correctly rounded keeps every observed value, and money sent as strings stays exact |
+| Symbols in paths | Percent-encoded as one segment (`BTC/USD` as `BTC%2FUSD`) | Alpaca asks for the encoded form; a bare `/` would split the value into two segments and reach another path |

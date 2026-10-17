@@ -8,7 +8,7 @@
   },
   "extractor": {
     "path": "tools/fixtures/extract.py",
-    "sha256": "d7ceafec1bb51c59d8ec4ecc70bd8d6347dca031300599c37589f0248162b6eb",
+    "sha256": "724961f7dcf645935b325ba49dd4bbbd9a4ded496ca78e96ff5f133e4e34f094",
     "python": "3.14"
   },
   "sources": [

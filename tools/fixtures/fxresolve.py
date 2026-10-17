@@ -284,7 +284,7 @@ class Module:
                                                     "import_module"):
                 return True
             if isinstance(n, ast.Attribute) and n.attr in ("import_module", "modules", "__globals__", "f_globals",
-                                                           "__dict__"):
+                                                           "f_locals", "__dict__"):
                 return True
             if (isinstance(n, ast.Attribute) and isinstance(n.ctx, (ast.Store, ast.Del))
                     and isinstance(n.value, ast.Name) and n.value.id in imported):

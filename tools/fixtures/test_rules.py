@@ -280,7 +280,7 @@ class Resolution(unittest.TestCase):
                  "from sys import modules", "import sys as s\n    s.modules", "mock.patch('pkg.mod.body')",
                  "mock.patch.object(this, 'body')", "test_a.__globals__", "this.__dict__",
                  "import importlib\n    importlib.import_module('m').body = 'x'", "locals()",
-                 "sys._getframe().f_globals", "this.body = 'x'"]
+                 "sys._getframe().f_globals", "sys._getframe().f_locals", "this.body = 'x'"]
         for form in forms:
             source = ('import this\nbody = "module"\ndef test_a(reqmock, mock):\n    ' + form +
                       '\n    reqmock.get("https://api.alpaca.markets/v2/a", text=body)\n')
@@ -292,6 +292,7 @@ class Resolution(unittest.TestCase):
             "m = json": "import json",
             "import json as j2": "import json",
             "UUID.__str__ = repr": "from uuid import UUID",
+            "U = UUID\nU.__str__ = repr": "from uuid import UUID",
             "x = BaseURL.TRADING_PAPER": "from alpaca.common.enums import BaseURL",
         }
         for change, imp in cases.items():
@@ -304,8 +305,9 @@ class Resolution(unittest.TestCase):
     def test_setattr_on_a_local_object_rebinds_no_module_name(self):
         e = only('''
             from alpaca.common.enums import BaseURL
-            def test_a(reqmock, model, field):
+            def test_a(reqmock, model, field, client):
                 setattr(model, field, None)
+                client.x = 1
                 reqmock.get(f"{BaseURL.TRADING_PAPER.value}/v2/a", text="{}")
         ''')
         self.assertEqual((e.kind, e.family), ("fixture", "trading"))

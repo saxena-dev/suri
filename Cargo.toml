@@ -5,5 +5,8 @@ edition = "2024"
 description = "WIP"
 authors = ["Paresh Saxena <pareshsaxena@gmail.com>"]
 license = "MIT"
+# Tooling, tests and test data (some under other licences) stay out of the
+# published crate.
+exclude = ["/vendor", "/tools", "/tests"]
 
 [dependencies]

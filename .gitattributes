@@ -1,0 +1,4 @@
+# Fixture bytes and the extractor whose hash the fixture index records are
+# never rewritten by line-ending conversion.
+tests/fixtures/** -text
+tools/fixtures/** -text

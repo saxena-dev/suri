@@ -102,18 +102,19 @@ if [ "$mode" = full ]; then
   done
   RUSTDOCFLAGS="-D warnings" run cargo doc --locked --all-features --no-deps
 
-  # The package never ships vendored sources, hidden directories or top-level
-  # Markdown other than README and CHANGELOG.
+  # The package never ships vendored sources, tooling, tests and their
+  # fixtures, hidden directories or top-level Markdown other than README and
+  # CHANGELOG.
   list=$(cargo package --locked --list --allow-dirty)
   bad=$(printf '%s\n' "$list" \
-    | grep -E '^vendor/|^\.[^/]+/|^[^/]+\.md$' \
+    | grep -E '^(vendor|tools|tests)/|^\.[^/]+/|^[^/]+\.md$' \
     | grep -vxE 'README\.md|CHANGELOG\.md' || true)
   if [ -n "$bad" ]; then
     echo "the package must not contain:" >&2
     echo "$bad" >&2
     exit 1
   fi
-  echo "+ package contains no vendored or maintainer-local files"
+  echo "+ package contains no vendored, tooling, test or maintainer-local files"
 
   if [ "$msrv" = 1 ]; then
     rv=$(sed -n 's/^rust-version *= *"\(.*\)"/\1/p' Cargo.toml)

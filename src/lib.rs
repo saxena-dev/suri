@@ -1,6 +1,7 @@
 //! A Rust client for the Alpaca Trading and Market Data APIs.
 //!
-//! Pre-release: the market clock and the account are the only endpoints yet.
+//! Pre-release: the market clock and the account's endpoints are the only
+//! ones yet.
 //!
 //! The [contract](https://github.com/saxena-dev/suri/blob/main/docs/contract.md)
 //! states every behaviour suri promises.
@@ -17,6 +18,8 @@ mod decimal;
 #[cfg(feature = "rest")]
 mod error;
 mod inbound;
+#[cfg(feature = "rest")]
+mod orders;
 mod path;
 #[cfg(feature = "rest")]
 mod response;
@@ -25,7 +28,12 @@ mod time;
 mod wire;
 
 #[cfg(feature = "rest")]
-pub use account::{Account, AccountStatus};
+pub use account::{
+    Account, AccountConfigurations, AccountStatus, ActivitiesQuery, Activity, ActivityCategory,
+    ActivityFilter, ActivityStatus, ActivityType, ConfigurationsUpdate, FillType, HistoryRange,
+    IntradayReporting, NonTradeActivity, PnlReset, PortfolioHistory, PortfolioHistoryQuery,
+    TradeActivity, TradeConfirmEmail,
+};
 #[cfg(feature = "rest")]
 pub use client::Client;
 #[cfg(feature = "rest")]
@@ -36,9 +44,11 @@ pub use decimal::{Decimal, ParseDecimalError};
 #[cfg(feature = "rest")]
 pub use error::{Error, ErrorKind, Stage};
 pub use inbound::Inbound;
+#[cfg(feature = "rest")]
+pub use orders::{OrderSide, OrderStatus};
 pub use path::{Id, ParsePathValueError, Symbol};
 #[cfg(feature = "rest")]
 pub use response::{RateLimit, Response, ResponseMeta};
 pub use time::{Date, ParseTimeError, Timestamp};
 #[cfg(feature = "rest")]
-pub use wire::ParseEnumError;
+pub use wire::{ParseEnumError, Sort};

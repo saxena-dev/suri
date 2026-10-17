@@ -6,8 +6,9 @@ use std::sync::Arc;
 use std::time::{Duration, Instant, SystemTime};
 
 use reqwest::Method;
-use reqwest::header::{ACCEPT_ENCODING, HeaderValue, LOCATION, USER_AGENT};
+use reqwest::header::{ACCEPT_ENCODING, CONTENT_TYPE, HeaderValue, LOCATION, USER_AGENT};
 use secrecy::{ExposeSecret, SecretString};
+use serde::Serialize;
 use serde::de::DeserializeOwned;
 use tracing::{Instrument, Span};
 
@@ -20,6 +21,44 @@ use crate::{Error, ErrorKind, Response, ResponseMeta, Stage};
 pub(crate) struct Endpoint {
     pub(crate) method: Method,
     pub(crate) template: &'static str,
+}
+
+/// One call: the endpoint, its path segments, its query pairs (in the order
+/// the docs list the parameters) and its JSON body, if any.
+pub(crate) struct Request<'a> {
+    endpoint: &'a Endpoint,
+    segments: &'a [&'a str],
+    query: Vec<(&'static str, String)>,
+    body: Option<Vec<u8>>,
+}
+
+impl<'a> Request<'a> {
+    pub(crate) fn new(endpoint: &'a Endpoint, segments: &'a [&'a str]) -> Request<'a> {
+        Request {
+            endpoint,
+            segments,
+            query: Vec::new(),
+            body: None,
+        }
+    }
+
+    /// Adds a query pair.
+    pub(crate) fn pair(&mut self, name: &'static str, value: impl Into<String>) {
+        self.query.push((name, value.into()));
+    }
+
+    /// Sets the JSON body.
+    pub(crate) fn json(mut self, body: &impl Serialize) -> Request<'a> {
+        // suri's request types hold only strings, numbers, booleans, lists
+        // and structs, which serde_json always serialises.
+        self.body = Some(serde_json::to_vec(body).expect("a request body serialises"));
+        self
+    }
+
+    /// Whether the call changes state: any method but GET.
+    fn is_mutation(&self) -> bool {
+        self.endpoint.method != Method::GET
+    }
 }
 
 /// A client for one region and environment. Cloning it is cheap and shares
@@ -56,12 +95,16 @@ fn sensitive_header(value: &SecretString) -> HeaderValue {
 }
 
 /// The request URL: the base URL with each segment appended, encoded, so a
-/// `/` inside a segment becomes `%2F` and never starts another segment.
-fn request_url(base_url: &url::Url, segments: &[&str]) -> url::Url {
+/// `/` inside a segment becomes `%2F` and never starts another segment. The
+/// query is opened only when there is a pair.
+fn request_url(base_url: &url::Url, segments: &[&str], query: &[(&str, String)]) -> url::Url {
     let mut url = base_url.clone();
     url.path_segments_mut()
         .expect("an http or https base URL has a path")
         .extend(segments);
+    if !query.is_empty() {
+        url.query_pairs_mut().extend_pairs(query);
+    }
     url
 }
 
@@ -141,13 +184,22 @@ impl Client {
         })))
     }
 
-    /// Sends a read, retrying it within the read deadline, and decodes a
-    /// successful response's JSON body. Every request so far is a read.
+    /// Sends a call with no query and no body (see `send_request`).
     pub(crate) async fn send<T: DeserializeOwned>(
         &self,
         endpoint: &Endpoint,
         segments: &[&str],
     ) -> Result<Response<T>, Error> {
+        self.send_request(Request::new(endpoint, segments)).await
+    }
+
+    /// Sends a call: a read is retried within the read deadline, a mutation
+    /// is made once. A successful response's JSON body is decoded.
+    pub(crate) async fn send_request<T: DeserializeOwned>(
+        &self,
+        request: Request<'_>,
+    ) -> Result<Response<T>, Error> {
+        let endpoint = request.endpoint;
         // One span for the whole call, every attempt and wait included. It
         // names the endpoint's template, never the URL.
         let span = tracing::info_span!(
@@ -159,25 +211,33 @@ impl Client {
             status = tracing::field::Empty,
             stage = tracing::field::Empty,
         );
-        self.send_in(endpoint, segments, &span)
-            .instrument(span.clone())
-            .await
+        self.send_in(&request, &span).instrument(span.clone()).await
     }
 
     async fn send_in<T: DeserializeOwned>(
         &self,
-        endpoint: &Endpoint,
-        segments: &[&str],
+        request: &Request<'_>,
         span: &Span,
     ) -> Result<Response<T>, Error> {
         let inner = &self.0;
+        // A mutation gets exactly one attempt, with the request timeout: a
+        // second could place an order twice.
+        let max_attempts = if request.is_mutation() {
+            1
+        } else {
+            inner.max_read_attempts
+        };
         let start = Instant::now();
         let mut attempt = 1;
         loop {
             span.record("attempt", attempt);
-            let remaining = inner.read_deadline.saturating_sub(start.elapsed());
-            let timeout = inner.request_timeout.min(remaining);
-            let error = match self.attempt(endpoint, segments, attempt, timeout).await {
+            let timeout = if request.is_mutation() {
+                inner.request_timeout
+            } else {
+                let remaining = inner.read_deadline.saturating_sub(start.elapsed());
+                inner.request_timeout.min(remaining)
+            };
+            let error = match self.attempt(request, attempt, timeout).await {
                 Ok(response) => {
                     span.record("status", response.meta().status());
                     return Ok(response);
@@ -188,7 +248,7 @@ impl Client {
                 span.record("status", status);
             }
             let reason = match retry_reason(&error) {
-                Some(reason) if attempt < inner.max_read_attempts => reason,
+                Some(reason) if attempt < max_attempts => reason,
                 _ => return Err(failed(span, error)),
             };
             let wait = self.wait(attempt, &error);
@@ -232,12 +292,12 @@ impl Client {
     /// One attempt of a request, with this attempt's number and timeout.
     async fn attempt<T: DeserializeOwned>(
         &self,
-        endpoint: &Endpoint,
-        segments: &[&str],
+        request: &Request<'_>,
         attempt: u32,
         timeout: Duration,
     ) -> Result<Response<T>, Error> {
         let inner = &self.0;
+        let endpoint = request.endpoint;
         let error = |kind, stage| {
             Error::new(
                 kind,
@@ -248,11 +308,11 @@ impl Client {
             )
         };
         // reqwest's own errors are never kept: their text holds the URL.
-        let sent = inner
+        let mut builder = inner
             .http
             .request(
                 endpoint.method.clone(),
-                request_url(&inner.base_url, segments),
+                request_url(&inner.base_url, request.segments, &request.query),
             )
             .header("APCA-API-KEY-ID", inner.key_id.clone())
             .header("APCA-API-SECRET-KEY", inner.secret.clone())
@@ -260,9 +320,13 @@ impl Client {
             // suri decompresses nothing, so it asks for uncompressed bodies:
             // without this header any coding would be acceptable.
             .header(ACCEPT_ENCODING, "identity")
-            .timeout(timeout)
-            .send()
-            .await;
+            .timeout(timeout);
+        if let Some(body) = &request.body {
+            builder = builder
+                .header(CONTENT_TYPE, "application/json")
+                .body(body.clone());
+        }
+        let sent = builder.send().await;
         let mut response = match sent {
             Ok(response) => response,
             Err(e) => {
@@ -398,7 +462,7 @@ mod tests {
             ("%2e%2e", "%252e%252e"),
         ] {
             let symbol: Symbol = text.parse().unwrap();
-            let url = request_url(&base, &["v2", "assets", symbol.as_str()]);
+            let url = request_url(&base, &["v2", "assets", symbol.as_str()], &[]);
             assert_eq!(
                 url.as_str(),
                 format!("https://paper-api.alpaca.markets/v2/assets/{encoded}")
@@ -481,7 +545,10 @@ mod tests {
     fn endpoint_paths_join_the_base_url() {
         for base in ["https://h", "https://h/", "http://127.0.0.1:1/"] {
             let base = url::Url::parse(base).unwrap();
-            assert_eq!(request_url(&base, &["v2", "clock"]).path(), "/v2/clock");
+            assert_eq!(
+                request_url(&base, &["v2", "clock"], &[]).path(),
+                "/v2/clock"
+            );
         }
     }
 }

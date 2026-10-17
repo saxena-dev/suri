@@ -57,6 +57,16 @@ macro_rules! wire_enum {
 
 pub(crate) use wire_enum;
 
+wire_enum! {
+    /// The chronological order of a list.
+    Sort {
+        /// Oldest first.
+        Asc => "asc",
+        /// Newest first.
+        Desc => "desc",
+    }
+}
+
 /// The error returned when text is not one of an enum's documented values.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ParseEnumError {

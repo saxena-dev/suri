@@ -29,3 +29,9 @@ All notable changes to suri are listed here. The format follows
 - Requests ask for uncompressed responses (`Accept-Encoding: identity`).
 - `Client::account` and `Account`, with `AccountStatus`; documented enums
   reject other texts with `ParseEnumError`.
+- `Client::account_configurations` and `Client::update_account_configurations`,
+  which sends only the fields set.
+- `Client::account_activities`: fills and other activities, one page per
+  call.
+- `Client::portfolio_history`, with values read as the nearest `f64`.
+- Requests that change state are made once and never retried.

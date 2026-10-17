@@ -199,7 +199,10 @@ for Alpaca's error code and message:
 
 ## Retries
 
-suri retries reads, and only reads; every endpoint it calls so far is one.
+suri retries reads (`GET` requests), and only reads. A request that
+changes state, such as a configuration update, is made exactly once: no
+status, failed connection or timeout leads suri to send it again, and its
+timeout is `request_timeout` alone.
 
 - **When:** a response of 429, 500, 502, 503 or 504, and a connection that
   fails or times out at any stage. Never a redirect, a body over the limit,
@@ -278,6 +281,27 @@ These rules apply to every response type:
 restrictions. The options levels arrive as integers or, in some responses,
 as strings of digits; both read as the same number.
 
+- **Configuration.** `Client::account_configurations` reads `GET
+  /v2/account/configurations`. `Client::update_account_configurations`
+  sends `PATCH /v2/account/configurations` with only the fields set in the
+  `ConfigurationsUpdate`, never a `null`, so a field left unset keeps its
+  value; it is made once and never retried.
+- **Activities.** `Client::account_activities` reads one page of `GET
+  /v2/account/activities`. A fill (`activity_type` `FILL`) is an
+  `Activity::Trade`; every other activity, including one of a type suri
+  does not know, is an `Activity::NonTrade`. To read the next page, pass
+  the last activity's `id` as `page_token`. Listing by types and by
+  category cannot both be asked for: `ActivityFilter` holds one or the
+  other.
+- **Portfolio history.** `Client::portfolio_history` reads `GET
+  /v2/account/portfolio/history`. Alpaca sends its values as JSON numbers;
+  suri reads each to the correctly rounded nearest `f64`, which keeps every
+  value seen so far exactly (a value with more than 15 significant digits
+  that is not the shortest form of some `f64` would be rounded). The
+  timestamps are Unix seconds, read as `Timestamp`s; a value outside years
+  0000 to 9999 (such as milliseconds) fails the decode. A window is a
+  `HistoryRange`: a period, a start, an end, or two of them.
+
 ## Market clock
 
 `Client::clock` reads `GET /v2/clock`: the server's time, whether the market
@@ -303,3 +327,6 @@ is open, and the next open and close, each a `Timestamp`.
 | Compression | Uncompressed responses requested (`Accept-Encoding: identity`); nothing is decompressed | No decompression code or limits to get right; Alpaca says it may add gzip, so suri asks for none rather than accept any |
 | Response field types | Exact decimals for amounts sent as strings, `Inbound` for text enumerations, optional unless always present | A response field that does not fit its type fails the call, so types follow the documented wire form and leave room for what Alpaca adds |
 | Optional fields | Always present only when the schema requires a field, or every documented example and recorded response carries it, and none omits it; otherwise an `Option` | A field missing from a real response must not fail the call; an `Option` loses nothing, and a missing always-present field is reported as a `Decode` error |
+| Mutations are never retried | One attempt for every request that is not a `GET` | Alpaca advises against resending a request whose outcome is unknown; only the caller can find out whether it took effect |
+| Paging | One page per call; the caller passes the cursor | A loop inside suri would hide how many requests a call makes and when it stops |
+| Numbers received as numbers | Portfolio history's JSON numbers as the correctly rounded nearest `f64` | They are binary floating-point values on the wire; reading them correctly rounded keeps every observed value, and money sent as strings stays exact |

@@ -7,7 +7,7 @@
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::sync::{Arc, Mutex};
-use std::time::Instant;
+use std::time::{Instant, SystemTime};
 
 /// What the server does with one connection.
 pub enum Step {
@@ -29,6 +29,8 @@ pub enum Step {
 #[derive(Debug, Clone)]
 pub struct Request {
     pub at: Instant,
+    /// The wall-clock arrival, to compare with a rate-limit reset.
+    pub wall: SystemTime,
     pub method: String,
     pub path: String,
     /// Names in lower case, in the order sent.
@@ -128,6 +130,7 @@ fn read_request(stream: &mut TcpStream) -> Option<Request> {
         head.push(byte[0]);
     }
     let at = Instant::now();
+    let wall = SystemTime::now();
     let head = String::from_utf8_lossy(&head).into_owned();
     let mut lines = head.split("\r\n");
     let mut request_line = lines.next()?.split(' ');
@@ -146,6 +149,7 @@ fn read_request(stream: &mut TcpStream) -> Option<Request> {
     stream.read_exact(&mut body).ok()?;
     Some(Request {
         at,
+        wall,
         method,
         path,
         headers,

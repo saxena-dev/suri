@@ -19,7 +19,7 @@ exclude = ["/.github", "/vendor", "/tools", "/tests"]
 [features]
 default = ["rest"]
 # The HTTP client and every type that only it reads.
-rest = ["dep:reqwest", "dep:url", "dep:secrecy", "dep:serde_json", "serde/derive"]
+rest = ["dep:reqwest", "dep:url", "dep:secrecy", "dep:serde_json", "serde/derive", "dep:tokio"]
 
 [dependencies]
 # Decoding and encoding of suri's value types, which implement their serde
@@ -35,6 +35,8 @@ url = { version = "2.5.8", optional = true }
 secrecy = { version = "0.10.3", default-features = false, optional = true }
 # Decodes response bodies.
 serde_json = { version = "1.0.154", optional = true }
+# Waits between the attempts of a read.
+tokio = { version = "1.53.3", features = ["time"], optional = true }
 
 [dev-dependencies]
 # Re-hashes the fixture tree in tests/fixture_manifest.rs.

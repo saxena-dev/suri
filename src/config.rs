@@ -71,11 +71,16 @@ pub struct Config {
     pub(crate) request_timeout: Duration,
     pub(crate) max_body_bytes: u64,
     pub(crate) base_url: Option<String>,
+    pub(crate) read_deadline: Duration,
+    pub(crate) retry_base: Duration,
+    pub(crate) retry_cap: Duration,
+    pub(crate) max_read_attempts: u32,
 }
 
 impl Config {
     /// A configuration with the documented defaults: a 10 s connect timeout,
-    /// a 30 s request timeout and a 32 MiB response body limit.
+    /// a 30 s request timeout, a 32 MiB response body limit, and reads
+    /// retried up to 4 attempts within 60 s, backing off from 250 ms to 8 s.
     pub fn new(region: Region, environment: Environment, credentials: Credentials) -> Config {
         Config {
             region,
@@ -85,6 +90,10 @@ impl Config {
             request_timeout: Duration::from_secs(30),
             max_body_bytes: 32 * 1024 * 1024,
             base_url: None,
+            read_deadline: Duration::from_secs(60),
+            retry_base: Duration::from_millis(250),
+            retry_cap: Duration::from_secs(8),
+            max_read_attempts: 4,
         }
     }
 
@@ -115,6 +124,33 @@ impl Config {
         self.base_url = Some(url.into());
         self
     }
+
+    /// The longest a read may take over all its attempts and waits, from the
+    /// start of the first (no shorter than the request timeout, at most 1 h).
+    pub fn with_read_deadline(mut self, deadline: Duration) -> Self {
+        self.read_deadline = deadline;
+        self
+    }
+
+    /// The wait before a read's second attempt, doubled for each attempt
+    /// after it (1 ms to 10 s).
+    pub fn with_retry_base(mut self, base: Duration) -> Self {
+        self.retry_base = base;
+        self
+    }
+
+    /// The longest backoff between attempts (1 ms to 60 s, and no smaller
+    /// than the retry base).
+    pub fn with_retry_cap(mut self, cap: Duration) -> Self {
+        self.retry_cap = cap;
+        self
+    }
+
+    /// How many attempts a read may make, the first included (1 to 10).
+    pub fn with_max_read_attempts(mut self, attempts: u32) -> Self {
+        self.max_read_attempts = attempts;
+        self
+    }
 }
 
 impl fmt::Debug for Config {
@@ -127,6 +163,10 @@ impl fmt::Debug for Config {
             .field("request_timeout", &self.request_timeout)
             .field("max_body_bytes", &self.max_body_bytes)
             .field("base_url", &self.base_url.as_ref().map(|_| ..))
+            .field("read_deadline", &self.read_deadline)
+            .field("retry_base", &self.retry_base)
+            .field("retry_cap", &self.retry_cap)
+            .field("max_read_attempts", &self.max_read_attempts)
             .finish()
     }
 }
@@ -149,6 +189,12 @@ enum Kind {
     RequestTimeout,
     ConnectLongerThanRequest,
     MaxBodyBytes,
+    ReadDeadlineShort,
+    ReadDeadlineLong,
+    RetryBase,
+    RetryCap,
+    RetryCapBelowBase,
+    MaxReadAttempts,
     Tls,
 }
 
@@ -167,6 +213,12 @@ impl fmt::Display for ConfigError {
                 "connect_timeout must not be longer than request_timeout"
             }
             Kind::MaxBodyBytes => "max_body_bytes must be between 1KiB and 1GiB",
+            Kind::ReadDeadlineShort => "read_deadline must not be shorter than request_timeout",
+            Kind::ReadDeadlineLong => "read_deadline must be at most 1h",
+            Kind::RetryBase => "retry_base must be between 1ms and 10s",
+            Kind::RetryCap => "retry_cap must be between 1ms and 60s",
+            Kind::RetryCapBelowBase => "retry_cap must not be smaller than retry_base",
+            Kind::MaxReadAttempts => "max_read_attempts must be between 1 and 10",
             Kind::Tls => "the TLS client could not be built",
         })
     }
@@ -244,6 +296,24 @@ pub(crate) fn check(config: &Config) -> Result<url::Url, ConfigError> {
     }
     if !(1024..=1024 * 1024 * 1024).contains(&config.max_body_bytes) {
         return fail(Kind::MaxBodyBytes);
+    }
+    if config.read_deadline < config.request_timeout {
+        return fail(Kind::ReadDeadlineShort);
+    }
+    if config.read_deadline > Duration::from_secs(3600) {
+        return fail(Kind::ReadDeadlineLong);
+    }
+    if !between(config.retry_base, ms(1), Duration::from_secs(10)) {
+        return fail(Kind::RetryBase);
+    }
+    if !between(config.retry_cap, ms(1), Duration::from_secs(60)) {
+        return fail(Kind::RetryCap);
+    }
+    if config.retry_cap < config.retry_base {
+        return fail(Kind::RetryCapBelowBase);
+    }
+    if !(1..=10).contains(&config.max_read_attempts) {
+        return fail(Kind::MaxReadAttempts);
     }
     Ok(base_url)
 }

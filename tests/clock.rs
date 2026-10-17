@@ -25,6 +25,8 @@ fn config(url: &str) -> Config {
         Credentials::api_key(KEY, SECRET),
     )
     .with_base_url(url)
+    // One attempt: these tests name the outcome of a single request.
+    .with_max_read_attempts(1)
 }
 
 fn client(url: &str) -> Client {
@@ -244,7 +246,10 @@ async fn a_handshake_that_never_completes_is_a_connect_timeout() {
     let server = Server::start(vec![Step::Hold]);
     let url = server.url.replace("http://", "https://");
     let config = config(&url).with_connect_timeout(Duration::from_millis(50));
+    let started = std::time::Instant::now();
     let error = Client::new(config).unwrap().clock().await.unwrap_err();
+    // The configured 50 ms applies, not the 10 s default.
+    assert!(started.elapsed() < Duration::from_secs(2));
     assert_eq!(error.kind(), ErrorKind::Timeout);
     assert_eq!(error.stage(), Stage::NotStarted);
     assert!(!error.may_have_reached_broker());
@@ -298,7 +303,7 @@ async fn no_response_within_the_request_timeout() {
     assert!(error.may_have_reached_broker());
     assert_eq!(
         error.to_string(),
-        "no response within request_timeout [GET /v2/clock, attempt 1]"
+        "no response within request_timeout or read_deadline [GET /v2/clock, attempt 1]"
     );
 }
 
@@ -316,7 +321,7 @@ async fn a_body_still_arriving_at_the_request_timeout() {
     assert_eq!(error.status(), Some(200));
     assert_eq!(
         error.to_string(),
-        "the response was not complete within request_timeout [GET /v2/clock, attempt 1]"
+        "the response was not complete within request_timeout or read_deadline [GET /v2/clock, attempt 1]"
     );
 }
 
@@ -474,6 +479,7 @@ fn policy_values_are_checked_against_their_bounds_in_order() {
         base()
             .with_connect_timeout(s(60))
             .with_request_timeout(s(600))
+            .with_read_deadline(s(600))
             .with_max_body_bytes(1 << 30),
     ] {
         assert!(Client::new(config).is_ok());

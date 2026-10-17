@@ -21,3 +21,6 @@ All notable changes to suri are listed here. The format follows
   Alpaca.
 - `Error::code` and `Error::message`: Alpaca's error code and message, with
   credentials redacted and the message bounded to one line of 1,024 bytes.
+- Reads are retried on throttling, server errors and failed connections,
+  with backoff and jitter, never before a rate-limit reset, within
+  `read_deadline` and `max_read_attempts`.

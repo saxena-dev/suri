@@ -1,8 +1,9 @@
 //! The client and its one HTTP transport.
 
 use std::fmt;
+use std::hash::{BuildHasher, Hash, Hasher, RandomState};
 use std::sync::Arc;
-use std::time::Duration;
+use std::time::{Duration, Instant, SystemTime};
 
 use reqwest::Method;
 use reqwest::header::{HeaderValue, LOCATION, USER_AGENT};
@@ -34,6 +35,10 @@ struct Inner {
     credentials: Credentials,
     request_timeout: Duration,
     max_body_bytes: u64,
+    read_deadline: Duration,
+    retry_base: Duration,
+    retry_cap: Duration,
+    max_read_attempts: u32,
 }
 
 impl fmt::Debug for Client {
@@ -128,18 +133,81 @@ impl Client {
             credentials: config.credentials,
             request_timeout: config.request_timeout,
             max_body_bytes: config.max_body_bytes,
+            read_deadline: config.read_deadline,
+            retry_base: config.retry_base,
+            retry_cap: config.retry_cap,
+            max_read_attempts: config.max_read_attempts,
         })))
     }
 
-    /// Sends one request and decodes a successful response's JSON body.
+    /// Sends a read, retrying it within the read deadline, and decodes a
+    /// successful response's JSON body. Every request so far is a read.
     pub(crate) async fn send<T: DeserializeOwned>(
         &self,
         endpoint: &Endpoint,
         segments: &[&str],
     ) -> Result<Response<T>, Error> {
         let inner = &self.0;
-        let error =
-            |kind, stage| Error::new(kind, stage, endpoint.method.clone(), endpoint.template, 1);
+        let start = Instant::now();
+        let mut attempt = 1;
+        loop {
+            let remaining = inner.read_deadline.saturating_sub(start.elapsed());
+            let timeout = inner.request_timeout.min(remaining);
+            let error = match self.attempt(endpoint, segments, attempt, timeout).await {
+                Ok(response) => return Ok(response),
+                Err(error) => error,
+            };
+            if attempt >= inner.max_read_attempts || !retryable(&error) {
+                return Err(error);
+            }
+            let wait = self.wait(attempt, &error);
+            if start.elapsed() + wait >= inner.read_deadline {
+                return Err(error);
+            }
+            tokio::time::sleep(wait).await;
+            attempt += 1;
+        }
+    }
+
+    /// The wait after attempt `attempt` failed: the backoff, or the time
+    /// until a 429's rate-limit reset if later, plus up to half the backoff
+    /// at random, so that clients do not retry in step.
+    fn wait(&self, attempt: u32, error: &Error) -> Duration {
+        let inner = &self.0;
+        let backoff = inner
+            .retry_base
+            .saturating_mul(1 << (attempt - 1))
+            .min(inner.retry_cap);
+        let reset = match error.meta() {
+            Some(meta) if meta.status() == 429 => meta.reset(),
+            _ => None,
+        };
+        let until_reset = reset
+            .and_then(|reset| u64::try_from(reset.unix_seconds()).ok())
+            .map(|seconds| SystemTime::UNIX_EPOCH + Duration::from_secs(seconds))
+            .and_then(|reset| reset.duration_since(SystemTime::now()).ok())
+            .unwrap_or_default();
+        backoff.max(until_reset) + (backoff / 2).mul_f64(jitter(attempt))
+    }
+
+    /// One attempt of a request, with this attempt's number and timeout.
+    async fn attempt<T: DeserializeOwned>(
+        &self,
+        endpoint: &Endpoint,
+        segments: &[&str],
+        attempt: u32,
+        timeout: Duration,
+    ) -> Result<Response<T>, Error> {
+        let inner = &self.0;
+        let error = |kind, stage| {
+            Error::new(
+                kind,
+                stage,
+                endpoint.method.clone(),
+                endpoint.template,
+                attempt,
+            )
+        };
         // reqwest's own errors are never kept: their text holds the URL.
         let sent = inner
             .http
@@ -150,7 +218,7 @@ impl Client {
             .header("APCA-API-KEY-ID", inner.key_id.clone())
             .header("APCA-API-SECRET-KEY", inner.secret.clone())
             .header(USER_AGENT, concat!("suri/", env!("CARGO_PKG_VERSION")))
-            .timeout(inner.request_timeout)
+            .timeout(timeout)
             .send()
             .await;
         let mut response = match sent {
@@ -213,6 +281,24 @@ impl Client {
     }
 }
 
+/// Whether a failed read is worth another attempt: a 429, a 500, 502, 503
+/// or 504, or a failed or timed-out connection at any stage.
+fn retryable(error: &Error) -> bool {
+    match error.kind() {
+        ErrorKind::Api => matches!(error.status(), Some(429 | 500 | 502 | 503 | 504)),
+        ErrorKind::Transport | ErrorKind::Timeout => true,
+        _ => false,
+    }
+}
+
+/// A fraction in `[0, 1)`, different on every call.
+fn jitter(attempt: u32) -> f64 {
+    let mut hasher = RandomState::new().build_hasher();
+    attempt.hash(&mut hasher);
+    Instant::now().hash(&mut hasher);
+    (hasher.finish() >> 11) as f64 / (1u64 << 53) as f64
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -266,6 +352,63 @@ mod tests {
         let client = Client::new(config).unwrap();
         assert!(client.0.key_id.is_sensitive());
         assert!(client.0.secret.is_sensitive());
+    }
+
+    fn client_with_backoff(base: Duration, cap: Duration) -> Client {
+        let config = Config::new(
+            crate::Region::US,
+            crate::Environment::Paper,
+            crate::Credentials::api_key("PKSENTINELKEY0001", "SECRETSENTINELVALUE0001"),
+        )
+        .with_retry_base(base)
+        .with_retry_cap(cap);
+        Client::new(config).unwrap()
+    }
+
+    fn api_error(status: u16, reset: Option<u64>) -> Error {
+        let mut headers = reqwest::header::HeaderMap::new();
+        if let Some(reset) = reset {
+            headers.insert("x-ratelimit-reset", HeaderValue::from(reset));
+        }
+        Error::new(
+            ErrorKind::Api,
+            Stage::ResponseReceived,
+            Method::GET,
+            "/v2/clock",
+            1,
+        )
+        .with_meta(ResponseMeta::from_headers(status, &headers))
+    }
+
+    #[test]
+    fn the_backoff_doubles_to_its_cap_with_up_to_half_added() {
+        let ms = Duration::from_millis;
+        let client = client_with_backoff(ms(100), ms(250));
+        let error = api_error(503, None);
+        for (attempt, backoff) in [(1, 100), (2, 200), (3, 250), (4, 250)] {
+            for _ in 0..50 {
+                let wait = client.wait(attempt, &error);
+                assert!(wait >= ms(backoff), "{attempt}: {wait:?}");
+                assert!(wait < ms(backoff) + ms(backoff) / 2, "{attempt}: {wait:?}");
+            }
+        }
+        let waits: std::collections::HashSet<Duration> =
+            (0..50).map(|_| client.wait(1, &error)).collect();
+        assert!(waits.len() > 1, "no jitter: {waits:?}");
+    }
+
+    #[test]
+    fn a_throttled_read_waits_until_the_reset() {
+        let client = client_with_backoff(Duration::from_millis(100), Duration::from_secs(1));
+        let now = SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+        let wait = client.wait(1, &api_error(429, Some(now + 10)));
+        assert!(wait >= Duration::from_secs(9), "{wait:?}");
+        // A reset on another status is not a reason to wait.
+        let wait = client.wait(1, &api_error(503, Some(now + 10)));
+        assert!(wait < Duration::from_millis(150), "{wait:?}");
     }
 
     #[test]

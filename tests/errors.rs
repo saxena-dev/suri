@@ -19,6 +19,8 @@ fn config(url: &str) -> Config {
         Credentials::api_key(KEY, SECRET),
     )
     .with_base_url(url)
+    // One attempt: these tests name the outcome of a single request.
+    .with_max_read_attempts(1)
 }
 
 /// The error for one response with this status and body.

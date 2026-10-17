@@ -10,6 +10,9 @@ pub struct ResponseMeta {
     status: u16,
     request_id: Option<String>,
     rate_limit: Option<RateLimit>,
+    /// `X-RateLimit-Reset` read on its own, so a 429 that sends only the
+    /// reset is still not retried before it.
+    reset: Option<Timestamp>,
 }
 
 impl ResponseMeta {
@@ -28,28 +31,33 @@ impl ResponseMeta {
         self.rate_limit
     }
 
+    pub(crate) fn reset(&self) -> Option<Timestamp> {
+        self.reset
+    }
+
     pub(crate) fn from_headers(status: u16, headers: &HeaderMap) -> ResponseMeta {
         let text = |name: &str| headers.get(name).and_then(|value| value.to_str().ok());
         let number = |name: &str| text(name).and_then(|t| t.parse::<u64>().ok());
+        let reset = number("x-ratelimit-reset")
+            .and_then(|seconds| i64::try_from(seconds).ok())
+            .and_then(|seconds| Timestamp::from_unix(seconds, 0));
         let rate_limit = match (
             number("x-ratelimit-limit"),
             number("x-ratelimit-remaining"),
-            number("x-ratelimit-reset"),
+            reset,
         ) {
-            (Some(limit), Some(remaining), Some(reset)) => i64::try_from(reset)
-                .ok()
-                .and_then(|seconds| Timestamp::from_unix(seconds, 0))
-                .map(|reset| RateLimit {
-                    limit,
-                    remaining,
-                    reset,
-                }),
+            (Some(limit), Some(remaining), Some(reset)) => Some(RateLimit {
+                limit,
+                remaining,
+                reset,
+            }),
             _ => None,
         };
         ResponseMeta {
             status,
             request_id: text("x-request-id").map(str::to_owned),
             rate_limit,
+            reset,
         }
     }
 }

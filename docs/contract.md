@@ -110,6 +110,10 @@ bad value fails when the client is built, never at request time.
   | `connect_timeout`: connecting, TLS included | 10 s | 1 ms to 60 s, and no longer than `request_timeout` |
   | `request_timeout`: one request, from connecting until the whole body has arrived | 30 s | 1 ms to 10 min |
   | `max_body_bytes`: the largest response body read | 32 MiB | 1 KiB to 1 GiB |
+  | `read_deadline`: a read's attempts and waits together, from the start of the first | 60 s | No shorter than `request_timeout`, at most 1 h |
+  | `retry_base`: the backoff after a read's first attempt, doubled after each later one | 250 ms | 1 ms to 10 s |
+  | `retry_cap`: the longest backoff | 8 s | 1 ms to 60 s, and no smaller than `retry_base` |
+  | `max_read_attempts`: a read's attempts, the first included | 4 | 1 to 10 |
 
   Idle connections are closed after 30 s.
 - **Base URL override:** `with_base_url` points the client at another server,
@@ -154,7 +158,7 @@ error carries its status and `ResponseMeta`.
 | `Api` | Alpaca answered with an error status |
 | `Redirect` | Alpaca answered with a redirect, which was not followed; `location()` gives its scheme, host and port when it was an absolute http or https URL, never its credentials, path or query |
 | `Transport` | The connection failed |
-| `Timeout` | `connect_timeout` or `request_timeout` expired |
+| `Timeout` | `connect_timeout`, `request_timeout` or the `read_deadline` expired |
 | `BodyTooLarge` | The body was larger than `max_body_bytes` |
 | `Decode` | The body did not have the documented shape |
 
@@ -191,6 +195,24 @@ for Alpaca's error code and message:
 - A request with missing or wrong credentials may be answered 401 or 403;
   Alpaca's documentation shows both.
 
+## Retries
+
+suri retries reads, and only reads; every endpoint it calls so far is one.
+
+- **When:** a response of 429, 500, 502, 503 or 504, and a connection that
+  fails or times out at any stage. Never a redirect, a body over the limit,
+  a body that does not decode, or any other status.
+- **How often and how long:** up to `max_read_attempts` attempts within
+  `read_deadline` from the start of the first. Each attempt's timeout is
+  `request_timeout` or the time left before the deadline, whichever is
+  shorter. A wait that would end at or after the deadline is not taken: the
+  call returns the last failure, and `attempt()` says which attempt it was.
+- **Waits:** after attempt `n`, the backoff is `retry_base` × 2^(n−1), at
+  most `retry_cap`. After a 429 with an `X-RateLimit-Reset`, the wait is the
+  later of the backoff and the reset. Up to half the backoff is then added
+  at random, so that many clients do not retry in step. A retry never comes
+  before the backoff or the reset.
+
 ## Market clock
 
 `Client::clock` reads `GET /v2/clock`: the server's time, whether the market
@@ -211,3 +233,4 @@ is open, and the next open and close, each a `Timestamp`.
 | Redirects | Never followed; an error naming only the target's origin | A followed redirect could resend the key pair or a request that changes state to another host |
 | Unknown JSON fields | Ignored | Alpaca adds response fields without changing the API version |
 | Market clock version | `/v2/clock` | It reports the US equity market the first release covers; the newer clock adds other markets |
+| Retries | Reads only, on 429, 500, 502, 503, 504 and failed connections, with capped exponential backoff and added jitter, never before a rate-limit reset, within a deadline | A read is safe to repeat; Alpaca asks clients to back off, wait for the reset and add jitter, and documents 500 as worth retrying later |

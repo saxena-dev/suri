@@ -197,11 +197,11 @@ impl fmt::Display for Error {
                 f.write_str("the connection was not established within connect_timeout")?
             }
             (ErrorKind::Timeout, Stage::Unknown) => {
-                f.write_str("no response within request_timeout")?
+                f.write_str("no response within request_timeout or read_deadline")?
             }
-            (ErrorKind::Timeout, Stage::ResponseReceived) => {
-                f.write_str("the response was not complete within request_timeout")?
-            }
+            (ErrorKind::Timeout, Stage::ResponseReceived) => f.write_str(
+                "the response was not complete within request_timeout or read_deadline",
+            )?,
             (ErrorKind::BodyTooLarge, _) => {
                 f.write_str("the response body exceeded max_body_bytes")?
             }

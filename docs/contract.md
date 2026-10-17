@@ -414,6 +414,25 @@ decimals, and an option position's exchange is `Exchange::Empty`.
 - **Made once.** Closing, closing all, exercising and declining are never
   retried (see "Retries").
 
+## Watchlists
+
+`Client::watchlists` lists the account's watchlists, without their assets,
+and `Client::watchlist` reads one by ID with its assets, in the order they
+were added.
+Watchlists are addressed by ID; Alpaca's by-name forms are not offered,
+since the ID forms cover every operation.
+
+- **Changing them.** `Client::create_watchlist` sends a `CreateWatchlist`
+  (a name, and symbols if set). `Client::update_watchlist` sends a
+  `WatchlistUpdate`: a new name, a new list of symbols that replaces the
+  old one (an empty list empties the watchlist), or both.
+  `Client::add_to_watchlist` adds one symbol at the end,
+  `Client::remove_from_watchlist` removes one, and
+  `Client::delete_watchlist` deletes the watchlist and returns
+  `Response<()>`.
+- **Made once.** Each of these five changes is never retried (see
+  "Retries").
+
 ## Market clock
 
 `Client::clock` reads `GET /v2/clock`: the server's time, whether the market

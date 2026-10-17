@@ -60,3 +60,8 @@ All notable changes to suri are listed here. The format follows
   `Client::close_all_positions`, with one `ClosedPosition` per position;
   both are made once.
 - `Client::exercise_option` and `Client::decline_exercise`, made once.
+- `Client::watchlists` and `Client::watchlist`, and
+  `Client::create_watchlist`, `Client::update_watchlist`,
+  `Client::add_to_watchlist`, `Client::remove_from_watchlist` and
+  `Client::delete_watchlist`, each made once, with `Watchlist`,
+  `CreateWatchlist` and `WatchlistUpdate`.

@@ -3,12 +3,10 @@
 A Rust client for the [Alpaca](https://alpaca.markets) Trading and Market
 Data APIs. Support for the Broker API is planned after the first release.
 
-**Status: pre-release.** The client reads the market clock and calendar, the
-account, its configuration, activities and portfolio history, assets and
-option contracts, and positions; it places, finds, replaces and cancels
-orders, closes positions and exercises options, each change made exactly
-once, so far; the crate is
-being built in the open, one tested piece at a time.
+**Status: pre-release.** The client covers the Trading API's REST
+endpoints in the first release's scope (below), each change made exactly
+once; the stream and market data are next. The crate is being built in the
+open, one tested piece at a time.
 
 ## Scope of 0.1.0
 

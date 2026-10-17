@@ -249,6 +249,7 @@ fn both_types_are_json_strings_in_and_out() {
     assert!(serde_json::from_str::<Date>("null").is_err());
     let error = serde_json::from_str::<Timestamp>(r#""2016-12-31T23:59:60Z""#).unwrap_err();
     let message = error.to_string();
+    assert!(message.starts_with("invalid value: "), "{message}");
     assert!(
         message.contains("leap second (60) is not supported"),
         "{message}"

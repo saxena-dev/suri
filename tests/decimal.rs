@@ -111,6 +111,8 @@ fn a_decimal_is_written_as_a_json_string() {
 fn a_value_integer_beyond_64_bits_is_rejected() {
     // Through serde_json::Value with arbitrary_precision on, such an integer
     // reaches the 128-bit visitor methods, which Decimal does not accept.
-    let value: serde_json::Value = serde_json::from_str("[18446744073709551616]").unwrap();
+    let value: serde_json::Value =
+        serde_json::from_str("[18446744073709551616, -9223372036854775809]").unwrap();
     assert!(Decimal::deserialize(&value[0]).is_err());
+    assert!(Decimal::deserialize(&value[1]).is_err());
 }

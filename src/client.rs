@@ -9,6 +9,7 @@ use reqwest::Method;
 use reqwest::header::{HeaderValue, LOCATION, USER_AGENT};
 use secrecy::{ExposeSecret, SecretString};
 use serde::de::DeserializeOwned;
+use tracing::{Instrument, Span};
 
 use crate::config::{self, Config, ConfigError, Credentials};
 use crate::error::details;
@@ -147,23 +148,61 @@ impl Client {
         endpoint: &Endpoint,
         segments: &[&str],
     ) -> Result<Response<T>, Error> {
+        // One span for the whole call, every attempt and wait included. It
+        // names the endpoint's template, never the URL.
+        let span = tracing::info_span!(
+            target: "suri",
+            "suri.request",
+            method = endpoint.method.as_str(),
+            endpoint = endpoint.template,
+            attempt = tracing::field::Empty,
+            status = tracing::field::Empty,
+            stage = tracing::field::Empty,
+        );
+        self.send_in(endpoint, segments, &span)
+            .instrument(span.clone())
+            .await
+    }
+
+    async fn send_in<T: DeserializeOwned>(
+        &self,
+        endpoint: &Endpoint,
+        segments: &[&str],
+        span: &Span,
+    ) -> Result<Response<T>, Error> {
         let inner = &self.0;
         let start = Instant::now();
         let mut attempt = 1;
         loop {
+            span.record("attempt", attempt);
             let remaining = inner.read_deadline.saturating_sub(start.elapsed());
             let timeout = inner.request_timeout.min(remaining);
             let error = match self.attempt(endpoint, segments, attempt, timeout).await {
-                Ok(response) => return Ok(response),
+                Ok(response) => {
+                    span.record("status", response.meta().status());
+                    return Ok(response);
+                }
                 Err(error) => error,
             };
-            if attempt >= inner.max_read_attempts || !retryable(&error) {
-                return Err(error);
+            if let Some(status) = error.status() {
+                span.record("status", status);
             }
+            let reason = match retry_reason(&error) {
+                Some(reason) if attempt < inner.max_read_attempts => reason,
+                _ => return Err(failed(span, error)),
+            };
             let wait = self.wait(attempt, &error);
             if start.elapsed() + wait >= inner.read_deadline {
-                return Err(error);
+                return Err(failed(span, error));
             }
+            tracing::debug!(
+                name: "retry",
+                target: "suri",
+                attempt,
+                reason,
+                wait_ms = u64::try_from(wait.as_millis()).unwrap_or(u64::MAX),
+                "retrying"
+            );
             tokio::time::sleep(wait).await;
             attempt += 1;
         }
@@ -281,14 +320,38 @@ impl Client {
     }
 }
 
-/// Whether a failed read is worth another attempt: a 429, a 500, 502, 503
-/// or 504, or a failed or timed-out connection at any stage.
-fn retryable(error: &Error) -> bool {
-    match error.kind() {
-        ErrorKind::Api => matches!(error.status(), Some(429 | 500 | 502 | 503 | 504)),
-        ErrorKind::Transport | ErrorKind::Timeout => true,
-        _ => false,
+/// Why a failed read is worth another attempt, if it is: a 429, a 500, 502,
+/// 503 or 504, or a failed or timed-out connection at any stage.
+fn retry_reason(error: &Error) -> Option<&'static str> {
+    match (error.kind(), error.status()) {
+        (ErrorKind::Api, Some(429)) => Some("status_429"),
+        (ErrorKind::Api, Some(500 | 502 | 503 | 504)) => Some("status_5xx"),
+        (ErrorKind::Transport, _) => Some("transport"),
+        (ErrorKind::Timeout, _) => Some("timeout"),
+        _ => None,
     }
+}
+
+/// Records how far a call that failed got, and emits its `error` event.
+fn failed(span: &Span, error: Error) -> Error {
+    span.record(
+        "stage",
+        match error.stage() {
+            Stage::NotStarted => "not_started",
+            Stage::ResponseReceived => "response_received",
+            Stage::Unknown => "unknown",
+        },
+    );
+    let kind = match error.kind() {
+        ErrorKind::Api => "api",
+        ErrorKind::Redirect => "redirect",
+        ErrorKind::Transport => "transport",
+        ErrorKind::Timeout => "timeout",
+        ErrorKind::BodyTooLarge => "body_too_large",
+        ErrorKind::Decode => "decode",
+    };
+    tracing::debug!(name: "error", target: "suri", kind, "request failed");
+    error
 }
 
 /// A fraction in `[0, 1)`, different on every call.

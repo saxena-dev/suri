@@ -24,3 +24,5 @@ All notable changes to suri are listed here. The format follows
 - Reads are retried on throttling, server errors and failed connections,
   with backoff and jitter, never before a rate-limit reset, within
   `read_deadline` and `max_read_attempts`.
+- A `tracing` span, `suri.request`, for every call, with `retry` and `error`
+  events; suri installs no subscriber.

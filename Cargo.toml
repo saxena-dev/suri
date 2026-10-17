@@ -19,7 +19,7 @@ exclude = ["/.github", "/vendor", "/tools", "/tests"]
 [features]
 default = ["rest"]
 # The HTTP client and every type that only it reads.
-rest = ["dep:reqwest", "dep:url", "dep:secrecy", "dep:serde_json", "serde/derive", "dep:tokio"]
+rest = ["dep:reqwest", "dep:url", "dep:secrecy", "dep:serde_json", "serde/derive", "dep:tokio", "dep:tracing"]
 
 [dependencies]
 # Decoding and encoding of suri's value types, which implement their serde
@@ -37,6 +37,8 @@ secrecy = { version = "0.10.3", default-features = false, optional = true }
 serde_json = { version = "1.0.154", optional = true }
 # Waits between the attempts of a read.
 tokio = { version = "1.53.3", features = ["time"], optional = true }
+# One span per call and its events; suri installs no subscriber.
+tracing = { version = "0.1.44", default-features = false, features = ["std"], optional = true }
 
 [dev-dependencies]
 # Re-hashes the fixture tree in tests/fixture_manifest.rs.
@@ -45,3 +47,7 @@ sha2 = "0.10.9"
 serde_json = "1.0.154"
 # Runs the client's async tests.
 tokio = { version = "1.53.3", features = ["macros", "rt"] }
+# Capture every log record and tracing span and event in the observability
+# tests.
+log = "0.4.34"
+tracing-subscriber = { version = "0.3.23", default-features = false, features = ["registry"] }

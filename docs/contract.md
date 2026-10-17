@@ -213,6 +213,43 @@ suri retries reads, and only reads; every endpoint it calls so far is one.
   at random, so that many clients do not retry in step. A retry never comes
   before the backoff or the reset.
 
+## Observability
+
+suri reports through the `tracing` crate and installs nothing: no
+subscriber, logger or global state. With no subscriber installed, nothing
+is recorded.
+
+- **One span per call:** `suri.request`, level INFO, target `suri`, covering
+  every attempt and wait. Its fields: `method` (such as `GET`), `endpoint`
+  (the path template, such as `/v2/clock`), `attempt` (recorded as each
+  attempt starts), `status` (recorded when a response arrives) and `stage`
+  (recorded only when the call returns an error: `not_started`,
+  `response_received` or `unknown`).
+- **Events,** level DEBUG, target `suri`, inside that span: `retry`
+  (message `retrying`; fields `attempt`, `reason` — `status_429`,
+  `status_5xx`, `transport` or `timeout` — and `wait_ms`) before each wait,
+  and `error` (message `request failed`; field `kind`: `api`, `redirect`,
+  `transport`, `timeout`, `body_too_large` or `decode`) once when the call
+  returns an error.
+- **Never recorded:** the URL or its query, a request or response body,
+  Alpaca's message, the request ID, any header value and any credential.
+- **Libraries suri uses** also log:
+  - `reqwest`, through the `log` crate, at DEBUG and TRACE (targets
+    `reqwest::connect` and `reqwest::retry`);
+  - `hyper_util`, through `tracing`, mostly at DEBUG and TRACE and at WARN
+    when a socket option cannot be set (targets under
+    `hyper_util::client::legacy`);
+  - the certificate verifier, through `log` (targets under
+    `rustls_platform_verifier`): ERROR when a certificate fails
+    verification and, on Linux and other Unix systems except macOS, iOS and
+    Android, WARN and DEBUG when `Client::new` loads the system's root
+    certificates.
+
+  These records name hosts, ports, certificate errors and counts, not
+  credentials: suri's tests capture every record from suri and its HTTP
+  libraries at TRACE, with requests that succeed, fail, retry and have
+  Alpaca echo the credentials back, and find none. No filter is needed.
+
 ## Market clock
 
 `Client::clock` reads `GET /v2/clock`: the server's time, whether the market

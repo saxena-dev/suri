@@ -54,3 +54,9 @@ All notable changes to suri are listed here. The format follows
 - `Client::cancel_order`, which returns `Response<()>`, and
   `Client::cancel_all_orders`, with one `CancelResult` per order; both are
   made once.
+- `Client::positions` and `Client::position`, with `Position` and
+  `PositionSide`.
+- `Client::close_position`, with `ClosePosition`, and
+  `Client::close_all_positions`, with one `ClosedPosition` per position;
+  both are made once.
+- `Client::exercise_option` and `Client::decline_exercise`, made once.

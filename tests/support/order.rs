@@ -20,6 +20,8 @@ pub struct Expected {
     pub kind: OrderType,
     pub side: OrderSide,
     pub limit_price: Option<&'static str>,
+    pub qty: Option<&'static str>,
+    pub notional: Option<&'static str>,
     pub intent: PositionIntent,
 }
 
@@ -48,9 +50,9 @@ pub fn assert_fixture_order(order: &Order, expected: &Expected) {
         order.asset_class,
         Some(Inbound::Known(AssetClass::UsEquity))
     );
-    assert_eq!(order.notional, None);
-    // Sent as the JSON number 1.
-    assert_eq!(order.qty, Some(dec("1")));
+    assert_eq!(order.notional, expected.notional.map(dec));
+    // The placement fixtures send the JSON number 1.
+    assert_eq!(order.qty, expected.qty.map(dec));
     assert_eq!(order.filled_qty, Some(dec("0")));
     assert_eq!(order.filled_avg_price, None);
     assert_eq!(order.order_class, Some(Inbound::Known(OrderClass::Simple)));
@@ -78,5 +80,7 @@ pub const AAPL_MARKET_BUY: Expected = Expected {
     kind: OrderType::Market,
     side: OrderSide::Buy,
     limit_price: None,
+    qty: Some("1"),
+    notional: None,
     intent: PositionIntent::BuyToOpen,
 };

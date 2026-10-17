@@ -384,6 +384,36 @@ returns the `Order` Alpaca reports.
   in one result's body fails the others; a result without its `id` or
   `status` fails the call with a `Decode` error.
 
+## Positions
+
+`Client::positions` lists the open positions (`GET /v2/positions`) and
+`Client::position` reads one by symbol or asset ID; amounts are exact
+decimals, and an option position's exchange is `Exchange::Empty`.
+
+- **Closing.** `Client::close_position` (`DELETE
+  /v2/positions/{symbol_or_asset_id}`) closes a position by placing an
+  order, and returns it. A `ClosePosition` closes all of it, a quantity, or
+  a percentage on a 0 to 100 scale (`0.5` is half a percent), sent as its
+  exact decimal text. Alpaca takes no client order ID for it, so after an
+  error that may have reached Alpaca, read the orders and positions to find
+  out what happened.
+- **Closing all.** `Client::close_all_positions` (`DELETE /v2/positions`),
+  optionally cancelling open orders first, returns one `ClosedPosition` per
+  position: its status, the closing order for a successful one (or the
+  body as text, if it is not an order), and Alpaca's code and message for a
+  failed one. Every kept text is scrubbed and bounded as an error's message
+  is. Nothing in one result's body fails the others; a result without its
+  `symbol` or `status` fails the call with a `Decode` error.
+- **Options.** `Client::exercise_option` (`POST
+  /v2/positions/{symbol_or_contract_id}/exercise`) and
+  `Client::decline_exercise` (`POST
+  /v2/positions/{symbol_or_contract_id}/do-not-exercise`) return
+  `Response<()>`; success means Alpaca accepted the instruction. Alpaca's
+  options guide asks users to contact its support for a do-not-exercise
+  instruction instead.
+- **Made once.** Closing, closing all, exercising and declining are never
+  retried (see "Retries").
+
 ## Market clock
 
 `Client::clock` reads `GET /v2/clock`: the server's time, whether the market

@@ -21,9 +21,10 @@ env:
 jobs:
   verify:
     name: verify (stable and MSRV)
-    runs-on: ubuntu-latest
+    # A named image, so the runner changes only by a commit.
+    runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install Rust stable
         run: |
           rustup toolchain install stable --profile minimal --component rustfmt,clippy

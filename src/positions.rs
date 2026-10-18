@@ -22,8 +22,11 @@ wire_enum! {
 /// An open position.
 ///
 /// Prices, quantities and amounts are exact [`Decimal`]s; a percent change
-/// is by a factor of 1. Fields Alpaca adds later are ignored until suri
-/// models them.
+/// is by a factor of 1. The market value, the current and last day's
+/// prices, the change and the unrealized profit and loss are `None` while
+/// Alpaca has no market price for the asset, as for an allocated IPO
+/// before it starts trading. Fields Alpaca adds later are ignored until
+/// suri models them.
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Position {
@@ -31,7 +34,8 @@ pub struct Position {
     pub asset_id: String,
     /// The symbol.
     pub symbol: String,
-    /// The listing exchange; [`Exchange::Empty`] for an option.
+    /// The listing exchange; [`Exchange::Empty`] for an option or an IPO
+    /// not yet listed.
     pub exchange: Inbound<Exchange>,
     /// The asset class.
     pub asset_class: Inbound<AssetClass>,
@@ -42,23 +46,23 @@ pub struct Position {
     /// The number of shares or contracts.
     pub qty: Decimal,
     /// The total dollar amount of the position.
-    pub market_value: Decimal,
+    pub market_value: Option<Decimal>,
     /// The total cost basis in dollars.
     pub cost_basis: Decimal,
     /// The unrealized profit or loss in dollars.
-    pub unrealized_pl: Decimal,
+    pub unrealized_pl: Option<Decimal>,
     /// The unrealized profit or loss, by a factor of 1.
-    pub unrealized_plpc: Decimal,
+    pub unrealized_plpc: Option<Decimal>,
     /// The unrealized profit or loss in dollars for the day.
-    pub unrealized_intraday_pl: Decimal,
+    pub unrealized_intraday_pl: Option<Decimal>,
     /// The unrealized profit or loss for the day, by a factor of 1.
-    pub unrealized_intraday_plpc: Decimal,
+    pub unrealized_intraday_plpc: Option<Decimal>,
     /// The current price per share.
-    pub current_price: Decimal,
+    pub current_price: Option<Decimal>,
     /// The last trading day's closing price per share.
-    pub lastday_price: Decimal,
+    pub lastday_price: Option<Decimal>,
     /// The change from the last day's price, by a factor of 1.
-    pub change_today: Decimal,
+    pub change_today: Option<Decimal>,
     /// Whether the asset can be bought on margin.
     pub asset_marginable: Option<bool>,
     /// The quantity not held by open orders.

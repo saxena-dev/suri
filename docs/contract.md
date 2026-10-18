@@ -388,7 +388,10 @@ returns the `Order` Alpaca reports.
 
 `Client::positions` lists the open positions (`GET /v2/positions`) and
 `Client::position` reads one by symbol or asset ID; amounts are exact
-decimals, and an option position's exchange is `Exchange::Empty`.
+decimals, and an option position's exchange is `Exchange::Empty`. The
+market value, current and last day's prices, change and unrealized profit
+and loss are `None` while Alpaca has no market price for the asset, as for
+an allocated IPO before it starts trading.
 
 - **Closing.** `Client::close_position` (`DELETE
   /v2/positions/{symbol_or_asset_id}`) closes a position by placing an

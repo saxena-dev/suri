@@ -108,15 +108,15 @@ fn assert_fixture_position(position: &Position) {
     assert_eq!(position.avg_entry_price, dec("100.0"));
     assert_eq!(position.qty, dec("5"));
     assert_eq!(position.side, Inbound::Known(PositionSide::Long));
-    assert_eq!(position.market_value, dec("600.0"));
+    assert_eq!(position.market_value, some("600.0"));
     assert_eq!(position.cost_basis, dec("500.0"));
-    assert_eq!(position.unrealized_pl, dec("100.0"));
-    assert_eq!(position.unrealized_plpc, dec("0.20"));
-    assert_eq!(position.unrealized_intraday_pl, dec("10.0"));
-    assert_eq!(position.unrealized_intraday_plpc, dec("0.0084"));
-    assert_eq!(position.current_price, dec("120.0"));
-    assert_eq!(position.lastday_price, dec("119.0"));
-    assert_eq!(position.change_today, dec("0.0084"));
+    assert_eq!(position.unrealized_pl, some("100.0"));
+    assert_eq!(position.unrealized_plpc, some("0.20"));
+    assert_eq!(position.unrealized_intraday_pl, some("10.0"));
+    assert_eq!(position.unrealized_intraday_plpc, some("0.0084"));
+    assert_eq!(position.current_price, some("120.0"));
+    assert_eq!(position.lastday_price, some("119.0"));
+    assert_eq!(position.change_today, some("0.0084"));
     assert_eq!(position.asset_marginable, None);
     assert_eq!(position.qty_available, None);
     assert_eq!(position.avg_entry_swap_rate, None);
@@ -184,15 +184,15 @@ async fn every_position_field_decodes() {
     assert_eq!(position.side, Inbound::Known(PositionSide::Short));
     assert_eq!(position.avg_entry_price, dec("100.0"));
     assert_eq!(position.qty, dec("5"));
-    assert_eq!(position.market_value, dec("600.0"));
+    assert_eq!(position.market_value, some("600.0"));
     assert_eq!(position.cost_basis, dec("500.0"));
-    assert_eq!(position.unrealized_pl, dec("100.0"));
-    assert_eq!(position.unrealized_plpc, dec("0.20"));
-    assert_eq!(position.unrealized_intraday_pl, dec("10.0"));
-    assert_eq!(position.unrealized_intraday_plpc, dec("0.0085"));
-    assert_eq!(position.current_price, dec("120.0"));
-    assert_eq!(position.lastday_price, dec("119.0"));
-    assert_eq!(position.change_today, dec("0.0084"));
+    assert_eq!(position.unrealized_pl, some("100.0"));
+    assert_eq!(position.unrealized_plpc, some("0.20"));
+    assert_eq!(position.unrealized_intraday_pl, some("10.0"));
+    assert_eq!(position.unrealized_intraday_plpc, some("0.0085"));
+    assert_eq!(position.current_price, some("120.0"));
+    assert_eq!(position.lastday_price, some("119.0"));
+    assert_eq!(position.change_today, some("0.0084"));
     assert_eq!(position.asset_marginable, Some(true));
     assert_eq!(position.qty_available, some("4"));
     assert_eq!(position.avg_entry_swap_rate, some("1.0811"));
@@ -220,7 +220,7 @@ async fn unknown_values_are_kept_and_a_missing_field_fails() {
     assert_eq!(position.side, Inbound::Unknown("flat".to_owned()));
     assert_eq!(position.exchange, Inbound::Unknown("IEX".to_owned()));
     for field in [
-        r#""change_today":"0.0084","#,
+        r#""cost_basis":"500.0","#,
         r#""usd":{"avg_entry_price":"108.11","cost_basis":"540.55"},"#,
     ] {
         assert_eq!(FULL.matches(field).count(), 1, "{field}");
@@ -235,6 +235,46 @@ async fn unknown_values_are_kept_and_a_missing_field_fails() {
     let without_cost = FULL.replace(r#","cost_basis":"540.55""#, "");
     let error = read_position(&without_cost).await.unwrap_err();
     assert_eq!(error.kind(), ErrorKind::Decode);
+}
+
+// The pre-listing IPO position example of Alpaca's IPO guide: the
+// market-data fields are null until the security trades.
+const IPO: &str = r#"{
+  "asset_id":"0a1b2c3d-4e5f-6789-abcd-ef0123456789","symbol":"EXMP260615","exchange":"",
+  "asset_class":"ipo","qty":"100","qty_available":"100","side":"long",
+  "avg_entry_price":"20","cost_basis":"2000","market_value":null,"current_price":null,
+  "lastday_price":null,"change_today":null,"unrealized_pl":null,"unrealized_plpc":null,
+  "unrealized_intraday_pl":null,"unrealized_intraday_plpc":null
+}"#;
+
+#[tokio::test]
+async fn a_position_without_market_prices_decodes() {
+    let server = serve("200 OK", format!("[{IPO}]").as_bytes());
+    let positions = client(&server).positions().await.unwrap().into_parts().0;
+    assert_eq!(positions.len(), 1);
+    let position = &positions[0];
+    assert_eq!(position.asset_id, "0a1b2c3d-4e5f-6789-abcd-ef0123456789");
+    assert_eq!(position.symbol, "EXMP260615");
+    assert_eq!(position.exchange, Inbound::Known(Exchange::Empty));
+    assert_eq!(position.asset_class, Inbound::Known(AssetClass::Ipo));
+    assert_eq!(position.side, Inbound::Known(PositionSide::Long));
+    assert_eq!(position.qty, dec("100"));
+    assert_eq!(position.qty_available, some("100"));
+    assert_eq!(position.avg_entry_price, dec("20"));
+    assert_eq!(position.cost_basis, dec("2000"));
+    assert_eq!(position.market_value, None);
+    assert_eq!(position.unrealized_pl, None);
+    assert_eq!(position.unrealized_plpc, None);
+    assert_eq!(position.unrealized_intraday_pl, None);
+    assert_eq!(position.unrealized_intraday_plpc, None);
+    assert_eq!(position.current_price, None);
+    assert_eq!(position.lastday_price, None);
+    assert_eq!(position.change_today, None);
+    assert_eq!(position.asset_marginable, None);
+    assert_eq!(position.avg_entry_swap_rate, None);
+    assert_eq!(position.prev_swap_rate, None);
+    assert_eq!(position.swap_rate, None);
+    assert_eq!(position.usd, None);
 }
 
 #[tokio::test]

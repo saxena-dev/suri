@@ -55,7 +55,8 @@ All notable changes to suri are listed here. The format follows
   `Client::cancel_all_orders`, with one `CancelResult` per order; both are
   made once.
 - `Client::positions` and `Client::position`, with `Position` and
-  `PositionSide`.
+  `PositionSide`; a position's market-data fields are optional, so an
+  allocated IPO not yet trading is read too.
 - `Client::close_position`, with `ClosePosition`, and
   `Client::close_all_positions`, with one `ClosedPosition` per position;
   both are made once.

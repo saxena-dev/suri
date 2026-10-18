@@ -236,7 +236,7 @@ wire_enum! {
 /// Prices and sizes are exact [`Decimal`]s. Fields Alpaca adds later are
 /// ignored until suri models them.
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct OptionContract {
     /// The contract ID.
     pub id: String,
@@ -282,7 +282,7 @@ pub struct OptionContract {
 
 /// One thing an option contract delivers on exercise.
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Deliverable {
     /// The deliverable's symbol.
     pub symbol: String,
@@ -305,7 +305,7 @@ pub struct Deliverable {
 
 /// One page of option contracts.
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct OptionContracts {
     /// The contracts.
     pub option_contracts: Vec<OptionContract>,
@@ -317,7 +317,7 @@ pub struct OptionContracts {
 /// expiring before the next weekend. One page per call: to read the next
 /// page, set `page_token` to the previous page's `next_page_token`.
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct OptionContractsQuery {
     /// Only contracts on these underlying symbols.
     pub underlying_symbols: Option<Vec<String>>,

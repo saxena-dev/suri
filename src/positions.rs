@@ -25,7 +25,7 @@ wire_enum! {
 /// is by a factor of 1. Fields Alpaca adds later are ignored until suri
 /// models them.
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Position {
     /// The asset ID; for an option, the contract ID.
     pub asset_id: String,
@@ -75,7 +75,7 @@ pub struct Position {
 
 /// A position's values in US dollars.
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct UsdPositionValues {
     /// The average entry price.
     pub avg_entry_price: Decimal,
@@ -113,7 +113,7 @@ pub enum ClosePosition {
 
 /// What happened to one position when all were closed.
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ClosedPosition {
     /// The position's symbol.
     pub symbol: String,

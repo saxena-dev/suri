@@ -88,7 +88,7 @@ fn hhmm<'de, D: Deserializer<'de>>(deserializer: D) -> Result<ClockTime, D::Erro
 /// A market day: its regular hours and its extended session, as local
 /// market times.
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct CalendarDay {
     /// The date.
     pub date: Date,
@@ -120,7 +120,7 @@ wire_enum! {
 
 /// Which market days to list; every day Alpaca has unless narrowed.
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct CalendarQuery {
     /// The first date, inclusive.
     pub start: Option<Date>,

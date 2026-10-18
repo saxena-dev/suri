@@ -234,7 +234,7 @@ impl std::error::Error for ParseClientOrderIdError {}
 /// has no symbol or side, and its legs no type. Fields Alpaca adds later
 /// are ignored until suri models them.
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Order {
     /// The order ID.
     pub id: String,
@@ -415,7 +415,7 @@ impl Default for ReplaceOrderRequest {
 
 /// What happened to one order when all were cancelled.
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct CancelResult {
     /// The order ID.
     pub id: String,

@@ -1,7 +1,8 @@
 //! A Rust client for the Alpaca Trading and Market Data APIs.
 //!
 //! Pre-release: the Trading API's REST endpoints in the first release's
-//! scope (see the README) are the only ones yet.
+//! scope (see the README), and its `trade_updates` stream behind the
+//! `stream` feature, are the only ones yet.
 //!
 //! The [contract](https://github.com/saxena-dev/suri/blob/main/docs/contract.md)
 //! states every behaviour suri promises.
@@ -29,6 +30,8 @@ mod path;
 mod positions;
 #[cfg(feature = "rest")]
 mod response;
+#[cfg(feature = "stream")]
+mod stream;
 mod time;
 #[cfg(feature = "rest")]
 mod watchlists;
@@ -72,6 +75,8 @@ pub use path::{Id, ParsePathValueError, Symbol};
 pub use positions::{ClosePosition, ClosedPosition, Position, PositionSide, UsdPositionValues};
 #[cfg(feature = "rest")]
 pub use response::{RateLimit, Response, ResponseMeta};
+#[cfg(feature = "stream")]
+pub use stream::{StreamError, StreamErrorKind, StreamMessage, TradeUpdates};
 pub use time::{Date, ParseTimeError, Timestamp};
 #[cfg(feature = "rest")]
 pub use watchlists::{CreateWatchlist, Watchlist, WatchlistUpdate};

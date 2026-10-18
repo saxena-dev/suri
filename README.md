@@ -22,6 +22,9 @@ suri needs Rust 1.88 or later. With its default `rest` feature, building it
 also needs a C compiler, for the TLS library's cryptography, and on 32-bit
 x86 Windows the NASM assembler as well.
 
+The `stream` feature, off by default, adds the Trading API's
+`trade_updates` stream over WebSocket; it requires `rest`.
+
 ## What suri promises
 
 - A failed call is never reported as success.

@@ -84,6 +84,9 @@ struct Inner {
     secret: HeaderValue,
     /// Kept to scrub them from anything Alpaca echoes back.
     credentials: Credentials,
+    /// The HTTP client holds its own copy; the stream reads this one.
+    #[cfg(feature = "stream")]
+    connect_timeout: Duration,
     request_timeout: Duration,
     max_body_bytes: u64,
     read_deadline: Duration,
@@ -186,6 +189,8 @@ impl Client {
             key_id: sensitive_header(&config.credentials.key_id),
             secret: sensitive_header(&config.credentials.secret),
             credentials: config.credentials,
+            #[cfg(feature = "stream")]
+            connect_timeout: config.connect_timeout,
             request_timeout: config.request_timeout,
             max_body_bytes: config.max_body_bytes,
             read_deadline: config.read_deadline,
@@ -193,6 +198,31 @@ impl Client {
             retry_cap: config.retry_cap,
             max_read_attempts: config.max_read_attempts,
         })))
+    }
+
+    /// The base URL requests go to; the stream's URL is derived from it.
+    #[cfg(feature = "stream")]
+    pub(crate) fn base_url(&self) -> &url::Url {
+        &self.0.base_url
+    }
+
+    /// The bound on connecting, TLS included.
+    #[cfg(feature = "stream")]
+    pub(crate) fn connect_timeout(&self) -> Duration {
+        self.0.connect_timeout
+    }
+
+    /// The bound on one request; on a stream, on the opening, a liveness wait
+    /// and the close.
+    #[cfg(feature = "stream")]
+    pub(crate) fn request_timeout(&self) -> Duration {
+        self.0.request_timeout
+    }
+
+    /// The largest response body, or stream message, read.
+    #[cfg(feature = "stream")]
+    pub(crate) fn max_body_bytes(&self) -> u64 {
+        self.0.max_body_bytes
     }
 
     /// The key ID and secret, for scrubbing text Alpaca sends back.

@@ -55,7 +55,8 @@ if [ "$msrv" = 1 ] && [ "$mode" != full ]; then
 fi
 
 # Feature rows: no features, each feature alone, every feature. Add a row for
-# each feature when one lands.
+# each feature when one lands; a feature that requires every other one (as
+# `stream` requires `rest`) shares the `all` row.
 ROWS=(none rest all)
 
 row_args() {

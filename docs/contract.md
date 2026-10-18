@@ -14,9 +14,10 @@ and a behaviour that is not written here is not promised.
    such a request reached Alpaca, the error says so, and gives you what you
    need to find out.
 3. **A stream message is never dropped without an error.** Every message
-   suri receives reaches you or is reported as an error, and a stream that
-   ends without your asking ends with an error saying later messages may be
-   lost.
+   suri receives reaches you or is reported as an error, messages that
+   arrive while you close a stream are returned by `close`, and a stream
+   that ends without your asking ends with an error saying later messages
+   may be lost.
 4. **Your credentials never appear in suri's logs, spans or errors.** Where a
    library suri depends on can log them at its most detailed levels, this
    document will name that library and the filter that removes them.
@@ -111,9 +112,9 @@ bad value fails when the client is built, never at request time.
 
   | Value | Default | Allowed |
   |---|---|---|
-  | `connect_timeout`: connecting, TLS included | 10 s | 1 ms to 60 s, and no longer than `request_timeout` |
-  | `request_timeout`: one request, from connecting until the whole body has arrived | 30 s | 1 ms to 10 min |
-  | `max_body_bytes`: the largest response body read | 32 MiB | 1 KiB to 1 GiB |
+  | `connect_timeout`: connecting, TLS included; for a stream, the WebSocket upgrade as well | 10 s | 1 ms to 60 s, and no longer than `request_timeout` |
+  | `request_timeout`: one request, from connecting until the whole body has arrived; for a stream, its opening, the silence before a liveness Ping and the wait after it, and its close | 30 s | 1 ms to 10 min |
+  | `max_body_bytes`: the largest response body, or stream message, read | 32 MiB | 1 KiB to 1 GiB |
   | `read_deadline`: a read's attempts and waits together, from the start of the first | 60 s | No shorter than `request_timeout`, at most 1 h |
   | `retry_base`: the backoff after a read's first attempt, doubled after each later one | 250 ms | 1 ms to 10 s |
   | `retry_cap`: the longest backoff | 8 s | 1 ms to 60 s, and no smaller than `retry_base` |
@@ -264,6 +265,32 @@ is recorded.
   credentials: suri's tests capture every record from suri and its HTTP
   libraries at TRACE, with requests that succeed, fail, retry and have
   Alpaca echo the credentials back, and find none. No filter is needed.
+- **Streams** (the `stream` feature): one span per stream, `suri.stream`,
+  level INFO, target `suri`, with the field `stream` (`trade_updates`),
+  covering the opening and every `next` and `close` call. Its events, level
+  DEBUG: `connected`, `authenticated`, `listening`, `ping` (suri sent a
+  liveness Ping), and `ended`, once, when the stream ends for any reason
+  other than being dropped, with the field `kind` (the error kind in snake
+  case, such as `closed` or `transport`, or `closed_by_caller`). Never
+  recorded: the URL, a frame or message, a close reason, Alpaca's message,
+  a header value or a credential.
+- **The WebSocket library, `tungstenite`, does log credentials.** The
+  Trading stream authenticates with a message carrying the key ID and
+  secret, and `tungstenite` logs through `log`:
+
+  | Target | Level | Record | What it holds |
+  |---|---|---|---|
+  | `tungstenite::handshake::client` | TRACE | the upgrade request | every request header (no credential) |
+  | `tungstenite::protocol` | TRACE | `Sending frame` | every frame suri writes, as text: the authentication message with the key ID and secret, and the reply to a Close, which repeats its reason |
+  | `tungstenite::protocol::frame` | TRACE | `writing frame`, `received frame` | every frame written or read, its payload in hex: the same content |
+  | `tungstenite::protocol` | TRACE | `Received message` | every message read, as text |
+  | `tungstenite::protocol` | DEBUG | `Received close frame`, `Replying to close` | a Close frame's reason, which a server may fill with what it was sent |
+
+  Filter `tungstenite` at INFO or above (for example `tungstenite=info`) to
+  drop every one of them. `tokio_tungstenite` logs at TRACE and DEBUG
+  without frame contents. suri's tests capture every record at TRACE during
+  a stream whose server echoes the credentials in its close reason, and
+  find them only in these records, and in none once the filter applies.
 
 ## Response fields
 
@@ -440,6 +467,60 @@ since the ID forms cover every operation.
 - **Made once.** Each of these five changes is never retried (see
   "Retries").
 
+## Streams
+
+The `stream` feature (off by default; it requires `rest`) adds the Trading
+API's `trade_updates` stream.
+
+- **Opening.** `Client::trade_updates` connects to the client's host with
+  the scheme `wss` (or `ws` for a loopback `http` base URL) and the path
+  `/stream`: `wss://paper-api.alpaca.markets/stream` on paper,
+  `wss://api.alpaca.markets/stream` live. It sends the documented
+  authentication message, `{"action":"auth","key":…,"secret":…}`, then
+  `{"action":"listen","data":{"streams":["trade_updates"]}}`, and returns
+  once Alpaca confirms both. The upgrade is bounded by `connect_timeout`,
+  the whole opening by `request_timeout`; either bound passing is
+  `Timeout`. A TLS configuration that cannot be built is `Tls`, an HTTP
+  status other than 101 `Handshake`, rejected credentials `Unauthorized`
+  (never retried), a confirmation without `trade_updates` `NotListening`.
+  suri offers no WebSocket extension and refuses an upgrade that claims
+  one with `Handshake`.
+- **Messages.** `TradeUpdates::next` returns the next message as a
+  `StreamMessage`: its `stream` and its `data`, the raw JSON text as sent.
+  Text and binary frames (paper sends binary) are read alike; Ping and Pong
+  frames are answered and never delivered. A message larger than
+  `max_body_bytes` ends the stream with `TooLarge`.
+- **Polling.** The `TradeUpdates` value owns its connection and reads it
+  only while `next` or `close` runs: there is no background task and no
+  queue, so suri drops nothing. While `next` waits, after
+  `request_timeout` without any frame suri sends a Ping, and if nothing
+  arrives within another `request_timeout` the stream ends with `Timeout`.
+  A caller that stops calling `next` stops answering Alpaca's Pings; what
+  Alpaca then does is reported by the next call. `next` is cancel-safe:
+  dropping its future loses no message.
+- **Ends.** Every end other than `close` is one error saying later messages
+  may be lost, and every later call returns `Ended`. Alpaca's Close frame is
+  `Closed` with its code and reason (a code a client may not receive
+  arrives as 1002); Alpaca's `error` message is `Server` with its text; a
+  frame that is not a stream message is `Decode`; a failed connection is
+  `Transport`. suri answers Alpaca's Close before dropping the connection.
+  There is no reconnection: call `Client::trade_updates` again, and expect
+  that messages sent meanwhile may be lost (the stream has no resume key).
+- **Closing.** `TradeUpdates::close` sends a Close frame and waits up to
+  `request_timeout` for Alpaca's; it returns the messages that arrived
+  meanwhile together with the result, whatever the result. If Alpaca's
+  Close does not arrive in time the result is `Timeout`, whose message says
+  only that the server did not answer the close: the caller asked for the
+  end, so no later message is owed. If a cancelled `next` had already
+  read Alpaca's Close, `close` returns that `Closed` error. It is not
+  cancel-safe: dropping its future drops the connection and those
+  messages. Dropping `TradeUpdates` without `close` drops the connection
+  without a Close frame.
+- **Scrubbing.** A close reason and Alpaca's error message are scrubbed of
+  the key ID and secret and bounded as an error's message is (see
+  "Errors"); a close reason holds at most 123 bytes, so a cut credential of
+  8 or more characters at its end is replaced too.
+
 ## Market clock
 
 `Client::clock` reads `GET /v2/clock`: the server's time, whether the market
@@ -483,3 +564,8 @@ error. A `CalendarQuery`'s `start` and `end` are sent as dates
 | Client order IDs | Generated by `OrderRequest::new` as a random version 4 UUID; replaceable, never absent | Without one, an order whose response is lost cannot be looked up; Alpaca generates one only on its side, where the caller cannot see it |
 | Order placement is never retried | One attempt, every error carrying the client order ID | Alpaca advises against resending a timed-out order; a lookup, the dashboard or Alpaca's support can tell whether it was placed |
 | Order shapes | One variant per order class, each with the fields that class requires | A missing take-profit or leg list, or a quantity and a notional together, is a mistake caught when the code is compiled rather than by a rejected order |
+| Stream ownership | The stream value owns its connection and reads it only while the caller polls; no background task, no queue | Nothing can be dropped inside suri, and there is no overload to report; the caller decides when to read |
+| Stream liveness | A Ping after `request_timeout` without any frame while polled, and `Timeout` after another `request_timeout` | A connection that died without a Close would otherwise leave `next` waiting forever; Alpaca documents no keep-alive for this stream |
+| Stream reconnection | None; the caller opens a new stream | Reconnecting hides a gap the caller cannot see, and the stream has no resume key |
+| Stream authentication | The documented `auth` message, not alpaca-py's `authenticate` form | The docs are the specification |
+| Stream feature | Off by default and requires `rest` | Most callers use REST; the stream reuses the client and its types |

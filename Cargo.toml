@@ -20,6 +20,9 @@ exclude = ["/.github", "/vendor", "/tools", "/tests"]
 default = ["rest"]
 # The HTTP client and every type that only it reads.
 rest = ["dep:reqwest", "dep:url", "dep:secrecy", "dep:serde_json", "serde/derive", "dep:tokio", "dep:tracing"]
+# The Trading stream over WebSocket. It reuses the client and its types, so
+# it requires `rest`.
+stream = ["rest", "dep:tokio-tungstenite", "dep:futures-util", "dep:rustls", "dep:rustls-platform-verifier"]
 
 [dependencies]
 # Decoding and encoding of suri's value types, which implement their serde
@@ -40,6 +43,15 @@ serde_json = { version = "1.0.154", optional = true, features = ["float_roundtri
 tokio = { version = "1.53.3", features = ["time"], optional = true }
 # One span per call and its events; suri installs no subscriber.
 tracing = { version = "0.1.44", default-features = false, features = ["std"], optional = true }
+# The WebSocket client; suri passes its own rustls configuration, so the
+# feature that enables the rustls connector is the only TLS feature used.
+tokio-tungstenite = { version = "0.29.0", default-features = false, features = ["connect", "rustls-tls-native-roots"], optional = true }
+# Reads and writes the WebSocket through its Stream and Sink traits.
+futures-util = { version = "0.3.34", default-features = false, features = ["sink", "std"], optional = true }
+# The WebSocket's TLS configuration, built with an explicit provider and the
+# platform's certificate verifier, as the HTTP client's is.
+rustls = { version = "0.23.45", default-features = false, features = ["std", "tls12", "aws_lc_rs"], optional = true }
+rustls-platform-verifier = { version = "0.7.1", optional = true }
 
 [dev-dependencies]
 # Re-hashes the fixture tree in tests/fixture_manifest.rs.
@@ -52,3 +64,6 @@ tokio = { version = "1.53.3", features = ["macros", "rt"] }
 # tests.
 log = "0.4.34"
 tracing-subscriber = { version = "0.3.23", default-features = false, features = ["registry"] }
+# Turns on rustls' second crypto provider in every test build, so the tests
+# show the stream's TLS setup never relies on rustls' default provider.
+rustls = { version = "0.23.45", default-features = false, features = ["ring"] }

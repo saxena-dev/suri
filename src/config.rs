@@ -97,21 +97,24 @@ impl Config {
         }
     }
 
-    /// The longest wait for a connection, TLS included (1 ms to 60 s, and no
-    /// longer than the request timeout).
+    /// The longest wait for a connection, TLS included, and for a stream's
+    /// WebSocket upgrade (1 ms to 60 s, and no longer than the request
+    /// timeout).
     pub fn with_connect_timeout(mut self, timeout: Duration) -> Self {
         self.connect_timeout = timeout;
         self
     }
 
     /// The longest one request may take, from connecting until the whole
-    /// response body has arrived (1 ms to 10 min).
+    /// response body has arrived; for a stream, its opening, the silence
+    /// before a liveness Ping and the wait after it, and its close (1 ms to
+    /// 10 min).
     pub fn with_request_timeout(mut self, timeout: Duration) -> Self {
         self.request_timeout = timeout;
         self
     }
 
-    /// The largest response body read (1 KiB to 1 GiB).
+    /// The largest response body, or stream message, read (1 KiB to 1 GiB).
     pub fn with_max_body_bytes(mut self, bytes: u64) -> Self {
         self.max_body_bytes = bytes;
         self

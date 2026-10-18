@@ -225,7 +225,8 @@ impl Client {
         })))
     }
 
-    /// The base URL requests go to; the stream's URL is derived from it.
+    /// The Trading API's base URL; the `trade_updates` stream's URL is
+    /// derived from it.
     #[cfg(feature = "stream")]
     pub(crate) fn base_url(&self) -> &url::Url {
         &self.0.base_url

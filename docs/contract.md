@@ -272,9 +272,10 @@ is recorded.
   Alpaca echo the credentials back, and find none. No filter is needed.
 - **Streams** (the `stream` feature): one span per stream, `suri.stream`,
   level INFO, target `suri`, with the field `stream` (`trade_updates`,
-  `stocks`, `crypto` or `news`) and, on the stock and crypto streams,
-  `feed` (the stock feed's name, such as `iex` or `delayed_sip`, or the
-  crypto location, such as `us-1`), covering the opening and every
+  `stocks`, `crypto`, `options` or `news`) and, on the stock, crypto and
+  options streams, `feed` (the stock feed's name, such as `iex` or
+  `delayed_sip`, the crypto location, such as `us-1`, or the options
+  feed, `opra` or `indicative`), covering the opening and every
   `subscribe`, `unsubscribe`, `next` and `close` call. Its events, level
   DEBUG: `connected`, `authenticated`, `listening` (`trade_updates`
   only), `ping` (suri sent a liveness Ping), and `ended`, once, when the stream ends for any reason
@@ -588,14 +589,16 @@ nothing.
   not offer is Alpaca's to refuse.
 - **One frame per call.** `next` returns the messages of one frame, in the
   order sent, never an empty list (an empty frame is skipped); suri holds
-  nothing between calls. Text and binary frames are both read as one
-  JSON array; a frame that is anything else ends the stream with
-  `Decode`. `close` returns the messages of every frame read while
+  nothing between calls. On the JSON streams, text and binary frames are
+  both read as one JSON array, and on the options stream a binary frame
+  as one MessagePack array (see below); a frame that is anything else,
+  bytes after the array included, ends the stream with `Decode`. `close` returns the messages of every frame read while
   closing.
 - **Every message reaches the caller.** A message of a type (`T`) suri
   knows that reads as its model is typed, a data message with its symbol
   (`S`). A known type that does not read, a data message without its
-  symbol included, is `Undecoded`, holding its JSON text as sent. An
+  symbol included, is `Undecoded`, holding the element as sent (its JSON
+  text, or on the options stream its MessagePack bytes). An
   unknown type, a `success` after the opening, an element that is not an
   object, or one whose `T` or `S` is not text, is `Other`, as sent.
   Neither ends the stream.
@@ -650,8 +653,8 @@ Market Data types are in `suri::data` and its per-asset modules
   volumes, counts and IDs the docs type as integers are integers of the
   width their documented format gives (`u32`, `u64`, `i64`); a fraction or
   a value out of range there fails the decode.
-- **Times.** Every time is a `Timestamp` read from RFC 3339 text with up to
-  nine fractional digits; an auction day is a `Date`. Query bounds
+- **Times.** Over REST, every time is a `Timestamp` read from RFC 3339
+  text with up to nine fractional digits; an auction day is a `Date`. Query bounds
   (`start`, `end`, `updated_since`) are `Timestamp`s, sent as `…Z`; an
   option chain's expiration filters are `Date`s, sent as `YYYY-MM-DD`.
 - **Pages.** A historical endpoint returns a `Series`: each symbol's points

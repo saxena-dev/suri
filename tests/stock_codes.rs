@@ -1,5 +1,6 @@
-//! Stock condition and exchange codes: the documented tables, the path and
-//! query on the wire, and a table that is not text.
+//! Stock codes: the condition and exchange tables (documented examples,
+//! path and query on the wire, a table that is not text), and every feed
+//! and adjustment's wire text.
 
 #![cfg(feature = "rest")]
 
@@ -12,8 +13,8 @@ use std::collections::BTreeMap;
 
 use requests::{client, only_request, owned, pairs, path, serve};
 use suri::ErrorKind;
-use suri::data::TickType;
-use suri::data::stocks::{ConditionsQuery, Tape};
+use suri::data::stocks::{Adjustment, BarsQuery, ConditionsQuery, Feed, Tape};
+use suri::data::{TickType, Timeframe};
 
 fn table(pairs: &[(&str, &str)]) -> BTreeMap<String, String> {
     pairs
@@ -93,4 +94,67 @@ async fn a_table_that_is_not_text_fails_the_call() {
         let error = client(&server).stock_exchanges().await.unwrap_err();
         assert_eq!(error.kind(), ErrorKind::Decode);
     }
+}
+
+const FEEDS: [(Feed, &str); 6] = [
+    (Feed::Sip, "sip"),
+    (Feed::Iex, "iex"),
+    (Feed::DelayedSip, "delayed_sip"),
+    (Feed::Boats, "boats"),
+    (Feed::Overnight, "overnight"),
+    (Feed::Otc, "otc"),
+];
+
+const ADJUSTMENTS: [(Adjustment, &str); 5] = [
+    (Adjustment::Raw, "raw"),
+    (Adjustment::Split, "split"),
+    (Adjustment::Dividend, "dividend"),
+    (Adjustment::SpinOff, "spin-off"),
+    (Adjustment::All, "all"),
+];
+
+#[test]
+fn each_feed_and_adjustment_has_its_documented_text() {
+    for (feed, text) in FEEDS {
+        assert_eq!(feed.as_str(), text);
+        assert_eq!(feed.to_string(), text);
+        assert_eq!(text.parse::<Feed>(), Ok(feed));
+    }
+    for (adjustment, text) in ADJUSTMENTS {
+        assert_eq!(adjustment.as_str(), text);
+        assert_eq!(adjustment.to_string(), text);
+        assert_eq!(text.parse::<Adjustment>(), Ok(adjustment));
+    }
+}
+
+#[tokio::test]
+async fn each_feed_and_adjustment_goes_out_as_its_text() {
+    for (feed, text) in FEEDS {
+        let mut query = BarsQuery::new(vec!["AAPL".to_owned()], Timeframe::Day);
+        query.feed = Some(feed);
+        let server = serve("200 OK", br#"{"bars":{}}"#);
+        client(&server).stock_bars(&query).await.unwrap();
+        assert_eq!(
+            pairs(&only_request(&server)),
+            owned(&[("symbols", "AAPL"), ("timeframe", "1Day"), ("feed", text)])
+        );
+    }
+    // Every adjustment, comma-joined in the order given.
+    let mut query = BarsQuery::new(vec!["AAPL".to_owned()], Timeframe::Day);
+    query.adjustment = Some(
+        ADJUSTMENTS
+            .iter()
+            .map(|(adjustment, _)| *adjustment)
+            .collect(),
+    );
+    let server = serve("200 OK", br#"{"bars":{}}"#);
+    client(&server).stock_bars(&query).await.unwrap();
+    assert_eq!(
+        pairs(&only_request(&server)),
+        owned(&[
+            ("symbols", "AAPL"),
+            ("timeframe", "1Day"),
+            ("adjustment", "raw,split,dividend,spin-off,all"),
+        ])
+    );
 }

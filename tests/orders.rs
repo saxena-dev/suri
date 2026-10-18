@@ -155,6 +155,7 @@ async fn a_multi_leg_order_decodes_with_its_legs() {
     assert_eq!(order.time_in_force, Inbound::Known(TimeInForce::Day));
     assert_eq!(order.ratio_qty, None);
     assert_eq!(order.position_intent, None);
+    assert_eq!(order.cancel_requested_at, None);
     let legs = order.legs.unwrap();
     assert_eq!(legs.len(), 2);
     for (leg, (id, symbol, qty, side, intent, price)) in legs.iter().zip([
@@ -188,6 +189,7 @@ async fn a_multi_leg_order_decodes_with_its_legs() {
         assert_eq!(leg.filled_qty, Some(dec(qty)));
         assert_eq!(leg.filled_avg_price, Some(dec(price)));
         assert_eq!(leg.expires_at, Some(at("2024-12-10T21:00:00Z")));
+        assert_eq!(leg.cancel_requested_at, None);
         assert_eq!(leg.status, Inbound::Known(OrderStatus::Filled));
         assert_eq!(leg.legs, None);
     }

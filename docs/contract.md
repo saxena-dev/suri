@@ -486,8 +486,9 @@ API's `trade_updates` stream.
   suri offers no WebSocket extension and refuses an upgrade that claims
   one with `Handshake`.
 - **Messages.** `TradeUpdates::next` returns the next message as a
-  `StreamMessage`: its `stream` and its `data`, the raw JSON text as sent.
-  Text and binary frames (paper sends binary) are read alike; Ping and Pong
+  `TradeStreamMessage` (see "Trade updates" below); a message suri does not
+  type keeps its `stream` and its `data`, the raw JSON text as sent, in a
+  `StreamMessage`. Text and binary frames (paper sends binary) are read alike; Ping and Pong
   frames are answered and never delivered. A message larger than
   `max_body_bytes` ends the stream with `TooLarge`.
 - **Polling.** The `TradeUpdates` value owns its connection and reads it
@@ -520,6 +521,21 @@ API's `trade_updates` stream.
   the key ID and secret and bounded as an error's message is (see
   "Errors"); a close reason holds at most 123 bytes, so a cut credential of
   8 or more characters at its end is replaced too.
+- **Trade updates.** A `trade_updates` message whose `data` reads as a
+  `TradeUpdate` is `TradeStreamMessage::Update`: its `event`, a
+  `TradeEvent` (the 17 documented values; another text is kept in
+  `Inbound::Unknown`), the `order` as the REST API's `Order`, and the
+  fields only some events carry, each optional: `timestamp`,
+  `execution_id`, `price`, `qty` and `position_qty` (exact decimals), and
+  on multi-leg fills `at`, `event_id`, `position_qtys` and the legs'
+  fills, `LegFill`. The stream's orders carry `cancel_requested_at`, which
+  REST responses leave out (`None`). A `trade_updates` message that does
+  not read as a `TradeUpdate` (no `event` or `order`, a decimal sent as a
+  JSON number with a fraction or as text with an exponent, a malformed
+  time) is
+  `TradeStreamMessage::Undecoded` with the message as sent, and the stream
+  goes on. A message of any other stream is `TradeStreamMessage::Other`, as
+  sent. `close` returns its messages typed the same way.
 
 ## Market clock
 
@@ -569,3 +585,4 @@ error. A `CalendarQuery`'s `start` and `end` are sent as dates
 | Stream reconnection | None; the caller opens a new stream | Reconnecting hides a gap the caller cannot see, and the stream has no resume key |
 | Stream authentication | The documented `auth` message, not alpaca-py's `authenticate` form | The docs are the specification |
 | Stream feature | Off by default and requires `rest` | Most callers use REST; the stream reuses the client and its types |
+| Unreadable trade updates | Delivered as sent (`Undecoded`); the stream goes on | A stream message cannot be fetched again; the raw message keeps its order ID for the caller to reconcile, and ending the stream would lose every later update too |

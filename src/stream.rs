@@ -18,8 +18,9 @@ use tokio_tungstenite::tungstenite::{self, Message};
 use tokio_tungstenite::{Connector, MaybeTlsStream, WebSocketStream};
 use tracing::{Instrument, Span};
 
-use crate::Client;
 use crate::error::sanitise;
+use crate::trade_updates::typed;
+use crate::{Client, TradeStreamMessage};
 
 type Socket = WebSocketStream<MaybeTlsStream<TcpStream>>;
 
@@ -418,15 +419,17 @@ impl Client {
 }
 
 impl TradeUpdates {
-    /// The next message. Ping and Pong frames are handled and never
-    /// delivered. After `request_timeout` without any frame, a Ping is sent;
+    /// The next message: a trade update, a `trade_updates` message suri
+    /// could not read (kept as sent), or a message of another stream. Ping
+    /// and Pong frames are handled and never delivered. After `request_timeout` without any frame, a Ping is sent;
     /// if nothing arrives within another `request_timeout`, the stream ends
     /// with `Timeout`. Every end other than [`close`](TradeUpdates::close)
     /// is an error saying later messages may be lost, and every later call
     /// returns `Ended`. Cancel-safe: dropping the future loses no message.
-    pub async fn next(&mut self) -> Result<StreamMessage, StreamError> {
+    pub async fn next(&mut self) -> Result<TradeStreamMessage, StreamError> {
         let span = self.span.clone();
-        self.next_message().instrument(span).await
+        let message = self.next_message().instrument(span).await?;
+        Ok(typed(message))
     }
 
     async fn next_message(&mut self) -> Result<StreamMessage, StreamError> {
@@ -496,7 +499,7 @@ impl TradeUpdates {
     /// arrives or `request_timeout` passes. Returns every message read
     /// meanwhile, whatever the outcome. Not cancel-safe: dropping the future
     /// drops the connection and the messages read so far.
-    pub async fn close(mut self) -> (Vec<StreamMessage>, Result<(), StreamError>) {
+    pub async fn close(mut self) -> (Vec<TradeStreamMessage>, Result<(), StreamError>) {
         let span = self.span.clone();
         async move {
             let Some(mut socket) = self.socket.take() else {
@@ -524,7 +527,7 @@ impl TradeUpdates {
                         Some(Ok(Message::Close(_))) => return Ok(()),
                         Some(Ok(Message::Ping(_) | Message::Pong(_) | Message::Frame(_))) => {}
                         Some(Ok(message)) => {
-                            messages.push(self.client.message(message, Phase::Close)?)
+                            messages.push(typed(self.client.message(message, Phase::Close)?))
                         }
                         Some(Err(error)) => return Err(failure(error, Phase::Close)),
                         None => {

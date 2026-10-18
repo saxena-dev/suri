@@ -33,6 +33,8 @@ mod response;
 #[cfg(feature = "stream")]
 mod stream;
 mod time;
+#[cfg(feature = "stream")]
+mod trade_updates;
 #[cfg(feature = "rest")]
 mod watchlists;
 #[cfg(feature = "rest")]
@@ -78,6 +80,8 @@ pub use response::{RateLimit, Response, ResponseMeta};
 #[cfg(feature = "stream")]
 pub use stream::{StreamError, StreamErrorKind, StreamMessage, TradeUpdates};
 pub use time::{Date, ParseTimeError, Timestamp};
+#[cfg(feature = "stream")]
+pub use trade_updates::{LegFill, TradeEvent, TradeStreamMessage, TradeUpdate};
 #[cfg(feature = "rest")]
 pub use watchlists::{CreateWatchlist, Watchlist, WatchlistUpdate};
 #[cfg(feature = "rest")]

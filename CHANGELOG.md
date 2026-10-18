@@ -69,9 +69,12 @@ All notable changes to suri are listed here. The format follows
   `CreateWatchlist` and `WatchlistUpdate`.
 - The `stream` feature (off by default, requires `rest`) and
   `Client::trade_updates`: the Trading stream over WebSocket, read only
-  while the caller polls, with every message delivered raw as a
-  `StreamMessage`, a liveness Ping, every end a `StreamError` that says
-  later messages may be lost, and `TradeUpdates::close`, which returns the
-  messages that arrive while closing.
+  while the caller polls, a liveness Ping, every end a `StreamError` that
+  says later messages may be lost, and `TradeUpdates::close`, which returns
+  the messages that arrive while closing.
+- Typed trade updates: `TradeStreamMessage` with `TradeUpdate`,
+  `TradeEvent` and `LegFill`; a `trade_updates` message suri cannot read,
+  and any other stream's message, delivered as sent in a `StreamMessage`.
+- `Order::cancel_requested_at`, sent on the trade updates stream.
 - With `stream`, the dependencies `tokio-tungstenite`, `futures-util`,
   `rustls` and `rustls-platform-verifier`.

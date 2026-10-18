@@ -259,6 +259,9 @@ pub struct Order {
     pub expired_at: Option<Timestamp>,
     /// When the order expires.
     pub expires_at: Option<Timestamp>,
+    /// When cancellation was requested; sent on the `trade_updates` stream,
+    /// absent from REST responses.
+    pub cancel_requested_at: Option<Timestamp>,
     /// When the order was canceled.
     pub canceled_at: Option<Timestamp>,
     /// When the order failed.

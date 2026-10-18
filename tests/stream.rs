@@ -8,7 +8,10 @@ mod ws_server;
 
 use std::time::Duration;
 
-use suri::{Client, Config, Credentials, Environment, Region, StreamErrorKind, TradeUpdates};
+use suri::{
+    Client, Config, Credentials, Environment, Region, StreamErrorKind, StreamMessage,
+    TradeStreamMessage, TradeUpdates,
+};
 use tokio_tungstenite::tungstenite::Message;
 use ws_server::{Act, Received, Step, WsServer, opened, opening};
 
@@ -48,6 +51,14 @@ async fn open(server: &WsServer) -> TradeUpdates {
 }
 
 fn assert_send<T: Send>(_: &T) {}
+
+/// The message as sent, from a stream message suri did not type.
+fn raw(message: TradeStreamMessage) -> StreamMessage {
+    match message {
+        TradeStreamMessage::Undecoded(message) | TradeStreamMessage::Other(message) => message,
+        other => panic!("a typed message: {other:?}"),
+    }
+}
 
 #[test]
 fn the_stream_and_its_futures_are_send() {
@@ -93,13 +104,18 @@ async fn text_and_binary_frames_are_delivered_raw() {
     let mut stream = open(&server).await;
     for _ in 0..2 {
         let message = stream.next().await.unwrap();
+        // The minimal order is not a full order, so the update is kept raw.
+        assert!(matches!(message, TradeStreamMessage::Undecoded(_)));
+        let message = raw(message);
         assert_eq!(message.stream, "trade_updates");
         assert_eq!(message.data, UPDATE_DATA);
     }
     let message = stream.next().await.unwrap();
+    assert!(matches!(message, TradeStreamMessage::Other(_)));
+    let message = raw(message);
     assert_eq!(message.stream, "other");
     assert_eq!(message.data, "[1]");
-    let message = stream.next().await.unwrap();
+    let message = raw(stream.next().await.unwrap());
     assert_eq!(message.stream, "other");
     assert_eq!(message.data, "null");
 }
@@ -301,7 +317,7 @@ async fn messages_up_to_the_limit_are_delivered() {
     ])]);
     let client = Client::new(config(&server).with_max_body_bytes(1024)).unwrap();
     let mut stream = client.trade_updates().await.unwrap();
-    assert_eq!(stream.next().await.unwrap().stream, "trade_updates");
+    assert_eq!(raw(stream.next().await.unwrap()).stream, "trade_updates");
     assert_eq!(
         stream.next().await.unwrap_err().kind(),
         StreamErrorKind::TooLarge
@@ -336,7 +352,7 @@ async fn a_server_ping_is_answered_and_never_delivered() {
         Act::ReadAll,
     ])]);
     let mut stream = open(&server).await;
-    assert_eq!(stream.next().await.unwrap().data, UPDATE_DATA);
+    assert_eq!(raw(stream.next().await.unwrap()).data, UPDATE_DATA);
     let seen = server.wait_for_frames(0, 3).await;
     assert_eq!(seen.frames[2], Received::Pong(b"p1".to_vec()));
 }
@@ -350,7 +366,7 @@ async fn a_quiet_healthy_stream_stays_open() {
         Act::Send(Message::text(UPDATE)),
     ])]);
     let mut stream = quick(&server, interval).trade_updates().await.unwrap();
-    assert_eq!(stream.next().await.unwrap().data, UPDATE_DATA);
+    assert_eq!(raw(stream.next().await.unwrap()).data, UPDATE_DATA);
     let pings = server.seen()[0]
         .frames
         .iter()
@@ -384,7 +400,7 @@ async fn a_caller_returning_after_a_long_gap_gets_the_message() {
     ])]);
     let mut stream = quick(&server, interval).trade_updates().await.unwrap();
     tokio::time::sleep(interval * 4).await;
-    assert_eq!(stream.next().await.unwrap().data, UPDATE_DATA);
+    assert_eq!(raw(stream.next().await.unwrap()).data, UPDATE_DATA);
 }
 
 // real-time: as above.
@@ -416,7 +432,7 @@ async fn a_cancelled_next_loses_no_message() {
             .await
             .is_err()
     );
-    assert_eq!(stream.next().await.unwrap().data, UPDATE_DATA);
+    assert_eq!(raw(stream.next().await.unwrap()).data, UPDATE_DATA);
 }
 
 #[tokio::test]
@@ -452,7 +468,7 @@ async fn close_after_a_cancelled_next_reports_alpacas_close() {
         .collect();
     acts.push(Act::Close(1008, "policy".to_owned()));
     acts.push(Act::Pause(Duration::from_secs(6)));
-    acts.push(Act::Drop);
+    acts.push(Act::ReadAll);
     let server = WsServer::start(vec![opened(acts)]);
     let mut stream = open(&server).await;
     let started = std::time::Instant::now();
@@ -466,6 +482,16 @@ async fn close_after_a_cancelled_next_reports_alpacas_close() {
     assert_eq!(error.kind(), StreamErrorKind::Closed);
     assert_eq!(error.close_code(), Some(1008));
     assert_eq!(error.message(), Some("policy"));
+    // The reply to Alpaca's Close went out, after the queued Pongs, before
+    // the connection was dropped.
+    let reply = Received::Close(Some((1008, "policy".to_owned())));
+    for _ in 0..500 {
+        if server.seen()[0].frames.last() == Some(&reply) {
+            return;
+        }
+        tokio::time::sleep(Duration::from_millis(10)).await;
+    }
+    panic!("the server never read the reply Close");
 }
 
 #[tokio::test]
@@ -478,7 +504,7 @@ async fn close_returns_what_arrived_while_closing() {
     let (messages, result) = stream.close().await;
     result.unwrap();
     assert_eq!(messages.len(), 1);
-    assert_eq!(messages[0].data, UPDATE_DATA);
+    assert_eq!(raw(messages[0].clone()).data, UPDATE_DATA);
     let seen = server.wait_for_frames(0, 3).await;
     assert_eq!(seen.frames[2], Received::Close(Some((1000, String::new()))));
 }

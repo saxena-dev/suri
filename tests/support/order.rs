@@ -38,6 +38,7 @@ pub fn assert_fixture_order(order: &Order, expected: &Expected) {
     assert_eq!(order.filled_at, None);
     assert_eq!(order.expired_at, None);
     assert_eq!(order.expires_at, None);
+    assert_eq!(order.cancel_requested_at, None);
     assert_eq!(order.canceled_at, None);
     assert_eq!(order.failed_at, None);
     assert_eq!(order.replaced_at, None);

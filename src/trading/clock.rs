@@ -3,7 +3,7 @@
 use reqwest::Method;
 use serde::Deserialize;
 
-use crate::client::Endpoint;
+use crate::rest::client::Endpoint;
 use crate::{Client, Error, Response, Timestamp};
 
 /// Whether the US equity market is open, and its next open and close.

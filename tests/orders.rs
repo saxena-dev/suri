@@ -15,11 +15,13 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use order::{AAPL_MARKET_BUY, Expected, assert_fixture_order};
 use server::{Request, Server, Step, refused_url, response};
+use suri::trading::{
+    AssetClass, ClientOrderId, Exit, Leg, Legs, MultiLegKind, Order, OrderClass, OrderKind,
+    OrderRequest, OrderShape, OrderSide, OrderStatus, OrderType, PositionIntent, Size, StopLoss,
+    TakeProfit, TimeInForce, Trail,
+};
 use suri::{
-    AssetClass, Client, ClientOrderId, Config, Credentials, Decimal, Environment, ErrorKind, Exit,
-    Inbound, Leg, Legs, MultiLegKind, Order, OrderClass, OrderKind, OrderRequest, OrderShape,
-    OrderSide, OrderStatus, OrderType, PositionIntent, Region, Size, Stage, StopLoss, TakeProfit,
-    TimeInForce, Timestamp, Trail,
+    Client, Config, Credentials, Decimal, Environment, ErrorKind, Inbound, Region, Stage, Timestamp,
 };
 
 const MARKET: &str =

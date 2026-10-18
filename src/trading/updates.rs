@@ -5,8 +5,10 @@ use std::collections::BTreeMap;
 
 use serde::Deserialize;
 
-use crate::wire::wire_enum;
-use crate::{Decimal, Inbound, Order, StreamMessage, Timestamp};
+use super::Order;
+use crate::stream::StreamMessage;
+use crate::value::wire::wire_enum;
+use crate::{Decimal, Inbound, Timestamp};
 
 wire_enum! {
     /// What happened to an order.

@@ -9,11 +9,13 @@ mod fixture;
 mod server;
 
 use server::{Request, Server, Step, response};
+use suri::trading::{
+    Asset, AssetAttribute, AssetClass, AssetStatus, AssetsQuery, BorrowStatus, ContractType,
+    Deliverable, DeliverableType, Exchange, ExerciseStyle, OptionContract, OptionContracts,
+    OptionContractsQuery, SettlementMethod, SettlementType,
+};
 use suri::{
-    Asset, AssetAttribute, AssetClass, AssetStatus, AssetsQuery, BorrowStatus, Client, Config,
-    ContractType, Credentials, Date, Decimal, Deliverable, DeliverableType, Environment, ErrorKind,
-    Exchange, ExerciseStyle, Id, Inbound, OptionContract, OptionContracts, OptionContractsQuery,
-    Region, SettlementMethod, SettlementType, Symbol,
+    Client, Config, Credentials, Date, Decimal, Environment, ErrorKind, Id, Inbound, Region, Symbol,
 };
 
 const ALL_ASSETS: &str =

@@ -3,8 +3,9 @@
 use reqwest::Method;
 use serde::{Deserialize, Serialize, Serializer};
 
-use crate::client::{Endpoint, Request};
-use crate::{Asset, Client, Error, Id, Response, Symbol, Timestamp};
+use super::Asset;
+use crate::rest::client::{Endpoint, Request};
+use crate::{Client, Error, Id, Response, Symbol, Timestamp};
 
 /// A watchlist.
 ///

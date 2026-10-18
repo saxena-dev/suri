@@ -3,8 +3,8 @@
 use reqwest::Method;
 use serde::Deserialize;
 
-use crate::client::{Endpoint, Request};
-use crate::wire::wire_enum;
+use crate::rest::client::{Endpoint, Request};
+use crate::value::wire::wire_enum;
 use crate::{Client, Date, Decimal, Error, Inbound, Response, Symbol};
 
 wire_enum! {

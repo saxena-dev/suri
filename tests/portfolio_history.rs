@@ -7,10 +7,10 @@
 mod server;
 
 use server::{Request, Server, Step, response};
-use suri::{
-    Client, Config, Credentials, Date, Environment, ErrorKind, HistoryRange, IntradayReporting,
-    PnlReset, PortfolioHistory, PortfolioHistoryQuery, Region, Timestamp,
+use suri::trading::{
+    HistoryRange, IntradayReporting, PnlReset, PortfolioHistory, PortfolioHistoryQuery,
 };
+use suri::{Client, Config, Credentials, Date, Environment, ErrorKind, Region, Timestamp};
 
 // The documented examples `example-cashflows` and `example-query-1d-7d`.
 const CASHFLOWS: &str = r#"{"unknown_member":true,"base_value":8413.04,"base_value_asof":"2026-04-06","cashflow":{"CSD":[9.93,10.13,10.16,0],"DIV":[0,0,0.63,0]},"equity":[8425.21,8639.77,8766.1,8835.31],"profit_loss":[12.17,214.56,126.33,69.21],"profit_loss_pct":[0.0014,0.0255,0.0146,0.0079],"timeframe":"1D","timestamp":[1775606400,1775692800,1775779200,1775865600]}"#;

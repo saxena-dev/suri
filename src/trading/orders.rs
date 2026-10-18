@@ -12,10 +12,11 @@ use reqwest::Method;
 use serde::{Deserialize, Serialize, Serializer};
 use serde_json::value::RawValue;
 
-use crate::client::{Endpoint, Request};
-use crate::error::{details, sanitise};
-use crate::wire::{Sort, wire_enum};
-use crate::{AssetClass, Client, Decimal, Error, Id, Inbound, Response, Timestamp};
+use super::AssetClass;
+use crate::rest::client::{Endpoint, Request};
+use crate::rest::error::{details, sanitise};
+use crate::value::wire::{Sort, wire_enum};
+use crate::{Client, Decimal, Error, Id, Inbound, Response, Timestamp};
 
 mod request;
 

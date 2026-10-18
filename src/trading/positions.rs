@@ -4,10 +4,11 @@ use reqwest::Method;
 use serde::Deserialize;
 use serde_json::value::RawValue;
 
-use crate::client::{Endpoint, Request};
-use crate::error::{details, sanitise};
-use crate::wire::wire_enum;
-use crate::{AssetClass, Client, Decimal, Error, Exchange, Inbound, Order, Response, Symbol};
+use super::{AssetClass, Exchange, Order};
+use crate::rest::client::{Endpoint, Request};
+use crate::rest::error::{details, sanitise};
+use crate::value::wire::wire_enum;
+use crate::{Client, Decimal, Error, Inbound, Response, Symbol};
 
 wire_enum! {
     /// Whether a position is long or short.

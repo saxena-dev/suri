@@ -6,83 +6,35 @@
 //!
 //! The [contract](https://github.com/saxena-dev/suri/blob/main/docs/contract.md)
 //! states every behaviour suri promises.
+//!
+//! # Where things are
+//!
+//! The values every API shares (`Decimal`, `Timestamp`, `Date`, `Inbound`,
+//! `Symbol`, `Id`) and, with the `rest` feature, the transport (`Client`,
+//! `Config`, `Error`, `Response` and their companions) are at the crate
+//! root; with `stream`, so are `StreamError` and `StreamErrorKind`. The
+//! Trading API's types (account, assets, calendar, clock, orders,
+//! positions, watchlists and the `trade_updates` stream's messages) are in
+//! the `trading` module. The methods that call Alpaca are on `Client`.
 
 #[cfg(feature = "rest")]
-mod account;
-#[cfg(feature = "rest")]
-mod assets;
-#[cfg(feature = "rest")]
-mod calendar;
-#[cfg(feature = "rest")]
-mod client;
-#[cfg(feature = "rest")]
-mod clock;
-#[cfg(feature = "rest")]
-mod config;
-mod decimal;
-#[cfg(feature = "rest")]
-mod error;
-mod inbound;
-#[cfg(feature = "rest")]
-mod orders;
-mod path;
-#[cfg(feature = "rest")]
-mod positions;
-#[cfg(feature = "rest")]
-mod response;
+mod rest;
 #[cfg(feature = "stream")]
 mod stream;
-mod time;
-#[cfg(feature = "stream")]
-mod trade_updates;
 #[cfg(feature = "rest")]
-mod watchlists;
-#[cfg(feature = "rest")]
-mod wire;
+pub mod trading;
+mod value;
 
 #[cfg(feature = "rest")]
-pub use account::{
-    Account, AccountConfigurations, AccountStatus, ActivitiesQuery, Activity, ActivityCategory,
-    ActivityFilter, ActivityStatus, ActivityType, ConfigurationsUpdate, FillType, HistoryRange,
-    IntradayReporting, NonTradeActivity, PnlReset, PortfolioHistory, PortfolioHistoryQuery,
-    TradeActivity, TradeConfirmEmail,
+pub use rest::{
+    Client, Config, ConfigError, Credentials, Environment, Error, ErrorKind, RateLimit, Region,
+    Response, ResponseMeta, Stage,
 };
-#[cfg(feature = "rest")]
-pub use assets::{
-    Asset, AssetAttribute, AssetClass, AssetStatus, AssetsQuery, BorrowStatus, ContractType,
-    Deliverable, DeliverableType, Exchange, ExerciseStyle, OptionContract, OptionContracts,
-    OptionContractsQuery, SettlementMethod, SettlementType,
-};
-#[cfg(feature = "rest")]
-pub use calendar::{CalendarDateType, CalendarDay, CalendarQuery, ClockTime};
-#[cfg(feature = "rest")]
-pub use client::Client;
-#[cfg(feature = "rest")]
-pub use clock::Clock;
-#[cfg(feature = "rest")]
-pub use config::{Config, ConfigError, Credentials, Environment, Region};
-pub use decimal::{Decimal, ParseDecimalError};
-#[cfg(feature = "rest")]
-pub use error::{Error, ErrorKind, Stage};
-pub use inbound::Inbound;
-#[cfg(feature = "rest")]
-pub use orders::{
-    CancelResult, ClientOrderId, Exit, Leg, Legs, MultiLegKind, Order, OrderClass, OrderKind,
-    OrderQueryStatus, OrderRequest, OrderShape, OrderSide, OrderStatus, OrderType, OrderWindow,
-    OrdersQuery, ParseClientOrderIdError, ParseLegsError, PositionIntent, ReplaceOrderRequest,
-    Size, StopLoss, TakeProfit, TimeInForce, Trail,
-};
-pub use path::{Id, ParsePathValueError, Symbol};
-#[cfg(feature = "rest")]
-pub use positions::{ClosePosition, ClosedPosition, Position, PositionSide, UsdPositionValues};
-#[cfg(feature = "rest")]
-pub use response::{RateLimit, Response, ResponseMeta};
 #[cfg(feature = "stream")]
-pub use stream::{StreamError, StreamErrorKind, StreamMessage, TradeUpdates};
-pub use time::{Date, ParseTimeError, Timestamp};
-#[cfg(feature = "stream")]
-pub use trade_updates::{LegFill, TradeEvent, TradeStreamMessage, TradeUpdate};
+pub use stream::{StreamError, StreamErrorKind};
+pub use value::{
+    Date, Decimal, Id, Inbound, ParseDecimalError, ParsePathValueError, ParseTimeError, Symbol,
+    Timestamp,
+};
 #[cfg(feature = "rest")]
-pub use watchlists::{CreateWatchlist, Watchlist, WatchlistUpdate};
-#[cfg(feature = "rest")]
-pub use wire::{ParseEnumError, Sort};
+pub use value::{ParseEnumError, Sort};

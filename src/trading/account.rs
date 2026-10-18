@@ -7,9 +7,9 @@ use reqwest::Method;
 use serde::de::{self, Deserializer, Visitor};
 use serde::{Deserialize, Serialize};
 
-use crate::client::{Endpoint, Request};
-use crate::orders::{OrderSide, OrderStatus};
-use crate::wire::{Sort, wire_enum};
+use super::orders::{OrderSide, OrderStatus};
+use crate::rest::client::{Endpoint, Request};
+use crate::value::wire::{Sort, wire_enum};
 use crate::{Client, Date, Decimal, Error, Id, Inbound, Response, Timestamp};
 
 wire_enum! {

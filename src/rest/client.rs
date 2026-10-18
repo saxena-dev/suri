@@ -14,8 +14,8 @@ use serde::Serialize;
 use serde::de::DeserializeOwned;
 use tracing::{Instrument, Span};
 
-use crate::config::{self, Config, ConfigError, Credentials};
-use crate::error::details;
+use super::config::{self, Config, ConfigError, Credentials};
+use super::error::details;
 use crate::{Error, ErrorKind, Response, ResponseMeta, Stage};
 
 /// An endpoint: its method, and the path template that errors name in place
@@ -366,7 +366,7 @@ impl Client {
             )
             .header("APCA-API-KEY-ID", inner.key_id.clone())
             .header("APCA-API-SECRET-KEY", inner.secret.clone())
-            .header(USER_AGENT, concat!("suri/", env!("CARGO_PKG_VERSION")))
+            .header(USER_AGENT, super::SURI_USER_AGENT)
             // suri decompresses nothing, so it asks for uncompressed bodies:
             // without this header any coding would be acceptable.
             .header(ACCEPT_ENCODING, "identity")

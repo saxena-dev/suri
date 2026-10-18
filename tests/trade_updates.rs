@@ -8,11 +8,11 @@ mod ws_server;
 
 use std::time::Duration;
 
-use suri::{
-    AssetClass, Client, Config, Credentials, Decimal, Environment, Inbound, OrderClass, OrderSide,
-    OrderStatus, OrderType, Region, TimeInForce, Timestamp, TradeEvent, TradeStreamMessage,
-    TradeUpdate,
+use suri::trading::{
+    AssetClass, OrderClass, OrderSide, OrderStatus, OrderType, TimeInForce, TradeEvent,
+    TradeStreamMessage, TradeUpdate,
 };
+use suri::{Client, Config, Credentials, Decimal, Environment, Inbound, Region, Timestamp};
 use tokio_tungstenite::tungstenite::Message;
 use ws_server::{Act, WsServer, opened};
 

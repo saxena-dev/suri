@@ -7,10 +7,13 @@
 mod server;
 
 use server::{Request, Server, Step, response};
-use suri::{
+use suri::trading::{
     ActivitiesQuery, Activity, ActivityCategory, ActivityFilter, ActivityStatus, ActivityType,
-    Client, Config, Credentials, Date, Decimal, Environment, ErrorKind, FillType, Id, Inbound,
-    OrderSide, OrderStatus, Region, Sort, Timestamp,
+    FillType, OrderSide, OrderStatus,
+};
+use suri::{
+    Client, Config, Credentials, Date, Decimal, Environment, ErrorKind, Id, Inbound, Region, Sort,
+    Timestamp,
 };
 
 // Built from the two schema examples of the activities reference page.

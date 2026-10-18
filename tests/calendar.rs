@@ -9,10 +9,8 @@ mod fixture;
 mod server;
 
 use server::{Request, Server, Step, response};
-use suri::{
-    CalendarDateType, CalendarDay, CalendarQuery, Client, Config, Credentials, Date, Environment,
-    ErrorKind, Region,
-};
+use suri::trading::{CalendarDateType, CalendarDay, CalendarQuery};
+use suri::{Client, Config, Credentials, Date, Environment, ErrorKind, Region};
 
 const BROKER_CALENDAR: &str =
     "broker/broker_client/test_misc_routes::test_get_calendar::GET /v1/calendar#0";

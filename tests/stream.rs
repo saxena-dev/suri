@@ -8,10 +8,9 @@ mod ws_server;
 
 use std::time::Duration;
 
-use suri::{
-    Client, Config, Credentials, Environment, Region, StreamErrorKind, StreamMessage,
-    TradeStreamMessage, TradeUpdates,
-};
+use suri::trading::StreamMessage;
+use suri::trading::{TradeStreamMessage, TradeUpdates};
+use suri::{Client, Config, Credentials, Environment, Region, StreamErrorKind};
 use tokio_tungstenite::tungstenite::Message;
 use ws_server::{Act, Received, Step, WsServer, opened, opening};
 

@@ -9,10 +9,12 @@ mod fixture;
 mod server;
 
 use server::{Server, Step, response};
+use suri::trading::{
+    Account, AccountConfigurations, AccountStatus, ConfigurationsUpdate, TradeConfirmEmail,
+};
 use suri::{
-    Account, AccountConfigurations, AccountStatus, Client, Config, ConfigurationsUpdate,
-    Credentials, Decimal, Environment, Error, ErrorKind, Inbound, Region, Stage, Timestamp,
-    TradeConfirmEmail,
+    Client, Config, Credentials, Decimal, Environment, Error, ErrorKind, Inbound, Region, Stage,
+    Timestamp,
 };
 
 const FULL: &str =

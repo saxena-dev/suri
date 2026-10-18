@@ -6,8 +6,8 @@ use reqwest::Method;
 use serde::Deserialize;
 use serde::de::{self, Deserializer, Visitor};
 
-use crate::client::{Endpoint, Request};
-use crate::wire::wire_enum;
+use crate::rest::client::{Endpoint, Request};
+use crate::value::wire::wire_enum;
 use crate::{Client, Date, Error, Response};
 
 /// A local market time of day, to the minute, with no date and no time

@@ -10,7 +10,8 @@ mod server;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use server::{Server, Step, refused_url, response};
-use suri::{Client, Config, ConfigurationsUpdate, Credentials, Environment, ErrorKind, Region};
+use suri::trading::ConfigurationsUpdate;
+use suri::{Client, Config, Credentials, Environment, ErrorKind, Region};
 
 const CONFIGURATIONS: &[u8] = br#"{"suspend_trade":true}"#;
 

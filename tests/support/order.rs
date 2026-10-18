@@ -2,8 +2,10 @@
 
 #![allow(dead_code, reason = "each test binary uses part of the helper")]
 
-use suri::{AssetClass, Decimal, Inbound, Order, OrderClass, OrderSide, OrderStatus, OrderType};
-use suri::{PositionIntent, TimeInForce, Timestamp};
+use suri::Timestamp;
+use suri::trading::{AssetClass, Order, OrderClass, OrderSide, OrderStatus, OrderType};
+use suri::trading::{PositionIntent, TimeInForce};
+use suri::{Decimal, Inbound};
 
 fn dec(text: &str) -> Decimal {
     text.parse().unwrap()

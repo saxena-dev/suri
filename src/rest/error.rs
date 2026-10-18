@@ -4,7 +4,8 @@ use std::fmt;
 
 use reqwest::Method;
 
-use crate::{ClientOrderId, ResponseMeta};
+use crate::ResponseMeta;
+use crate::trading::ClientOrderId;
 
 /// What went wrong.
 #[non_exhaustive]

@@ -18,9 +18,10 @@ use tokio_tungstenite::tungstenite::{self, Message};
 use tokio_tungstenite::{Connector, MaybeTlsStream, WebSocketStream};
 use tracing::{Instrument, Span};
 
-use crate::error::sanitise;
-use crate::trade_updates::typed;
-use crate::{Client, TradeStreamMessage};
+use crate::Client;
+use crate::rest::error::sanitise;
+use crate::trading::TradeStreamMessage;
+use crate::trading::updates::typed;
 
 type Socket = WebSocketStream<MaybeTlsStream<TcpStream>>;
 
@@ -297,7 +298,7 @@ impl Client {
             .expect("a checked base URL makes a valid request");
         request.headers_mut().insert(
             USER_AGENT,
-            HeaderValue::from_static(concat!("suri/", env!("CARGO_PKG_VERSION"))),
+            HeaderValue::from_static(crate::rest::SURI_USER_AGENT),
         );
         let max = usize::try_from(self.max_body_bytes())
             .expect("max_body_bytes is at most 1 GiB, which fits usize");

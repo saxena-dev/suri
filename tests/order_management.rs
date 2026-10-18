@@ -18,10 +18,11 @@ use requests::{
     SECRET, assert_no_body, client, failing_once, only_request, retrying_client, serve,
 };
 use server::Server;
-use suri::{
-    AssetClass, CancelResult, Decimal, ErrorKind, Id, OrderQueryStatus, OrderSide, OrderWindow,
-    OrdersQuery, ReplaceOrderRequest, Sort, Stage, TimeInForce,
+use suri::trading::{
+    AssetClass, CancelResult, OrderQueryStatus, OrderSide, OrderWindow, OrdersQuery,
+    ReplaceOrderRequest, TimeInForce,
 };
+use suri::{Decimal, ErrorKind, Id, Sort, Stage};
 
 const ORDERS: &str = "trading/trading_client/test_order_routes::test_get_orders::GET /v2/orders#0";
 const BY_ID: &str =

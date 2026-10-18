@@ -191,7 +191,7 @@ impl std::error::Error for ParseLegsError {}
 /// missing one cannot be built. A simple market order:
 ///
 /// ```
-/// # use suri::{OrderKind, OrderShape, OrderSide, Size};
+/// # use suri::trading::{OrderKind, OrderShape, OrderSide, Size};
 /// let shape = OrderShape::Simple {
 ///     symbol: "AAPL".to_owned(),
 ///     side: OrderSide::Buy,
@@ -204,7 +204,7 @@ impl std::error::Error for ParseLegsError {}
 /// Without its kind, it does not compile:
 ///
 /// ```compile_fail
-/// # use suri::{OrderKind, OrderShape, OrderSide, Size};
+/// # use suri::trading::{OrderKind, OrderShape, OrderSide, Size};
 /// let shape = OrderShape::Simple {
 ///     symbol: "AAPL".to_owned(),
 ///     side: OrderSide::Buy,
@@ -217,7 +217,7 @@ impl std::error::Error for ParseLegsError {}
 /// compile:
 ///
 /// ```
-/// # use suri::{OrderKind, OrderShape, OrderSide, Size, StopLoss, TakeProfit};
+/// # use suri::trading::{OrderKind, OrderShape, OrderSide, Size, StopLoss, TakeProfit};
 /// let shape = OrderShape::Bracket {
 ///     symbol: "AAPL".to_owned(),
 ///     side: OrderSide::Buy,
@@ -230,7 +230,7 @@ impl std::error::Error for ParseLegsError {}
 /// ```
 ///
 /// ```compile_fail
-/// # use suri::{OrderKind, OrderShape, OrderSide, Size, StopLoss, TakeProfit};
+/// # use suri::trading::{OrderKind, OrderShape, OrderSide, Size, StopLoss, TakeProfit};
 /// let shape = OrderShape::Bracket {
 ///     symbol: "AAPL".to_owned(),
 ///     side: OrderSide::Buy,
@@ -244,7 +244,7 @@ impl std::error::Error for ParseLegsError {}
 /// A one-triggers-other order, and the same without its exit:
 ///
 /// ```
-/// # use suri::{Exit, OrderKind, OrderShape, OrderSide, Size, TakeProfit};
+/// # use suri::trading::{Exit, OrderKind, OrderShape, OrderSide, Size, TakeProfit};
 /// let shape = OrderShape::Oto {
 ///     symbol: "AAPL".to_owned(),
 ///     side: OrderSide::Buy,
@@ -256,7 +256,7 @@ impl std::error::Error for ParseLegsError {}
 /// ```
 ///
 /// ```compile_fail
-/// # use suri::{Exit, OrderKind, OrderShape, OrderSide, Size, TakeProfit};
+/// # use suri::trading::{Exit, OrderKind, OrderShape, OrderSide, Size, TakeProfit};
 /// let shape = OrderShape::Oto {
 ///     symbol: "AAPL".to_owned(),
 ///     side: OrderSide::Buy,
@@ -269,7 +269,7 @@ impl std::error::Error for ParseLegsError {}
 /// A one-cancels-other order, and the same without its take-profit:
 ///
 /// ```
-/// # use suri::{OrderShape, OrderSide, Size, StopLoss, TakeProfit};
+/// # use suri::trading::{OrderShape, OrderSide, Size, StopLoss, TakeProfit};
 /// let shape = OrderShape::Oco {
 ///     symbol: "AAPL".to_owned(),
 ///     side: OrderSide::Sell,
@@ -281,7 +281,7 @@ impl std::error::Error for ParseLegsError {}
 /// ```
 ///
 /// ```compile_fail
-/// # use suri::{OrderShape, OrderSide, Size, StopLoss, TakeProfit};
+/// # use suri::trading::{OrderShape, OrderSide, Size, StopLoss, TakeProfit};
 /// let shape = OrderShape::Oco {
 ///     symbol: "AAPL".to_owned(),
 ///     side: OrderSide::Sell,
@@ -294,7 +294,7 @@ impl std::error::Error for ParseLegsError {}
 /// A multi-leg order, and the same without its legs:
 ///
 /// ```
-/// # use suri::{Leg, Legs, MultiLegKind, OrderShape};
+/// # use suri::trading::{Leg, Legs, MultiLegKind, OrderShape};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let shape = OrderShape::MultiLeg {
 ///     qty: "1".parse()?,
@@ -306,7 +306,7 @@ impl std::error::Error for ParseLegsError {}
 /// ```
 ///
 /// ```compile_fail
-/// # use suri::{Leg, Legs, MultiLegKind, OrderShape};
+/// # use suri::trading::{Leg, Legs, MultiLegKind, OrderShape};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let shape = OrderShape::MultiLeg {
 ///     qty: "1".parse()?,

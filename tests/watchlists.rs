@@ -12,10 +12,10 @@ mod server;
 
 use requests::{assert_no_body, client, failing_once, only_request, retrying_client, serve};
 use server::Request;
-use suri::{
-    Asset, AssetClass, AssetStatus, CreateWatchlist, ErrorKind, Exchange, Id, Inbound, Symbol,
-    Timestamp, Watchlist, WatchlistUpdate,
+use suri::trading::{
+    Asset, AssetClass, AssetStatus, CreateWatchlist, Exchange, Watchlist, WatchlistUpdate,
 };
+use suri::{ErrorKind, Id, Inbound, Symbol, Timestamp};
 
 const BROKER_LIST: &str = "broker/broker_client/test_watchlist_routes::test_get_watchlists_for_account::GET /v1/trading/accounts/{account_id}/watchlists#0";
 const BROKER_BY_ID: &str = "broker/broker_client/test_watchlist_routes::test_get_watchlist_for_account_by_id::GET /v1/trading/accounts/{account_id}/watchlists/{watchlist_id}#0";

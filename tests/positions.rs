@@ -19,11 +19,11 @@ use requests::{
     serve,
 };
 use server::Request;
-use suri::{
-    AssetClass, ClosePosition, ClosedPosition, Decimal, ErrorKind, Exchange, Inbound, OrderClass,
-    OrderSide, OrderStatus, OrderType, Position, PositionIntent, PositionSide, Symbol, TimeInForce,
-    Timestamp,
+use suri::trading::{
+    AssetClass, ClosePosition, ClosedPosition, Exchange, OrderClass, OrderSide, OrderStatus,
+    OrderType, Position, PositionIntent, PositionSide, TimeInForce,
 };
+use suri::{Decimal, ErrorKind, Inbound, Symbol, Timestamp};
 
 const ROUTES: &str = "trading/trading_client/test_position_routes";
 const ALL: &str = "test_get_all_positions::GET /v2/positions#0";
@@ -279,7 +279,7 @@ async fn position_decimals_follow_the_exact_rules() {
 }
 
 /// Closes a position against `body` and returns the order and the request.
-async fn close(key: &str, how: &ClosePosition, body: &[u8]) -> (suri::Order, Request) {
+async fn close(key: &str, how: &ClosePosition, body: &[u8]) -> (suri::trading::Order, Request) {
     let server = serve("200 OK", body);
     let order = client(&server)
         .close_position(&symbol(key), how)

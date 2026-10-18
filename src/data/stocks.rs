@@ -1,13 +1,19 @@
-//! Stock market data: historical bars, trades, quotes and auctions.
+//! Stock market data: historical bars, trades, quotes and auctions, the
+//! latest values and snapshots.
 //!
 //! The `Client` methods that return these types: `stock_bars`,
-//! `stock_trades`, `stock_quotes` and `stock_auctions`.
+//! `stock_trades`, `stock_quotes`, `stock_auctions`, `stock_latest_bars`,
+//! `stock_latest_trades`, `stock_latest_quotes` and `stock_snapshots`.
+
+use std::collections::BTreeMap;
+use std::fmt;
 
 use reqwest::Method;
 use serde::Deserialize;
+use serde::de::{Deserializer, MapAccess, Visitor};
 
-use super::Series;
 pub use super::{Bar, Timeframe};
+use super::{Latest, Series};
 use crate::rest::client::{Endpoint, Host, Request};
 use crate::value::wire::wire_enum;
 use crate::{Client, Date, Error, Inbound, Response, Sort, Timestamp};
@@ -188,6 +194,97 @@ impl HistoryQuery {
     }
 }
 
+/// Which latest stock values or snapshots to read.
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq)]
+pub struct LatestQuery {
+    /// The symbols, sent comma-joined.
+    pub symbols: Vec<String>,
+    /// The feed; Alpaca's default depends on the caller's subscription.
+    pub feed: Option<Feed>,
+    /// The currency of the prices, ISO 4217.
+    pub currency: Option<String>,
+}
+
+impl LatestQuery {
+    /// The latest values of these symbols, every other parameter Alpaca's
+    /// default.
+    pub fn new(symbols: Vec<String>) -> LatestQuery {
+        LatestQuery {
+            symbols,
+            feed: None,
+            currency: None,
+        }
+    }
+}
+
+/// A stock's latest trade, quote, minute bar, daily bar and previous daily
+/// bar; Alpaca may leave out any of them.
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+pub struct Snapshot {
+    /// The latest trade.
+    #[serde(rename = "latestTrade")]
+    pub latest_trade: Option<Trade>,
+    /// The latest quote.
+    #[serde(rename = "latestQuote")]
+    pub latest_quote: Option<Quote>,
+    /// The latest minute bar.
+    #[serde(rename = "minuteBar")]
+    pub minute_bar: Option<Bar>,
+    /// The current daily bar.
+    #[serde(rename = "dailyBar")]
+    pub daily_bar: Option<Bar>,
+    /// The previous daily bar.
+    #[serde(rename = "prevDailyBar")]
+    pub previous_daily_bar: Option<Bar>,
+}
+
+/// The snapshots of a list of symbols, with the currency of their prices
+/// when Alpaca names it beside the symbols.
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq)]
+pub struct Snapshots {
+    /// Each symbol's snapshot; a symbol with no data is absent.
+    pub snapshots: BTreeMap<String, Snapshot>,
+    /// The currency of the prices, when Alpaca names it.
+    pub currency: Option<String>,
+}
+
+impl<'de> Deserialize<'de> for Snapshots {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        struct SnapshotsVisitor;
+
+        impl<'de> Visitor<'de> for SnapshotsVisitor {
+            type Value = Snapshots;
+
+            fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                f.write_str("a map of symbols to snapshots")
+            }
+
+            fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Snapshots, A::Error> {
+                let mut snapshots = BTreeMap::new();
+                let mut currency = None;
+                // Each value is decoded from the map itself, never buffered.
+                while let Some(key) = map.next_key::<String>()? {
+                    if key == "currency" {
+                        currency = Some(map.next_value::<String>()?);
+                    } else {
+                        let snapshot = map.next_value::<Snapshot>()?;
+                        snapshots.insert(key, snapshot);
+                    }
+                }
+                Ok(Snapshots {
+                    snapshots,
+                    currency,
+                })
+            }
+        }
+
+        deserializer.deserialize_map(SnapshotsVisitor)
+    }
+}
+
 /// A stock trade.
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, Deserialize)]
@@ -313,6 +410,30 @@ const AUCTIONS: Endpoint = Endpoint {
     template: "/v2/stocks/auctions",
 };
 
+const LATEST_BARS: Endpoint = Endpoint {
+    host: Host::Data,
+    method: Method::GET,
+    template: "/v2/stocks/bars/latest",
+};
+
+const LATEST_TRADES: Endpoint = Endpoint {
+    host: Host::Data,
+    method: Method::GET,
+    template: "/v2/stocks/trades/latest",
+};
+
+const LATEST_QUOTES: Endpoint = Endpoint {
+    host: Host::Data,
+    method: Method::GET,
+    template: "/v2/stocks/quotes/latest",
+};
+
+const SNAPSHOTS: Endpoint = Endpoint {
+    host: Host::Data,
+    method: Method::GET,
+    template: "/v2/stocks/snapshots",
+};
+
 /// Adds the pairs a bars or history query share after their first ones,
 /// in the docs' order.
 fn tail(
@@ -400,6 +521,56 @@ impl Client {
         self.send_request(history(&AUCTIONS, &["v2", "stocks", "auctions"], query))
             .await
     }
+
+    /// Reads each symbol's latest minute bar (`GET /v2/stocks/bars/latest`).
+    pub async fn stock_latest_bars(
+        &self,
+        query: &LatestQuery,
+    ) -> Result<Response<Latest<Bar>>, Error> {
+        let segments = &["v2", "stocks", "bars", "latest"];
+        self.send_request(latest(&LATEST_BARS, segments, query))
+            .await
+    }
+
+    /// Reads each symbol's latest trade (`GET /v2/stocks/trades/latest`).
+    /// Trades whose conditions do not update a bar's price are left out.
+    pub async fn stock_latest_trades(
+        &self,
+        query: &LatestQuery,
+    ) -> Result<Response<Latest<Trade>>, Error> {
+        let segments = &["v2", "stocks", "trades", "latest"];
+        self.send_request(latest(&LATEST_TRADES, segments, query))
+            .await
+    }
+
+    /// Reads each symbol's latest quote (`GET /v2/stocks/quotes/latest`).
+    pub async fn stock_latest_quotes(
+        &self,
+        query: &LatestQuery,
+    ) -> Result<Response<Latest<Quote>>, Error> {
+        let segments = &["v2", "stocks", "quotes", "latest"];
+        self.send_request(latest(&LATEST_QUOTES, segments, query))
+            .await
+    }
+
+    /// Reads each symbol's snapshot (`GET /v2/stocks/snapshots`).
+    pub async fn stock_snapshots(&self, query: &LatestQuery) -> Result<Response<Snapshots>, Error> {
+        let segments = &["v2", "stocks", "snapshots"];
+        self.send_request(latest(&SNAPSHOTS, segments, query)).await
+    }
+}
+
+/// A latest-values or snapshots request, its pairs in the docs' order.
+fn latest<'a>(endpoint: &'a Endpoint, segments: &'a [&'a str], query: &LatestQuery) -> Request<'a> {
+    let mut request = Request::new(endpoint, segments);
+    request.pair("symbols", query.symbols.join(","));
+    if let Some(feed) = &query.feed {
+        request.pair("feed", feed.as_str());
+    }
+    if let Some(currency) = &query.currency {
+        request.pair("currency", currency.as_str());
+    }
+    request
 }
 
 /// A trades, quotes or auctions request, its pairs in the docs' order.
@@ -436,7 +607,16 @@ mod tests {
 
     #[test]
     fn every_stock_endpoint_is_on_the_data_host() {
-        for endpoint in [&BARS, &TRADES, &QUOTES, &AUCTIONS] {
+        for endpoint in [
+            &BARS,
+            &TRADES,
+            &QUOTES,
+            &AUCTIONS,
+            &LATEST_BARS,
+            &LATEST_TRADES,
+            &LATEST_QUOTES,
+            &SNAPSHOTS,
+        ] {
             assert!(matches!(endpoint.host, Host::Data), "{}", endpoint.template);
         }
     }

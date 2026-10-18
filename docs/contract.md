@@ -582,6 +582,21 @@ decide; auctions accept only `sip`), the symbol mapping (`AsOf`: a date,
 or `Unmapped`, sent as `-`) and the currency. A trade's `update` is `None`
 when the trade is valid; a quote's price of 0 means no active bid or ask.
 
+### Latest stock data and snapshots
+
+`Client::stock_latest_bars` (`GET /v2/stocks/bars/latest`),
+`stock_latest_trades` (`/v2/stocks/trades/latest`) and
+`stock_latest_quotes` (`/v2/stocks/quotes/latest`) return a `Latest`: each
+symbol's latest minute bar, trade or quote, and the currency when Alpaca
+names it; a symbol with no data is absent. Alpaca leaves out of the latest
+trades those whose conditions do not update a bar's price.
+`Client::stock_snapshots` (`/v2/stocks/snapshots`) returns `Snapshots`:
+each symbol's latest trade, latest quote, minute bar, daily bar and
+previous daily bar, any of which Alpaca may leave out, and a `currency`
+Alpaca may send beside the symbols. Each takes a `LatestQuery` (symbols,
+feed, currency); without a feed, Alpaca picks one by the caller's
+subscription.
+
 ## Market clock
 
 `Client::clock` reads `GET /v2/clock`: the server's time, whether the market

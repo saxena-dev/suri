@@ -10,30 +10,16 @@ mod fixture;
 mod requests;
 #[path = "support/server.rs"]
 mod server;
+#[path = "support/stock.rs"]
+mod stock;
 
 use requests::{client, failing_once, only_request, owned, pairs, path, retrying_client, serve};
-use server::Server;
+use stock::{SAMPLES, assert_bar, at, serve_fixture, symbols};
 use suri::data::stocks::{
-    Adjustment, AsOf, Auction, Bar, BarsQuery, Feed, HistoryQuery, Quote, Tape, Timeframe, Trade,
+    Adjustment, AsOf, Auction, BarsQuery, Feed, HistoryQuery, Quote, Tape, Timeframe, Trade,
     TradeUpdateKind,
 };
-use suri::{Date, ErrorKind, Inbound, Sort, Timestamp};
-
-const ROUTES: &str = "data/test_historical_stock_data";
-
-fn at(text: &str) -> Timestamp {
-    text.parse().unwrap()
-}
-
-fn serve_fixture(name: &str, route: &str) -> Server {
-    let fixture = fixture::upstream(&format!("{ROUTES}::{name}::GET {route}#0"));
-    assert_eq!(fixture.status, 200);
-    serve("200 OK", &fixture.body)
-}
-
-fn symbols(list: &[&str]) -> Vec<String> {
-    list.iter().map(|symbol| (*symbol).to_owned()).collect()
-}
+use suri::{Date, ErrorKind, Inbound, Sort};
 
 fn bars_query() -> BarsQuery {
     BarsQuery::new(symbols(&["AAPL"]), Timeframe::Day)
@@ -41,28 +27,6 @@ fn bars_query() -> BarsQuery {
 
 fn history_query() -> HistoryQuery {
     HistoryQuery::new(symbols(&["AAPL"]))
-}
-
-#[allow(clippy::too_many_arguments)]
-fn assert_bar(
-    bar: &Bar,
-    t: &str,
-    open: f64,
-    high: f64,
-    low: f64,
-    close: f64,
-    volume: i64,
-    trade_count: i64,
-    vwap: f64,
-) {
-    assert_eq!(bar.timestamp, at(t));
-    assert_eq!(bar.open, open);
-    assert_eq!(bar.high, high);
-    assert_eq!(bar.low, low);
-    assert_eq!(bar.close, close);
-    assert_eq!(bar.volume, volume);
-    assert_eq!(bar.trade_count, trade_count);
-    assert_eq!(bar.vwap, vwap);
 }
 
 fn assert_trade(trade: &Trade, t: &str, price: f64, size: u32, id: u64) {
@@ -571,14 +535,6 @@ async fn a_shape_the_docs_do_not_allow_fails_the_page() {
         assert_eq!(error.kind(), ErrorKind::Decode, "{body}");
     }
 }
-
-/// Sample doubles: the text and the double it must read as.
-const SAMPLES: [&str; 4] = [
-    "8425.21",
-    "0.30000000000000004",
-    "1.1368683772161603e-13",
-    "9007199254740993",
-];
 
 #[tokio::test]
 async fn every_double_reads_as_the_nearest_f64() {

@@ -79,5 +79,8 @@ All notable changes to suri are listed here. The format follows
 - Market Data: `Client::stock_bars`, `stock_trades`, `stock_quotes` and
   `stock_auctions`, one page per call, in `suri::data::stocks`, with the
   shared `Series`, `Bar` and `Timeframe` in `suri::data`.
+- `Client::stock_latest_bars`, `stock_latest_trades`, `stock_latest_quotes`
+  and `stock_snapshots`, with `Latest`, `LatestQuery`, `Snapshot` and
+  `Snapshots`.
 - With `stream`, the dependencies `tokio-tungstenite`, `futures-util`,
   `rustls` and `rustls-platform-verifier`.

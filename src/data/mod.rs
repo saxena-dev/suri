@@ -39,6 +39,17 @@ pub struct Series<T> {
     pub next_page_token: Option<String>,
 }
 
+/// The latest point per symbol: a bar, a trade or a quote.
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+pub struct Latest<T> {
+    /// Each symbol's latest point; a symbol with no data is absent.
+    #[serde(rename = "bars", alias = "trades", alias = "quotes")]
+    pub items: BTreeMap<String, T>,
+    /// The currency of the prices, when Alpaca names it.
+    pub currency: Option<String>,
+}
+
 /// An OHLC aggregate of the trades in one interval, for stocks and options.
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, Deserialize)]

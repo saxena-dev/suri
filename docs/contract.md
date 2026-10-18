@@ -391,9 +391,12 @@ returns the `Order` Alpaca reports.
 - **Wire form.** An `OrderRequest`'s JSON (`Serialize`) is exactly the body
   sent: prices and quantities as their exact decimal text, and a field left
   unset is left out, never sent as `null`.
-- **The order.** A multi-leg order's parent has no symbol or side, and its
-  legs have no type; Alpaca sends such fields as `""`, kept as `Unknown`
-  where the enumeration does not document an empty value.
+- **The order.** A multi-leg order's parent may come with an empty symbol
+  and side (the documented REST response example sends both as `""`; the
+  documented trade-updates example carries a side), and its legs with an
+  empty type;
+  an empty value is kept
+  as `""`, or as `Unknown` where the enumeration does not document one.
 - **Finding orders.** `Client::orders` reads one page of `GET /v2/orders`,
   narrowed by an `OrdersQuery`; its `OrderWindow` is a time window or the
   orders before or after one order, which Alpaca does not combine.
@@ -529,7 +532,7 @@ API's `trade_updates` stream.
   `execution_id`, `price`, `qty` and `position_qty` (exact decimals), and
   on multi-leg fills `at`, `event_id`, `position_qtys` and the legs'
   fills, `LegFill`. The stream's orders carry `cancel_requested_at`, which
-  REST responses leave out (`None`). A `trade_updates` message that does
+  the Trading REST order schema does not list (`None` when absent). A `trade_updates` message that does
   not read as a `TradeUpdate` (no `event` or `order`, a decimal that
   `Decimal` rejects, see "Decimal values", a malformed time) is
   `TradeStreamMessage::Undecoded` with the message as sent, and the stream

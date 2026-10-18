@@ -232,8 +232,8 @@ impl std::error::Error for ParseClientOrderIdError {}
 /// An order, as Alpaca reports it.
 ///
 /// Prices and quantities are exact [`Decimal`]s. A multi-leg order's parent
-/// has no symbol or side, and its legs no type. Fields Alpaca adds later
-/// are ignored until suri models them.
+/// may come with an empty symbol and side, and its legs with an empty type.
+/// Fields Alpaca adds later are ignored until suri models them.
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Order {
@@ -260,7 +260,7 @@ pub struct Order {
     /// When the order expires.
     pub expires_at: Option<Timestamp>,
     /// When cancellation was requested; sent on the `trade_updates` stream,
-    /// absent from REST responses.
+    /// not in the Trading REST order schema; `None` when absent.
     pub cancel_requested_at: Option<Timestamp>,
     /// When the order was canceled.
     pub canceled_at: Option<Timestamp>,
@@ -274,7 +274,7 @@ pub struct Order {
     pub replaces: Option<String>,
     /// The asset ID.
     pub asset_id: Option<String>,
-    /// The symbol; absent from a multi-leg order's parent.
+    /// The symbol; may be empty on a multi-leg order's parent.
     pub symbol: Option<String>,
     /// The asset class.
     pub asset_class: Option<Inbound<AssetClass>>,
@@ -288,12 +288,12 @@ pub struct Order {
     pub filled_avg_price: Option<Decimal>,
     /// The order's class.
     pub order_class: Option<Inbound<OrderClass>>,
-    /// The order's type; absent from a multi-leg order's legs.
+    /// The order's type; may be empty on a multi-leg order's legs.
     pub r#type: Option<Inbound<OrderType>>,
     /// The order's type.
     #[deprecated(note = "use type")]
     pub order_type: Option<Inbound<OrderType>>,
-    /// Buy or sell; absent from a multi-leg order's parent.
+    /// Buy or sell; may be empty on a multi-leg order's parent.
     pub side: Option<Inbound<OrderSide>>,
     /// The limit price.
     pub limit_price: Option<Decimal>,

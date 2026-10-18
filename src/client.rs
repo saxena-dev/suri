@@ -535,7 +535,9 @@ mod tests {
             for _ in 0..50 {
                 let wait = client.wait(attempt, &error);
                 assert!(wait >= ms(backoff), "{attempt}: {wait:?}");
-                assert!(wait < ms(backoff) + ms(backoff) / 2, "{attempt}: {wait:?}");
+                // Up to half, inclusive: a jitter within about 1e-8 of 1 is
+                // rounded to the nanosecond to exactly half.
+                assert!(wait <= ms(backoff) + ms(backoff) / 2, "{attempt}: {wait:?}");
             }
         }
         let waits: std::collections::HashSet<Duration> =

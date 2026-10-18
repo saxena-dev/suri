@@ -5,7 +5,8 @@
 //! module holds what they share.
 //! Prices, and crypto sizes and volumes, are `f64`, read correctly rounded;
 //! other sizes and counts are integers of the width their format gives. One
-//! call returns one page.
+//! call returns one page. With the `stream` feature, a `DataStream` reads a
+//! Market Data stream, subscribed with `Channels`.
 //!
 //! Glob-import one family module at a time: `stocks` has its own
 //! `BarsQuery` and `HistoryQuery`, and `crypto` its own `Bar`.
@@ -23,6 +24,25 @@ pub mod crypto;
 pub mod news;
 pub mod options;
 pub mod stocks;
+#[cfg(feature = "stream")]
+mod stream;
+
+#[cfg(feature = "stream")]
+pub use stream::{Channels, DataMessage, DataStream};
+
+/// How a stream's message type is read; private, so only suri implements
+/// `DataMessage`.
+#[cfg(feature = "stream")]
+mod sealed {
+    pub trait Sealed {
+        /// The stream's name, the `stream` field of its span.
+        const STREAM: &'static str;
+
+        /// Reads one element of a frame, its JSON text; every element
+        /// becomes a message. `credentials` scrub an `error` message.
+        fn decode(element: &str, credentials: &[&str; 2]) -> Self;
+    }
+}
 
 wire_enum! {
     /// The kind of tick a condition code applies to.

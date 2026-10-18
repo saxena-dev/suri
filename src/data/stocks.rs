@@ -1,10 +1,11 @@
 //! Stock market data: historical bars, trades, quotes and auctions, the
-//! latest values and snapshots.
+//! latest values and snapshots, and the stock stream.
 //!
 //! The `Client` methods that return these types: `stock_bars`,
 //! `stock_trades`, `stock_quotes`, `stock_auctions`, `stock_latest_bars`,
 //! `stock_latest_trades`, `stock_latest_quotes`, `stock_snapshots`,
-//! `stock_conditions` and `stock_exchanges`.
+//! `stock_conditions` and `stock_exchanges`; with the `stream` feature,
+//! `stock_stream`, whose messages are `Message`.
 
 use std::collections::BTreeMap;
 use std::fmt;
@@ -18,6 +19,11 @@ use super::{Latest, Series};
 use crate::rest::client::{Endpoint, Host, Request};
 use crate::value::wire::wire_enum;
 use crate::{Client, Date, Error, Inbound, Response, Sort, Timestamp};
+#[cfg(feature = "stream")]
+pub use stream::{Cancel, CancelAction, Correction, Imbalance, Luld, Message, Status, StreamFeed};
+
+#[cfg(feature = "stream")]
+mod stream;
 
 wire_enum! {
     /// A stock data feed. Which feeds an endpoint accepts, and which the

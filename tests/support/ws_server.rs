@@ -181,6 +181,22 @@ pub fn opened(acts: Vec<Act>) -> Step {
     Step::Upgrade(all)
 }
 
+/// A market-data stream's opening, answered successfully: Alpaca's two
+/// messages, the credentials having come in the upgrade's headers.
+pub fn data_opening() -> Vec<Act> {
+    vec![
+        Act::Send(Message::text(r#"[{"T":"success","msg":"connected"}]"#)),
+        Act::Send(Message::text(r#"[{"T":"success","msg":"authenticated"}]"#)),
+    ]
+}
+
+/// The market-data opening followed by the given acts.
+pub fn data_opened(acts: Vec<Act>) -> Step {
+    let mut all = data_opening();
+    all.extend(acts);
+    Step::Upgrade(all)
+}
+
 // The handshake callbacks return tungstenite's own error response type.
 #[allow(clippy::result_large_err)]
 async fn play(tcp: tokio::net::TcpStream, step: Step, seen: Arc<Mutex<Vec<Seen>>>, index: usize) {

@@ -1,10 +1,19 @@
 //! News: articles across stocks and crypto.
 //!
-//! `Client::news` returns these types.
+//! `Client::news` returns these types; with the `stream` feature,
+//! `news_stream` opens the news stream, whose messages are `Message`.
 
 use reqwest::Method;
 use serde::Deserialize;
 
+#[cfg(feature = "stream")]
+use super::sealed::Sealed;
+#[cfg(feature = "stream")]
+use super::stream::{error, head, open, subscription};
+#[cfg(feature = "stream")]
+use super::{Channels, DataMessage, DataStream};
+#[cfg(feature = "stream")]
+use crate::StreamError;
 use crate::rest::client::{Endpoint, Host, Request};
 use crate::value::wire::wire_enum;
 use crate::{Client, Error, Inbound, Response, Sort, Timestamp};
@@ -137,6 +146,65 @@ impl Client {
             request.pair("page_token", page_token.as_str());
         }
         self.send_request(request).await
+    }
+}
+
+/// A message of the news stream that
+/// [`Client::news_stream`](crate::Client::news_stream) opens.
+#[cfg(feature = "stream")]
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq)]
+pub enum Message {
+    /// An article (`n`). The stream sends no images, so `images` is empty.
+    News(Article),
+    /// The whole current subscription, Alpaca's reply to a subscribe or
+    /// unsubscribe.
+    Subscription(Channels),
+    /// An error Alpaca reported; the stream goes on.
+    Error {
+        /// Alpaca's code.
+        code: u16,
+        /// Alpaca's message, scrubbed and bounded.
+        message: String,
+    },
+    /// A message of a known type that suri could not read, as sent.
+    Undecoded(String),
+    /// A message of another type, or not an object, as sent.
+    Other(String),
+}
+
+#[cfg(feature = "stream")]
+impl Sealed for Message {
+    const STREAM: &'static str = "news";
+
+    fn decode(element: &str, credentials: &[&str; 2]) -> Message {
+        let Some(head) = head(element) else {
+            return Message::Other(element.to_owned());
+        };
+        let message = match head.kind.as_str() {
+            "n" => serde_json::from_str(element).ok().map(Message::News),
+            "subscription" => subscription(element).map(Message::Subscription),
+            "error" => {
+                error(element, credentials).map(|(code, message)| Message::Error { code, message })
+            }
+            _ => return Message::Other(element.to_owned()),
+        };
+        message.unwrap_or_else(|| Message::Undecoded(element.to_owned()))
+    }
+}
+
+#[cfg(feature = "stream")]
+impl DataMessage for Message {}
+
+#[cfg(feature = "stream")]
+impl Client {
+    /// Opens the news stream: connects to `/v1beta1/news` on the Market
+    /// Data stream host, authenticated by the key-pair headers, and returns
+    /// once Alpaca confirms the connection, subscribed to nothing. The
+    /// returned value owns the connection and reads it only while
+    /// [`DataStream::next`] or [`DataStream::close`] runs.
+    pub async fn news_stream(&self) -> Result<DataStream<Message>, StreamError> {
+        open(self, "/v1beta1/news", None).await
     }
 }
 

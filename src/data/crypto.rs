@@ -1,17 +1,28 @@
 //! Crypto market data: historical bars, trades and quotes, the latest
-//! values, orderbooks and snapshots, each at a location.
+//! values, orderbooks and snapshots, and the crypto stream, each at a
+//! location.
 //!
 //! The `Client` methods that return these types: `crypto_bars`,
 //! `crypto_trades`, `crypto_quotes`, `crypto_latest_bars`,
 //! `crypto_latest_trades`, `crypto_latest_quotes`,
-//! `crypto_latest_orderbooks` and `crypto_snapshots`. Symbols are pairs such
-//! as `BTC/USD`; they are sent percent-encoded and come back as written.
+//! `crypto_latest_orderbooks` and `crypto_snapshots`; with the `stream`
+//! feature, `crypto_stream`, whose messages are `Message`. Symbols are pairs
+//! such as `BTC/USD`; they are sent percent-encoded and come back as
+//! written.
 
 use reqwest::Method;
 use serde::Deserialize;
 
+#[cfg(feature = "stream")]
+use super::sealed::Sealed;
+#[cfg(feature = "stream")]
+use super::stream::{error, head, open, point, subscription};
 pub use super::{BarsQuery, HistoryQuery, SymbolsQuery, Timeframe};
+#[cfg(feature = "stream")]
+use super::{Channels, DataMessage, DataStream};
 use super::{Latest, Series};
+#[cfg(feature = "stream")]
+use crate::StreamError;
 use crate::rest::client::{Endpoint, Host, Request};
 use crate::value::wire::wire_enum;
 use crate::{Client, Error, Inbound, Response, Timestamp};
@@ -333,6 +344,120 @@ fn latest<'a>(
     let mut request = Request::new(endpoint, segments);
     query.pairs(&mut request);
     request
+}
+
+/// A message of the crypto stream that
+/// [`Client::crypto_stream`](crate::Client::crypto_stream) opens. A data
+/// message carries its pair.
+#[cfg(feature = "stream")]
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq)]
+pub enum Message {
+    /// A trade (`t`).
+    Trade {
+        /// The pair.
+        symbol: String,
+        /// The trade.
+        trade: Trade,
+    },
+    /// A quote (`q`).
+    Quote {
+        /// The pair.
+        symbol: String,
+        /// The quote.
+        quote: Quote,
+    },
+    /// A minute bar (`b`).
+    Bar {
+        /// The pair.
+        symbol: String,
+        /// The bar.
+        bar: Bar,
+    },
+    /// A daily bar (`d`).
+    DailyBar {
+        /// The pair.
+        symbol: String,
+        /// The bar.
+        bar: Bar,
+    },
+    /// An updated minute bar (`u`), revisiting an earlier minute.
+    UpdatedBar {
+        /// The pair.
+        symbol: String,
+        /// The bar.
+        bar: Bar,
+    },
+    /// An orderbook (`o`): the whole book when `reset` is set, else an
+    /// update in which a size of 0 removes the level. Delivered as sent;
+    /// suri applies nothing.
+    Orderbook {
+        /// The pair.
+        symbol: String,
+        /// The book or its update.
+        orderbook: Orderbook,
+    },
+    /// The whole current subscription, Alpaca's reply to a subscribe or
+    /// unsubscribe.
+    Subscription(Channels),
+    /// An error Alpaca reported; the stream goes on.
+    Error {
+        /// Alpaca's code.
+        code: u16,
+        /// Alpaca's message, scrubbed and bounded.
+        message: String,
+    },
+    /// A message of a known type that suri could not read, as sent.
+    Undecoded(String),
+    /// A message of another type, or not an object, as sent.
+    Other(String),
+}
+
+#[cfg(feature = "stream")]
+impl Sealed for Message {
+    const STREAM: &'static str = "crypto";
+
+    fn decode(element: &str, credentials: &[&str; 2]) -> Message {
+        let Some(head) = head(element) else {
+            return Message::Other(element.to_owned());
+        };
+        let symbol = head.symbol;
+        let message = match head.kind.as_str() {
+            "t" => point(element, symbol).map(|(symbol, trade)| Message::Trade { symbol, trade }),
+            "q" => point(element, symbol).map(|(symbol, quote)| Message::Quote { symbol, quote }),
+            "b" => point(element, symbol).map(|(symbol, bar)| Message::Bar { symbol, bar }),
+            "d" => point(element, symbol).map(|(symbol, bar)| Message::DailyBar { symbol, bar }),
+            "u" => point(element, symbol).map(|(symbol, bar)| Message::UpdatedBar { symbol, bar }),
+            "o" => point(element, symbol)
+                .map(|(symbol, orderbook)| Message::Orderbook { symbol, orderbook }),
+            "subscription" => subscription(element).map(Message::Subscription),
+            "error" => {
+                error(element, credentials).map(|(code, message)| Message::Error { code, message })
+            }
+            _ => return Message::Other(element.to_owned()),
+        };
+        message.unwrap_or_else(|| Message::Undecoded(element.to_owned()))
+    }
+}
+
+#[cfg(feature = "stream")]
+impl DataMessage for Message {}
+
+#[cfg(feature = "stream")]
+impl Client {
+    /// Opens the crypto stream of a location: connects to
+    /// `/v1beta3/crypto/{loc}` on the Market Data stream host, authenticated
+    /// by the key-pair headers, and returns once Alpaca confirms the
+    /// connection, subscribed to nothing. Alpaca's stream describes `us`,
+    /// `us-1` and `eu-1`. The returned value owns the connection and reads
+    /// it only while [`DataStream::next`] or [`DataStream::close`] runs.
+    pub async fn crypto_stream(
+        &self,
+        location: Location,
+    ) -> Result<DataStream<Message>, StreamError> {
+        let path = format!("/v1beta3/crypto/{}", location.as_str());
+        open(self, &path, Some(location.as_str())).await
+    }
 }
 
 #[cfg(test)]

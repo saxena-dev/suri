@@ -11,13 +11,14 @@ use std::fmt;
 use std::fmt::Write as _;
 use std::sync::Mutex;
 
+use suri::data::stocks::StreamFeed;
 use suri::{Client, Config, Credentials, Environment, Region};
 use tracing::field::{Field, Visit};
 use tracing::span::{Attributes, Id, Record};
 use tracing::{Event, Subscriber};
 use tracing_subscriber::Layer;
 use tracing_subscriber::layer::{Context, SubscriberExt};
-use ws_server::{Act, WsServer, opened};
+use ws_server::{Act, WsServer, data_opened, opened};
 
 const KEY: &str = "PKSENTINELKEY0001";
 const SECRET: &str = "SECRETSENTINELVALUE0001";
@@ -117,7 +118,8 @@ fn leaks(text: &str) -> bool {
 }
 
 /// The record kinds the contract lists as carrying stream content.
-const DOCUMENTED: [&str; 6] = [
+const DOCUMENTED: [&str; 7] = [
+    "Request:",
     "Sending frame",
     "writing frame",
     "received frame",
@@ -150,6 +152,22 @@ async fn credentials_reach_only_the_documented_records() {
     }
     server.wait_for_frames(0, 3).await;
 
+    // A market-data stream sends the key pair in the upgrade's headers.
+    let server = WsServer::start(vec![data_opened(vec![Act::ReadAll])]);
+    let stream = Client::new(
+        Config::new(
+            Region::US,
+            Environment::Paper,
+            Credentials::api_key(KEY, SECRET),
+        )
+        .with_base_url(&server.url),
+    )
+    .unwrap()
+    .stock_stream(StreamFeed::Iex)
+    .await
+    .unwrap();
+    stream.close().await.1.unwrap();
+
     let lines = LINES.lock().unwrap();
     let client_lines: Vec<&Line> = lines
         .iter()
@@ -174,6 +192,7 @@ async fn credentials_reach_only_the_documented_records() {
             .any(|line| line.text.starts_with(kind) && line.text.contains(SECRET))
     };
     assert!(present("Sending frame"), "the authentication frame");
+    assert!(present("Request:"), "the market-data upgrade's headers");
     assert!(present("Received close frame"), "the close reason");
 
     // Under the documented filter, `tungstenite` at INFO, nothing leaks on

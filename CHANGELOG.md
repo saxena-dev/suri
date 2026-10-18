@@ -97,5 +97,11 @@ All notable changes to suri are listed here. The format follows
   `ChainQuery`.
 - News in `suri::data::news`: `Client::news`, one page of articles per
   call, with `Query`, `Page`, `Article`, `Image` and `ImageSize`.
+- With `stream`, the Market Data streams: `Client::stock_stream`,
+  `crypto_stream` and `news_stream` return a `DataStream` that subscribes
+  and unsubscribes `Channels` and delivers each frame's messages
+  (`stocks::Message`, `crypto::Message`, `news::Message`), with the stock
+  stream's `StreamFeed`, `Correction`, `Cancel`, `CancelAction`, `Luld`,
+  `Status` and `Imbalance`, and `StreamError::code`.
 - With `stream`, the dependencies `tokio-tungstenite`, `futures-util`,
   `rustls` and `rustls-platform-verifier`.

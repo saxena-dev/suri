@@ -90,6 +90,8 @@ struct Inner {
     http: reqwest::Client,
     base_url: url::Url,
     data_url: url::Url,
+    #[cfg(feature = "stream")]
+    data_stream_url: url::Url,
     key_id: HeaderValue,
     secret: HeaderValue,
     /// Kept to scrub them from anything Alpaca echoes back.
@@ -207,6 +209,8 @@ impl Client {
             http,
             base_url: base_urls.trading,
             data_url: base_urls.data,
+            #[cfg(feature = "stream")]
+            data_stream_url: base_urls.data_stream,
             key_id: sensitive_header(&config.credentials.key_id),
             secret: sensitive_header(&config.credentials.secret),
             credentials: config.credentials,
@@ -227,14 +231,26 @@ impl Client {
         &self.0.base_url
     }
 
+    /// The base URL of the Market Data streams.
+    #[cfg(feature = "stream")]
+    pub(crate) fn data_stream_url(&self) -> &url::Url {
+        &self.0.data_stream_url
+    }
+
+    /// The key-pair header values, marked sensitive.
+    #[cfg(feature = "stream")]
+    pub(crate) fn key_headers(&self) -> [&HeaderValue; 2] {
+        [&self.0.key_id, &self.0.secret]
+    }
+
     /// The bound on connecting, TLS included.
     #[cfg(feature = "stream")]
     pub(crate) fn connect_timeout(&self) -> Duration {
         self.0.connect_timeout
     }
 
-    /// The bound on one request; on a stream, on the opening, a liveness wait
-    /// and the close.
+    /// The bound on one request; on a stream, on the opening, a
+    /// subscription's write, a liveness wait and the close.
     #[cfg(feature = "stream")]
     pub(crate) fn request_timeout(&self) -> Duration {
         self.0.request_timeout

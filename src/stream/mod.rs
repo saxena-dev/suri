@@ -1,17 +1,15 @@
-//! The Trading stream over WebSocket: one connection, owned by the value the
-//! caller polls, that never ends without saying so.
+//! The WebSocket core every stream shares: one connection, owned by the
+//! value the caller polls, that never ends without saying so.
 
 use std::fmt;
 use std::sync::Arc;
 
 use futures_util::{SinkExt, StreamExt};
-use serde::{Deserialize, Deserializer, Serialize};
-use serde_json::value::RawValue;
 use tokio::net::TcpStream;
 use tokio::time::Instant;
 use tokio_tungstenite::tungstenite::client::IntoClientRequest;
-use tokio_tungstenite::tungstenite::http::HeaderValue;
 use tokio_tungstenite::tungstenite::http::header::USER_AGENT;
+use tokio_tungstenite::tungstenite::http::{HeaderName, HeaderValue};
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::tungstenite::protocol::{CloseFrame, WebSocketConfig};
 use tokio_tungstenite::tungstenite::{self, Message};
@@ -20,21 +18,8 @@ use tracing::{Instrument, Span};
 
 use crate::Client;
 use crate::rest::error::sanitise;
-use crate::trading::TradeStreamMessage;
-use crate::trading::updates::typed;
 
-type Socket = WebSocketStream<MaybeTlsStream<TcpStream>>;
-
-/// One message of a stream, as Alpaca sent it: the stream's name and its
-/// `data`, the raw JSON text.
-#[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
-pub struct StreamMessage {
-    /// The stream the message belongs to, such as `trade_updates`.
-    pub stream: String,
-    /// The message's `data` member, exactly as sent.
-    pub data: String,
-}
+pub(crate) type Socket = WebSocketStream<MaybeTlsStream<TcpStream>>;
 
 /// What ended a stream, or kept it from opening.
 #[non_exhaustive]
@@ -51,11 +36,12 @@ pub enum StreamErrorKind {
     NotListening,
     /// Alpaca closed the stream.
     Closed,
-    /// Alpaca reported an error on the stream before closing it.
+    /// Alpaca reported an error on the stream.
     Server,
     /// The connection failed.
     Transport,
-    /// A time bound passed: the opening, a liveness Ping or the close.
+    /// A time bound passed: the opening, a subscription, a liveness Ping or
+    /// the close.
     Timeout,
     /// A message was larger than `max_body_bytes`.
     TooLarge,
@@ -66,7 +52,7 @@ pub enum StreamErrorKind {
 }
 
 impl StreamErrorKind {
-    fn as_str(self) -> &'static str {
+    pub(crate) fn as_str(self) -> &'static str {
         match self {
             StreamErrorKind::Tls => "tls",
             StreamErrorKind::Handshake => "handshake",
@@ -85,28 +71,31 @@ impl StreamErrorKind {
 
 /// Where an error arose, which decides what its message says.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Phase {
+pub(crate) enum Phase {
     Opening,
+    Subscribe,
     Next,
     Close,
 }
 
 /// The error of a stream: why it ended or did not open.
 pub struct StreamError {
-    kind: StreamErrorKind,
+    pub(crate) kind: StreamErrorKind,
     phase: Phase,
-    status: Option<u16>,
+    pub(crate) status: Option<u16>,
     close_code: Option<u16>,
-    message: Option<String>,
+    pub(crate) code: Option<u16>,
+    pub(crate) message: Option<String>,
 }
 
 impl StreamError {
-    fn new(kind: StreamErrorKind, phase: Phase) -> StreamError {
+    pub(crate) fn new(kind: StreamErrorKind, phase: Phase) -> StreamError {
         StreamError {
             kind,
             phase,
             status: None,
             close_code: None,
+            code: None,
             message: None,
         }
     }
@@ -126,7 +115,14 @@ impl StreamError {
         self.close_code
     }
 
-    /// For `Closed`, the Close frame's reason; for `Server`, Alpaca's error
+    /// For `Server` or `Unauthorized` ending a market-data stream's
+    /// opening, the code of Alpaca's `error` message.
+    pub fn code(&self) -> Option<u16> {
+        self.code
+    }
+
+    /// For `Closed`, the Close frame's reason; for `Server`, and for
+    /// `Unauthorized` on a market-data stream's opening, Alpaca's error
     /// message. Credentials are replaced with `[REDACTED]`, control
     /// characters with spaces, and the text is cut to 1,024 bytes, as for
     /// [`crate::Error::message`].
@@ -141,6 +137,7 @@ impl fmt::Debug for StreamError {
             .field("kind", &self.kind)
             .field("status", &self.status)
             .field("close_code", &self.close_code)
+            .field("code", &self.code)
             .field("message", &self.message)
             .finish()
     }
@@ -174,6 +171,9 @@ impl fmt::Display for StreamError {
             (StreamErrorKind::Timeout, Phase::Opening) => {
                 f.write_str("the stream did not open within its time bound")?
             }
+            (StreamErrorKind::Timeout, Phase::Subscribe) => {
+                f.write_str("the subscription was not sent within request_timeout")?
+            }
             (StreamErrorKind::Timeout, Phase::Next) => {
                 f.write_str("nothing arrived within request_timeout after a liveness ping")?
             }
@@ -185,6 +185,9 @@ impl fmt::Display for StreamError {
             }
             (StreamErrorKind::Decode, _) => f.write_str("a stream frame was not a message")?,
             (StreamErrorKind::Ended, _) => f.write_str("the stream has already ended")?,
+        }
+        if let Some(code) = self.code {
+            write!(f, " (code {code})")?;
         }
         if let Some(message) = &self.message {
             write!(f, ": {message}")?;
@@ -199,49 +202,76 @@ impl fmt::Display for StreamError {
 
 impl std::error::Error for StreamError {}
 
-/// A frame as sent: a stream message, or the `error` action.
-#[derive(Deserialize)]
-struct WireFrame {
-    stream: Option<String>,
-    action: Option<String>,
-    /// Present whenever the member is, `null` included.
-    #[serde(default, deserialize_with = "present")]
-    data: Option<Box<RawValue>>,
+/// Upgrades to `url` with the TLS configuration, the size limits, the
+/// `User-Agent` and `headers`, within `connect_timeout`, and refuses an
+/// upgrade that claims an extension. The caller bounds the whole opening.
+pub(crate) async fn connect(
+    client: &Client,
+    url: &url::Url,
+    headers: &[(&'static str, &HeaderValue)],
+) -> Result<Socket, StreamError> {
+    let opening = |kind| StreamError::new(kind, Phase::Opening);
+    let tls = tls_config().map_err(|_| opening(StreamErrorKind::Tls))?;
+    let mut request = url
+        .as_str()
+        .into_client_request()
+        .expect("a checked base URL makes a valid request");
+    request.headers_mut().insert(
+        USER_AGENT,
+        HeaderValue::from_static(crate::rest::SURI_USER_AGENT),
+    );
+    for &(name, value) in headers {
+        request
+            .headers_mut()
+            .insert(HeaderName::from_static(name), value.clone());
+    }
+    let max = usize::try_from(client.max_body_bytes())
+        .expect("max_body_bytes is at most 1 GiB, which fits usize");
+    let config = WebSocketConfig::default()
+        .max_message_size(Some(max))
+        .max_frame_size(Some(max));
+    let connect = tokio_tungstenite::connect_async_tls_with_config(
+        request,
+        Some(config),
+        true,
+        Some(Connector::Rustls(Arc::new(tls))),
+    );
+    let (socket, response) = tokio::time::timeout(client.connect_timeout(), connect)
+        .await
+        .map_err(|_| opening(StreamErrorKind::Timeout))?
+        .map_err(|error| failure(error, Phase::Opening))?;
+    if response.headers().contains_key("sec-websocket-extensions") {
+        let mut error = opening(StreamErrorKind::Handshake);
+        error.status = Some(101);
+        return Err(error);
+    }
+    tracing::debug!(name: "connected", target: "suri", "stream connected");
+    Ok(socket)
 }
 
-/// Reads a member that is present, whatever its value, as `Some`.
-fn present<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Option<Box<RawValue>>, D::Error> {
-    Box::<RawValue>::deserialize(deserializer).map(Some)
+/// Reads the next data frame of the opening, skipping Ping and Pong.
+pub(crate) async fn read_opening(
+    client: &Client,
+    socket: &mut Socket,
+) -> Result<Message, StreamError> {
+    let phase = Phase::Opening;
+    loop {
+        match socket.next().await {
+            Some(Ok(Message::Ping(_) | Message::Pong(_) | Message::Frame(_))) => {}
+            Some(Ok(Message::Close(frame))) => {
+                let error = closed(client, frame, phase);
+                flush(socket, client.request_timeout()).await;
+                return Err(error);
+            }
+            Some(Ok(message)) => return Ok(message),
+            Some(Err(error)) => return Err(failure(error, phase)),
+            None => return Err(StreamError::new(StreamErrorKind::Transport, phase)),
+        }
+    }
 }
 
-#[derive(Deserialize)]
-struct ServerError {
-    error_message: Option<String>,
-}
-
-#[derive(Deserialize)]
-struct Authorization {
-    status: String,
-}
-
-#[derive(Deserialize)]
-struct Listening {
-    streams: Vec<String>,
-}
-
-/// The authentication message, its members in the documented order.
-#[derive(Serialize)]
-struct Auth<'a> {
-    action: &'static str,
-    key: &'a str,
-    secret: &'a str,
-}
-
-const LISTEN: &str = r#"{"action":"listen","data":{"streams":["trade_updates"]}}"#;
-
-/// The trade-updates stream: one WebSocket connection, read only while
-/// [`next`](TradeUpdates::next) or [`close`](TradeUpdates::close) runs.
-pub struct TradeUpdates {
+/// An open stream's connection, read only while the caller polls it.
+pub(crate) struct Connection {
     /// `None` once the stream has ended.
     socket: Option<Socket>,
     client: Client,
@@ -251,189 +281,35 @@ pub struct TradeUpdates {
     /// When the outstanding liveness Ping was written.
     ping_written: Option<Instant>,
     /// The error for a Close Alpaca sent, kept until the reply Close is
-    /// flushed, so a cancelled `next` does not lose it.
+    /// flushed, so a cancelled call does not lose it.
     ending: Option<StreamError>,
 }
 
-impl fmt::Debug for TradeUpdates {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("TradeUpdates { .. }")
-    }
-}
-
-impl Client {
-    /// Opens the trade-updates stream: connects to the Trading host's
-    /// `/stream`, authenticates with the client's key pair and listens to
-    /// `trade_updates`. The returned value owns the connection and reads it
-    /// only while [`TradeUpdates::next`] or [`TradeUpdates::close`] runs.
-    pub async fn trade_updates(&self) -> Result<TradeUpdates, StreamError> {
-        let span = tracing::info_span!(target: "suri", "suri.stream", stream = "trade_updates");
-        match self.open_stream().instrument(span.clone()).await {
-            Ok(socket) => Ok(TradeUpdates {
-                socket: Some(socket),
-                client: self.clone(),
-                span,
-                last_frame: Instant::now(),
-                ping_written: None,
-                ending: None,
-            }),
-            Err(error) => {
-                span.in_scope(|| ended(error.kind.as_str()));
-                Err(error)
-            }
+impl Connection {
+    pub(crate) fn new(socket: Socket, client: &Client, span: Span) -> Connection {
+        Connection {
+            socket: Some(socket),
+            client: client.clone(),
+            span,
+            last_frame: Instant::now(),
+            ping_written: None,
+            ending: None,
         }
     }
 
-    async fn open_stream(&self) -> Result<Socket, StreamError> {
-        let opening = |kind| StreamError::new(kind, Phase::Opening);
-        let tls = tls_config().map_err(|_| opening(StreamErrorKind::Tls))?;
-        let mut url = self.base_url().clone();
-        let scheme = if url.scheme() == "https" { "wss" } else { "ws" };
-        url.set_scheme(scheme)
-            .expect("http and https URLs take a ws or wss scheme");
-        url.set_path("/stream");
-        let mut request = url
-            .as_str()
-            .into_client_request()
-            .expect("a checked base URL makes a valid request");
-        request.headers_mut().insert(
-            USER_AGENT,
-            HeaderValue::from_static(crate::rest::SURI_USER_AGENT),
-        );
-        let max = usize::try_from(self.max_body_bytes())
-            .expect("max_body_bytes is at most 1 GiB, which fits usize");
-        let config = WebSocketConfig::default()
-            .max_message_size(Some(max))
-            .max_frame_size(Some(max));
-        let steps = async {
-            let connect = tokio_tungstenite::connect_async_tls_with_config(
-                request,
-                Some(config),
-                true,
-                Some(Connector::Rustls(Arc::new(tls))),
-            );
-            let (mut socket, response) = tokio::time::timeout(self.connect_timeout(), connect)
-                .await
-                .map_err(|_| opening(StreamErrorKind::Timeout))?
-                .map_err(|error| failure(error, Phase::Opening))?;
-            if response.headers().contains_key("sec-websocket-extensions") {
-                let mut error = opening(StreamErrorKind::Handshake);
-                error.status = Some(101);
-                return Err(error);
-            }
-            tracing::debug!(name: "connected", target: "suri", "stream connected");
-
-            let [key, secret] = self.credentials();
-            let auth = serde_json::to_string(&Auth {
-                action: "auth",
-                key,
-                secret,
-            })
-            .expect("the authentication message serialises");
-            send(&mut socket, Message::text(auth), Phase::Opening).await?;
-            let reply = self.read(&mut socket).await?;
-            match authorization(&reply) {
-                Some(true) => {}
-                Some(false) => return Err(opening(StreamErrorKind::Unauthorized)),
-                None => return Err(opening(StreamErrorKind::Decode)),
-            }
-            tracing::debug!(name: "authenticated", target: "suri", "stream authenticated");
-
-            send(&mut socket, Message::text(LISTEN), Phase::Opening).await?;
-            let reply = self.read(&mut socket).await?;
-            if authorization(&reply) == Some(false) {
-                return Err(opening(StreamErrorKind::Unauthorized));
-            }
-            if reply.stream != "listening" {
-                return Err(opening(StreamErrorKind::Decode));
-            }
-            let listening: Listening =
-                serde_json::from_str(&reply.data).map_err(|_| opening(StreamErrorKind::Decode))?;
-            if !listening.streams.iter().any(|name| name == "trade_updates") {
-                return Err(opening(StreamErrorKind::NotListening));
-            }
-            tracing::debug!(name: "listening", target: "suri", "stream listening");
-            Ok(socket)
-        };
-        tokio::time::timeout(self.request_timeout(), steps)
-            .await
-            .map_err(|_| opening(StreamErrorKind::Timeout))?
+    pub(crate) fn client(&self) -> &Client {
+        &self.client
     }
 
-    /// Reads one stream message during the opening, skipping Ping and Pong.
-    async fn read(&self, socket: &mut Socket) -> Result<StreamMessage, StreamError> {
-        let phase = Phase::Opening;
-        loop {
-            match socket.next().await {
-                Some(Ok(Message::Ping(_) | Message::Pong(_) | Message::Frame(_))) => {}
-                Some(Ok(Message::Close(frame))) => {
-                    let error = self.closed(frame, phase);
-                    flush(socket, self.request_timeout()).await;
-                    return Err(error);
-                }
-                Some(Ok(message)) => return self.message(message, phase),
-                Some(Err(error)) => return Err(failure(error, phase)),
-                None => return Err(StreamError::new(StreamErrorKind::Transport, phase)),
-            }
-        }
+    pub(crate) fn span(&self) -> &Span {
+        &self.span
     }
 
-    /// A data frame as a stream message, or the error it ends the stream with.
-    fn message(&self, message: Message, phase: Phase) -> Result<StreamMessage, StreamError> {
-        let decode = || StreamError::new(StreamErrorKind::Decode, phase);
-        let bytes = match &message {
-            Message::Text(text) => text.as_bytes(),
-            Message::Binary(bytes) => bytes,
-            _ => return Err(decode()),
-        };
-        let frame: WireFrame = serde_json::from_slice(bytes).map_err(|_| decode())?;
-        if frame.action.as_deref() == Some("error") {
-            let text = frame
-                .data
-                .and_then(|data| serde_json::from_str::<ServerError>(data.get()).ok())
-                .and_then(|data| data.error_message);
-            let mut error = StreamError::new(StreamErrorKind::Server, phase);
-            error.message = text.map(|text| sanitise(&text, &self.credentials()));
-            return Err(error);
-        }
-        match (frame.stream, frame.data) {
-            (Some(stream), Some(data)) => Ok(StreamMessage {
-                stream,
-                data: data.get().to_owned(),
-            }),
-            _ => Err(decode()),
-        }
-    }
-
-    /// The error for a server Close. The caller flushes the reply Close the
-    /// library queued before the socket is dropped.
-    fn closed(&self, frame: Option<CloseFrame>, phase: Phase) -> StreamError {
-        let mut error = StreamError::new(StreamErrorKind::Closed, phase);
-        if let Some(frame) = frame {
-            error.close_code = Some(u16::from(frame.code));
-            if !frame.reason.is_empty() {
-                error.message = Some(sanitise(frame.reason.as_str(), &self.credentials()));
-            }
-        }
-        error
-    }
-}
-
-impl TradeUpdates {
-    /// The next message: a trade update, a `trade_updates` message suri
-    /// could not read (kept as sent), or a message of another stream. Ping
-    /// and Pong frames are handled and never delivered. After `request_timeout` without any frame, a Ping is sent;
-    /// if nothing arrives within another `request_timeout`, the stream ends
-    /// with `Timeout`. Every end other than [`close`](TradeUpdates::close)
-    /// is an error saying later messages may be lost, and every later call
-    /// returns `Ended`. Cancel-safe: dropping the future loses no message.
-    pub async fn next(&mut self) -> Result<TradeStreamMessage, StreamError> {
-        let span = self.span.clone();
-        let message = self.next_message().instrument(span).await?;
-        Ok(typed(message))
-    }
-
-    async fn next_message(&mut self) -> Result<StreamMessage, StreamError> {
+    /// The next data frame. Ping and Pong frames are handled; after
+    /// `request_timeout` without any frame a Ping is sent, and if nothing
+    /// arrives within another `request_timeout` the stream ends with
+    /// `Timeout`. Cancel-safe: nothing is awaited after a frame is read.
+    pub(crate) async fn next_frame(&mut self) -> Result<Message, StreamError> {
         let wait = self.client.request_timeout();
         loop {
             let Some(socket) = self.socket.as_mut() else {
@@ -457,14 +333,9 @@ impl TradeUpdates {
                         Some(Ok(Message::Close(frame))) => {
                             // Kept before any await; the loop flushes the
                             // reply and returns it.
-                            self.ending = Some(self.client.closed(frame, Phase::Next));
+                            self.ending = Some(closed(&self.client, frame, Phase::Next));
                         }
-                        Some(Ok(message)) => {
-                            return match self.client.message(message, Phase::Next) {
-                                Ok(message) => Ok(message),
-                                Err(error) => Err(self.end(error)),
-                            };
-                        }
+                        Some(Ok(message)) => return Ok(message),
                         Some(Err(error)) => return Err(self.end(failure(error, Phase::Next))),
                         None => {
                             let error = StreamError::new(StreamErrorKind::Transport, Phase::Next);
@@ -489,18 +360,43 @@ impl TradeUpdates {
         }
     }
 
+    /// Writes one frame and flushes it within `request_timeout`. A failure
+    /// ends the stream; a Close already read by a cancelled call is
+    /// returned instead, and nothing is written.
+    pub(crate) async fn write(&mut self, message: Message) -> Result<(), StreamError> {
+        let wait = self.client.request_timeout();
+        let Some(socket) = self.socket.as_mut() else {
+            return Err(StreamError::new(StreamErrorKind::Ended, Phase::Subscribe));
+        };
+        if self.ending.is_some() {
+            flush(socket, wait).await;
+            let error = self.ending.take().expect("checked above");
+            return Err(self.end(error));
+        }
+        match tokio::time::timeout(wait, socket.send(message)).await {
+            Ok(Ok(())) => Ok(()),
+            Ok(Err(error)) => Err(self.end(failure(error, Phase::Subscribe))),
+            Err(_) => {
+                let error = StreamError::new(StreamErrorKind::Timeout, Phase::Subscribe);
+                Err(self.end(error))
+            }
+        }
+    }
+
     /// Ends the stream: drops the socket and emits the `ended` event.
-    fn end(&mut self, error: StreamError) -> StreamError {
+    pub(crate) fn end(&mut self, error: StreamError) -> StreamError {
         self.socket = None;
         ended(error.kind.as_str());
         error
     }
 
-    /// Closes the stream: sends a Close frame and reads until Alpaca's Close
-    /// arrives or `request_timeout` passes. Returns every message read
-    /// meanwhile, whatever the outcome. Not cancel-safe: dropping the future
-    /// drops the connection and the messages read so far.
-    pub async fn close(mut self) -> (Vec<TradeStreamMessage>, Result<(), StreamError>) {
+    /// Sends a Close frame and reads until Alpaca's Close arrives or
+    /// `request_timeout` passes, returning what `decode` makes of every
+    /// data frame read meanwhile, whatever the outcome.
+    pub(crate) async fn close<T>(
+        mut self,
+        mut decode: impl FnMut(&Client, Message) -> Result<Vec<T>, StreamError>,
+    ) -> (Vec<T>, Result<(), StreamError>) {
         let span = self.span.clone();
         async move {
             let Some(mut socket) = self.socket.take() else {
@@ -509,8 +405,8 @@ impl TradeUpdates {
                     Err(StreamError::new(StreamErrorKind::Ended, Phase::Close)),
                 );
             };
-            // Alpaca's Close, read by a cancelled `next`, ends the stream
-            // as `next` would have reported it.
+            // Alpaca's Close, read by a cancelled call, ends the stream as
+            // `next` would have reported it.
             if let Some(error) = self.ending.take() {
                 flush(&mut socket, self.client.request_timeout()).await;
                 ended(error.kind.as_str());
@@ -527,9 +423,7 @@ impl TradeUpdates {
                     match socket.next().await {
                         Some(Ok(Message::Close(_))) => return Ok(()),
                         Some(Ok(Message::Ping(_) | Message::Pong(_) | Message::Frame(_))) => {}
-                        Some(Ok(message)) => {
-                            messages.push(typed(self.client.message(message, Phase::Close)?))
-                        }
+                        Some(Ok(message)) => messages.extend(decode(&self.client, message)?),
                         Some(Err(error)) => return Err(failure(error, Phase::Close)),
                         None => {
                             return Err(StreamError::new(StreamErrorKind::Transport, Phase::Close));
@@ -552,8 +446,25 @@ impl TradeUpdates {
     }
 }
 
+/// The error for a server Close. The caller flushes the reply Close the
+/// library queued before the socket is dropped.
+fn closed(client: &Client, frame: Option<CloseFrame>, phase: Phase) -> StreamError {
+    let mut error = StreamError::new(StreamErrorKind::Closed, phase);
+    if let Some(frame) = frame {
+        error.close_code = Some(u16::from(frame.code));
+        if !frame.reason.is_empty() {
+            error.message = Some(sanitise(frame.reason.as_str(), &client.credentials()));
+        }
+    }
+    error
+}
+
 /// Writes one frame, mapping a failure to the stream's error.
-async fn send(socket: &mut Socket, message: Message, phase: Phase) -> Result<(), StreamError> {
+pub(crate) async fn send(
+    socket: &mut Socket,
+    message: Message,
+    phase: Phase,
+) -> Result<(), StreamError> {
     socket
         .send(message)
         .await
@@ -564,20 +475,6 @@ async fn send(socket: &mut Socket, message: Message, phase: Phase) -> Result<(),
 /// `wait`; the stream is ending or opening either way.
 async fn flush(socket: &mut Socket, wait: std::time::Duration) {
     let _ = tokio::time::timeout(wait, socket.flush()).await;
-}
-
-/// Whether a message is the authorization reply, and if so whether it
-/// authorised the connection.
-fn authorization(message: &StreamMessage) -> Option<bool> {
-    if message.stream != "authorization" {
-        return None;
-    }
-    let reply: Authorization = serde_json::from_str(&message.data).ok()?;
-    match reply.status.as_str() {
-        "authorized" => Some(true),
-        "unauthorized" => Some(false),
-        _ => None,
-    }
 }
 
 /// The stream error for a WebSocket library error.
@@ -596,7 +493,7 @@ fn failure(error: tungstenite::Error, phase: Phase) -> StreamError {
 }
 
 /// Emits the `ended` event, once per stream.
-fn ended(kind: &'static str) {
+pub(crate) fn ended(kind: &'static str) {
     tracing::debug!(name: "ended", target: "suri", kind, "stream ended");
 }
 
@@ -615,11 +512,25 @@ fn tls_config() -> Result<rustls::ClientConfig, rustls::Error> {
 
 #[cfg(test)]
 mod tests {
-    use super::tls_config;
+    use super::{Phase, StreamError, StreamErrorKind, tls_config};
 
     #[test]
     fn the_tls_configuration_offers_no_alpn() {
         let config = tls_config().unwrap();
         assert!(config.alpn_protocols.is_empty());
+    }
+
+    #[test]
+    fn a_subscription_error_says_later_messages_may_be_lost() {
+        let timeout = StreamError::new(StreamErrorKind::Timeout, Phase::Subscribe);
+        assert_eq!(
+            timeout.to_string(),
+            "the subscription was not sent within request_timeout; later messages may be lost"
+        );
+        let failed = StreamError::new(StreamErrorKind::Transport, Phase::Subscribe);
+        assert_eq!(
+            failed.to_string(),
+            "the stream's connection failed; later messages may be lost"
+        );
     }
 }

@@ -40,12 +40,34 @@ pub(crate) fn data_host(region: Region) -> &'static str {
     }
 }
 
+/// The Market Data streams' host for a region, shared by paper and live.
+#[cfg(feature = "stream")]
+pub(crate) fn data_stream_host(region: Region) -> &'static str {
+    match region {
+        Region::US => "wss://stream.data.alpaca.markets",
+    }
+}
+
+/// A base URL with its scheme made the WebSocket one: `https` becomes
+/// `wss`, `http` (a loopback override) `ws`.
+#[cfg(feature = "stream")]
+pub(crate) fn websocket(url: &url::Url) -> url::Url {
+    let mut url = url.clone();
+    let scheme = if url.scheme() == "https" { "wss" } else { "ws" };
+    url.set_scheme(scheme)
+        .expect("http and https URLs take a ws or wss scheme");
+    url
+}
+
 /// The base URL of each API family a client calls.
 pub(crate) struct BaseUrls {
     /// The Trading API.
     pub(crate) trading: url::Url,
     /// Market Data.
     pub(crate) data: url::Url,
+    /// The Market Data streams.
+    #[cfg(feature = "stream")]
+    pub(crate) data_stream: url::Url,
 }
 
 /// An API key pair: the key ID and its secret.
@@ -122,9 +144,9 @@ impl Config {
     }
 
     /// The longest one request may take, from connecting until the whole
-    /// response body has arrived; for a stream, its opening, the silence
-    /// before a liveness Ping and the wait after it, and its close (1 ms to
-    /// 10 min).
+    /// response body has arrived; for a stream, its opening, a
+    /// subscription's write, the silence before a liveness Ping and the wait
+    /// after it, and its close (1 ms to 10 min).
     pub fn with_request_timeout(mut self, timeout: Duration) -> Self {
         self.request_timeout = timeout;
         self
@@ -305,12 +327,16 @@ pub(crate) fn check(config: &Config) -> Result<BaseUrls, ConfigError> {
             let url = check_base_url(text)?;
             BaseUrls {
                 trading: url.clone(),
+                #[cfg(feature = "stream")]
+                data_stream: websocket(&url),
                 data: url,
             }
         }
         None => BaseUrls {
             trading: host(trading_host(config.region, config.environment)),
             data: host(data_host(config.region)),
+            #[cfg(feature = "stream")]
+            data_stream: host(data_stream_host(config.region)),
         },
     };
     let between = |value, low, high| (low..=high).contains(&value);
@@ -368,6 +394,14 @@ mod tests {
         // Paper and live read market data from the same host.
         assert_eq!(paper.data.as_str(), "https://data.alpaca.markets/");
         assert_eq!(live.data.as_str(), "https://data.alpaca.markets/");
+        // So do the market-data streams.
+        #[cfg(feature = "stream")]
+        for urls in [&paper, &live] {
+            assert_eq!(
+                urls.data_stream.as_str(),
+                "wss://stream.data.alpaca.markets/"
+            );
+        }
     }
 
     #[test]
@@ -381,5 +415,21 @@ mod tests {
         let urls = check(&config).unwrap();
         assert_eq!(urls.trading.as_str(), "http://127.0.0.1:9/");
         assert_eq!(urls.data.as_str(), "http://127.0.0.1:9/");
+        #[cfg(feature = "stream")]
+        assert_eq!(urls.data_stream.as_str(), "ws://127.0.0.1:9/");
+    }
+
+    #[cfg(feature = "stream")]
+    #[test]
+    fn a_websocket_url_keeps_all_but_the_scheme() {
+        let url = |text| url::Url::parse(text).unwrap();
+        assert_eq!(
+            websocket(&url("https://example.com:8443/")).as_str(),
+            "wss://example.com:8443/"
+        );
+        assert_eq!(
+            websocket(&url("http://127.0.0.1:9/")).as_str(),
+            "ws://127.0.0.1:9/"
+        );
     }
 }

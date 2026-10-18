@@ -8,7 +8,8 @@ endpoints in the first release's scope (below), each change sent at most
 once and never retried, and its `trade_updates` stream behind the
 `stream` feature. Market data is under way: stocks (bars, trades,
 quotes, auctions, latest values, snapshots and code tables), crypto,
-options and news so far. The crate is being built in the open,
+options and news so far, and the stock, crypto and news streams. The
+crate is being built in the open,
 one tested piece at a time.
 
 ## Scope of 0.1.0
@@ -26,7 +27,8 @@ also needs a C compiler, for the TLS library's cryptography, and on 32-bit
 x86 Windows the NASM assembler as well.
 
 The `stream` feature, off by default, adds the Trading API's
-`trade_updates` stream over WebSocket; it requires `rest`.
+`trade_updates` stream and the Market Data streams for stocks, crypto and
+news over WebSocket; it requires `rest`.
 
 ## What suri promises
 

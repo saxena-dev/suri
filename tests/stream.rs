@@ -371,7 +371,9 @@ async fn a_quiet_healthy_stream_stays_open() {
         .iter()
         .filter(|frame| matches!(frame, Received::Ping(_)))
         .count();
-    assert!(pings >= 2, "{:?}", server.seen());
+    // One Ping per quiet interval: each Pong restarts the clock. A Ping per
+    // round trip would send many more.
+    assert!((2..=4).contains(&pings), "{:?}", server.seen());
 }
 
 // real-time: as above.
@@ -381,7 +383,10 @@ async fn an_unanswered_ping_times_out() {
     let server = WsServer::start(vec![opened(vec![Act::Pause(interval * 10)])]);
     let mut stream = quick(&server, interval).trade_updates().await.unwrap();
     let started = tokio::time::Instant::now();
-    let error = stream.next().await.unwrap_err();
+    let error = tokio::time::timeout(interval * 8, stream.next())
+        .await
+        .expect("the liveness bound ends the wait")
+        .unwrap_err();
     assert_eq!(error.kind(), StreamErrorKind::Timeout);
     assert!(started.elapsed() < interval * 4, "{:?}", started.elapsed());
     assert!(error.to_string().contains("later messages may be lost"));
@@ -410,6 +415,10 @@ async fn cancelling_next_leaves_the_liveness_clock_alone() {
     let mut stream = quick(&server, interval).trade_updates().await.unwrap();
     let started = tokio::time::Instant::now();
     let error = loop {
+        assert!(
+            started.elapsed() < interval * 8,
+            "the liveness bound never ended the stream"
+        );
         match tokio::time::timeout(interval / 7, stream.next()).await {
             Ok(result) => break result.unwrap_err(),
             Err(_) => continue,

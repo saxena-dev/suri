@@ -114,7 +114,7 @@ bad value fails when the client is built, never at request time.
   | Value | Default | Allowed |
   |---|---|---|
   | `connect_timeout`: connecting, TLS included; for a stream, the WebSocket upgrade as well | 10 s | 1 ms to 60 s, and no longer than `request_timeout` |
-  | `request_timeout`: one request, from connecting until the whole body has arrived; for a stream, its opening, the silence before a liveness Ping and the wait after it, and its close | 30 s | 1 ms to 10 min |
+  | `request_timeout`: one request, from connecting until the whole body has arrived; for a stream, its opening, a subscription's write, the silence before a liveness Ping and the wait after it, and its close | 30 s | 1 ms to 10 min |
   | `max_body_bytes`: the largest response body, or stream message, read | 32 MiB | 1 KiB to 1 GiB |
   | `read_deadline`: a read's attempts and waits together, from the start of the first | 60 s | No shorter than `request_timeout`, at most 1 h |
   | `retry_base`: the backoff after a read's first attempt, doubled after each later one | 250 ms | 1 ms to 10 s |
@@ -267,21 +267,25 @@ is recorded.
   libraries at TRACE, with requests that succeed, fail, retry and have
   Alpaca echo the credentials back, and find none. No filter is needed.
 - **Streams** (the `stream` feature): one span per stream, `suri.stream`,
-  level INFO, target `suri`, with the field `stream` (`trade_updates`),
-  covering the opening and every `next` and `close` call. Its events, level
-  DEBUG: `connected`, `authenticated`, `listening`, `ping` (suri sent a
-  liveness Ping), and `ended`, once, when the stream ends for any reason
+  level INFO, target `suri`, with the field `stream` (`trade_updates`,
+  `stocks`, `crypto` or `news`) and, on the stock and crypto streams,
+  `feed` (the stock feed's name, such as `iex` or `delayed_sip`, or the
+  crypto location, such as `us-1`), covering the opening and every
+  `subscribe`, `unsubscribe`, `next` and `close` call. Its events, level
+  DEBUG: `connected`, `authenticated`, `listening` (`trade_updates`
+  only), `ping` (suri sent a liveness Ping), and `ended`, once, when the stream ends for any reason
   other than being dropped, with the field `kind` (the error kind in snake
   case, such as `closed` or `transport`, or `closed_by_caller`). Never
   recorded: the URL, a frame or message, a close reason, Alpaca's message,
   a header value or a credential.
 - **The WebSocket library, `tungstenite`, does log credentials.** The
   Trading stream authenticates with a message carrying the key ID and
-  secret, and `tungstenite` logs through `log`:
+  secret, a Market Data stream with headers carrying them, and
+  `tungstenite` logs through `log`:
 
   | Target | Level | Record | What it holds |
   |---|---|---|---|
-  | `tungstenite::handshake::client` | TRACE | the upgrade request | every request header (no credential) |
+  | `tungstenite::handshake::client` | TRACE | the upgrade request | every request header, the key ID and secret of a Market Data stream included |
   | `tungstenite::protocol` | TRACE | `Sending frame` | every frame suri writes, as text: the authentication message with the key ID and secret, and the reply to a Close, which repeats its reason |
   | `tungstenite::protocol::frame` | TRACE | `writing frame`, `received frame` | every frame written or read, its payload in hex: the same content |
   | `tungstenite::protocol` | TRACE | `Received message` | every message read, as text |
@@ -290,8 +294,9 @@ is recorded.
   Filter `tungstenite` at INFO or above (for example `tungstenite=info`) to
   drop every one of them. `tokio_tungstenite` logs at TRACE and DEBUG
   without frame contents. suri's tests capture every record at TRACE during
-  a stream whose server echoes the credentials in its close reason, and
-  find them only in these records, and in none once the filter applies.
+  a stream whose server echoes the credentials in its close reason and
+  during a Market Data stream's opening, and find them only in these
+  records, and in none once the filter applies.
 
 ## Response fields
 
@@ -473,7 +478,8 @@ since the ID forms cover every operation.
 ## Streams
 
 The `stream` feature (off by default; it requires `rest`) adds the Trading
-API's `trade_updates` stream.
+API's `trade_updates` stream and the Market Data streams (see "Market
+data" below).
 
 - **Opening.** `Client::trade_updates` connects to the client's host with
   the scheme `wss` (or `ws` for a loopback `http` base URL) and the path
@@ -539,6 +545,74 @@ API's `trade_updates` stream.
   message as sent, and the stream goes on. A message of any other stream
   is `TradeStreamMessage::Other`, as sent. `close` returns its messages
   typed the same way.
+
+### Market data
+
+`Client::stock_stream`, `Client::crypto_stream` and `Client::news_stream`
+open the Market Data streams on `wss://stream.data.alpaca.markets`, paper
+and live alike (a base-URL override replaces the host, with the scheme
+`ws` or `wss`): a stock stream at the path its `StreamFeed` names
+(`/v2/sip`, `/v2/iex`, `/v2/delayed_sip`, `/v1beta1/boats`,
+`/v1beta1/overnight`, or the test stream `/v2/test`, open at all hours
+with the symbol `FAKEPACA`), the crypto stream of a `Location` at
+`/v1beta3/crypto/{loc}` (Alpaca's stream describes `us`, `us-1` and
+`eu-1`), and news at `/v1beta1/news`. Each returns a `DataStream` of its
+family's `Message` (`stocks::Message`, `crypto::Message`,
+`news::Message`), subscribed to nothing.
+
+- **Opening.** The key ID and secret go in the upgrade's
+  `APCA-API-KEY-ID` and `APCA-API-SECRET-KEY` headers, so no frame
+  carries them, and suri writes nothing before the first `subscribe`. The
+  stream opens once Alpaca's `connected` and `authenticated` messages
+  arrive, in that order, each alone in its frame; another message in
+  their place is `Decode`. An `error` message during the opening ends it:
+  code 402 is `Unauthorized`, any other code `Server`, each with
+  `StreamError::code` and Alpaca's message, scrubbed. The time bounds,
+  TLS, `Handshake` and the refusal of an extension are as for
+  `trade_updates`.
+- **Subscriptions.** `subscribe` and `unsubscribe` send a `Channels`: its
+  non-empty channels, in the documented order, each a list of symbols
+  (`"*"` for every symbol). Each returns once the message is written,
+  within `request_timeout`; Alpaca's reply, the whole current
+  subscription, arrives through `next` as a `Subscription` message, or an
+  `Error` message. A failed write ends the stream, and a write not done in
+  time ends it with `Timeout`. Neither call is cancel-safe: a dropped
+  future may or may not have sent the message. A channel a stream does
+  not offer is Alpaca's to refuse.
+- **One frame per call.** `next` returns the messages of one frame, in the
+  order sent, never an empty list (an empty frame is skipped); suri holds
+  nothing between calls. Text and binary frames are both read as one
+  JSON array; a frame that is anything else ends the stream with
+  `Decode`. `close` returns the messages of every frame read while
+  closing.
+- **Every message reaches the caller.** A message of a type (`T`) suri
+  knows that reads as its model is typed, a data message with its symbol
+  (`S`). A known type that does not read, a data message without its
+  symbol included, is `Undecoded`, holding its JSON text as sent. An
+  unknown type, a `success` after the opening, an element that is not an
+  object, or one whose `T` or `S` is not text, is `Other`, as sent.
+  Neither ends the stream.
+- **Messages.** Stocks: trades, quotes, minute, daily and updated bars
+  (the REST models), trade corrections, trade cancels and errors, LULD
+  bands, trading statuses (their codes kept as text) and order
+  imbalances. Crypto: trades, quotes, bars and orderbooks; an orderbook
+  with `reset` set is the whole book, one without it an update in which a
+  size of 0 removes the level, and suri delivers each as sent. News:
+  articles, as `news::Article`, without images.
+- **Errors.** No `error` message ends a stream after the opening; it
+  arrives as an `Error` message with Alpaca's code and scrubbed message:
+
+  | Code | Meaning | During the opening | After it |
+  |---|---|---|---|
+  | 402 | auth failed | `Unauthorized` | `Error` message |
+  | 405 | symbol limit exceeded; the subscription is unchanged | `Server` | `Error` message |
+  | 407 | slow client; it may not precede the disconnect | `Server` | `Error` message; the Close that follows ends the stream |
+  | 400, 401, 403, 404, 406, 409, 410, 500, any other | as Alpaca documents them | `Server` | `Error` message |
+
+- **No compression.** suri offers no WebSocket extension, so every frame
+  arrives uncompressed, a `"*"` subscription included.
+- **Shared rules.** Polling, liveness, the ends, `Ended`, closing and
+  scrubbing are as for `trade_updates`.
 
 ## Market data
 
@@ -713,9 +787,13 @@ error. A `CalendarQuery`'s `start` and `end` are sent as dates
 | Stream ownership | The stream value owns its connection and reads it only while the caller polls; no background task, no queue | Nothing can be dropped inside suri, and there is no overload to report; the caller decides when to read |
 | Stream liveness | A Ping after `request_timeout` without any frame while polled, and `Timeout` after another `request_timeout` | A connection that died without a Close would otherwise leave `next` waiting forever; Alpaca documents no keep-alive for this stream |
 | Stream reconnection | None; the caller opens a new stream | Reconnecting hides a gap the caller cannot see, and the stream has no resume key |
-| Stream authentication | The documented `auth` message, not alpaca-py's `authenticate` form | The docs are the specification |
+| Trade-updates authentication | The documented `auth` message, not alpaca-py's `authenticate` form | The docs are the specification |
 | Stream feature | Off by default and requires `rest` | Most callers use REST; the stream reuses the client and its types |
 | Unreadable trade updates | Delivered as sent (`Undecoded`); the stream goes on | A stream message cannot be fetched again; the raw message keeps its order ID for the caller to reconcile, and ending the stream would lose every later update too |
+| Market-data authentication | The key-pair headers on the upgrade | The docs offer them beside an `auth` message; headers keep the secret out of every frame |
+| Market-data error codes | During the opening every `error` ends it (402 `Unauthorized`, others `Server`); after it, none ends the stream by itself | The stream is unusable until authenticated; the docs never say an error ends an open stream, 405 leaves it as it was, and the disconnect that may follow 407 is a Close |
+| One frame per call | `DataStream::next` returns one frame's messages; suri keeps no queue | Nothing waits inside suri to be dropped, and a call stays cancel-safe |
+| Stream compression | None offered; every frame arrives uncompressed | Offering it is a later, additive change once a need is measured |
 | Market Data host | `https://data.alpaca.markets` for paper and live; the base-URL override replaces it | Paper Trading users read market data from the production host; the sandbox data host is for Broker partners |
 | Single-symbol stock endpoints | Not offered; pass one symbol to the multi-symbol method | They return the same data in another envelope |
 | Request times | `start`, `end` and `updated_since` take a `Timestamp` only | The docs accept a bare date without saying in which time zone it is read |

@@ -19,11 +19,9 @@ mod clock;
 mod orders;
 mod positions;
 #[cfg(feature = "stream")]
-pub(crate) mod updates;
+mod updates;
 mod watchlists;
 
-#[cfg(feature = "stream")]
-pub use crate::stream::{StreamMessage, TradeUpdates};
 pub use account::{
     Account, AccountConfigurations, AccountStatus, ActivitiesQuery, Activity, ActivityCategory,
     ActivityFilter, ActivityStatus, ActivityType, ConfigurationsUpdate, FillType, HistoryRange,
@@ -45,5 +43,7 @@ pub use orders::{
 };
 pub use positions::{ClosePosition, ClosedPosition, Position, PositionSide, UsdPositionValues};
 #[cfg(feature = "stream")]
-pub use updates::{LegFill, TradeEvent, TradeStreamMessage, TradeUpdate};
+pub use updates::{
+    LegFill, StreamMessage, TradeEvent, TradeStreamMessage, TradeUpdate, TradeUpdates,
+};
 pub use watchlists::{CreateWatchlist, Watchlist, WatchlistUpdate};

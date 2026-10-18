@@ -3,6 +3,8 @@
 
 #![cfg(feature = "rest")]
 
+use std::time::Duration;
+
 #[path = "support/fixture.rs"]
 mod fixture;
 #[path = "support/order.rs"]
@@ -362,6 +364,19 @@ async fn an_item_without_its_id_or_status_fails_the_list() {
     }
 }
 
+/// A client with the default four attempts, so a read in the same
+/// situation would reach a server's second step.
+fn retrying_client(server: &Server) -> Client {
+    let config = Config::new(
+        Region::US,
+        Environment::Paper,
+        Credentials::api_key("PKSENTINELKEY0001", SECRET),
+    )
+    .with_base_url(&server.url)
+    .with_retry_base(Duration::from_millis(1));
+    Client::new(config).unwrap()
+}
+
 /// A server that fails the first request with a 503 and keeps a success for
 /// a second one, which a retry would reach.
 fn failing_once(spare: &[u8]) -> Server {
@@ -377,7 +392,7 @@ async fn each_mutation_is_made_once() {
 
     let server = failing_once(&order);
     let replace = ReplaceOrderRequest::new();
-    let error = client(&server)
+    let error = retrying_client(&server)
         .replace_order(&order_id(), &replace)
         .await
         .unwrap_err();
@@ -386,15 +401,31 @@ async fn each_mutation_is_made_once() {
     assert_eq!(server.requests().len(), 1);
 
     let server = failing_once(b"");
-    let error = client(&server).cancel_order(&order_id()).await.unwrap_err();
+    let error = retrying_client(&server)
+        .cancel_order(&order_id())
+        .await
+        .unwrap_err();
     assert_eq!(error.status(), Some(503));
     assert_eq!(error.client_order_id(), None);
     assert_eq!(server.requests().len(), 1);
 
     let server = failing_once(b"[]");
-    let error = client(&server).cancel_all_orders().await.unwrap_err();
+    let error = retrying_client(&server)
+        .cancel_all_orders()
+        .await
+        .unwrap_err();
     assert_eq!(error.status(), Some(503));
     assert_eq!(server.requests().len(), 1);
+}
+
+#[tokio::test]
+async fn a_read_in_the_same_situation_is_retried() {
+    let server = failing_once(&fixture::upstream(BY_ID).body);
+    retrying_client(&server)
+        .order(&order_id(), false)
+        .await
+        .unwrap();
+    assert_eq!(server.requests().len(), 2);
 }
 
 #[tokio::test]

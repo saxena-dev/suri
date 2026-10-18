@@ -12,7 +12,7 @@ use suri::trading::StreamMessage;
 use suri::trading::{TradeStreamMessage, TradeUpdates};
 use suri::{Client, Config, Credentials, Environment, Region, StreamErrorKind};
 use tokio_tungstenite::tungstenite::Message;
-use ws_server::{Act, Received, Step, WsServer, bounded, opened, opening};
+use ws_server::{Act, Received, Step, WsServer, bounded, flood, opened, opening};
 
 const KEY: &str = "PKSENTINELKEY0001";
 const SECRET: &str = "SECRETSENTINELVALUE0001";
@@ -488,8 +488,10 @@ async fn cancelling_next_leaves_the_liveness_clock_alone() {
 #[tokio::test]
 async fn a_cancelled_next_loses_no_message() {
     bounded(async {
+        // The server holds its message until the test has given up once.
+        let (open_gate, gate) = std::sync::mpsc::channel();
         let server = WsServer::start(vec![opened(vec![
-            Act::Pause(Duration::from_millis(200)),
+            Act::WaitFor(gate),
             Act::Send(Message::text(UPDATE)),
         ])]);
         let mut stream = open(&server).await;
@@ -498,6 +500,7 @@ async fn a_cancelled_next_loses_no_message() {
                 .await
                 .is_err()
         );
+        open_gate.send(()).unwrap();
         assert_eq!(raw(stream.next().await.unwrap()).data, UPDATE_DATA);
     })
     .await
@@ -507,23 +510,35 @@ async fn a_cancelled_next_loses_no_message() {
 async fn a_cancelled_next_keeps_a_close_whose_reply_is_waiting() {
     bounded(async {
         // The server sends Pings without reading, so the Pongs fill the
-        // connection and the reply to its Close cannot be flushed at once.
-        let mut acts: Vec<Act> = (0..100_000)
-            .map(|_| Act::Send(Message::Ping(vec![7; 125].into())))
-            .collect();
+        // connection and the reply to its Close cannot be sent. A message
+        // just before the Close tells the test the Pings are read, however
+        // long that takes on this machine, and the server reads nothing
+        // until the test opens its gate.
+        let (open_gate, gate) = std::sync::mpsc::channel();
+        let mut acts = flood();
+        acts.push(Act::Send(Message::text(UPDATE)));
         acts.push(Act::Close(1008, "policy".to_owned()));
-        acts.push(Act::Pause(Duration::from_secs(2)));
+        acts.push(Act::WaitFor(gate));
         acts.push(Act::Drop);
         let server = WsServer::start(vec![opened(acts)]);
         let mut stream = open(&server).await;
-        let mut cancelled = 0;
-        let error = loop {
-            match tokio::time::timeout(Duration::from_millis(20), stream.next()).await {
-                Ok(result) => break result.unwrap_err(),
-                Err(_) => cancelled += 1,
+        // A caller with other work polls with short timeouts.
+        let update = loop {
+            if let Ok(result) = tokio::time::timeout(Duration::from_millis(20), stream.next()).await
+            {
+                break result.unwrap();
             }
         };
-        assert!(cancelled > 0);
+        assert_eq!(raw(update).data, UPDATE_DATA);
+        // This call reads the Close and cannot send the reply: it is cancelled.
+        assert!(
+            tokio::time::timeout(Duration::from_secs(1), stream.next())
+                .await
+                .is_err()
+        );
+        // The server goes away; the next call reports the kept Close.
+        open_gate.send(()).unwrap();
+        let error = stream.next().await.unwrap_err();
         assert_eq!(error.kind(), StreamErrorKind::Closed);
         assert_eq!(error.close_code(), Some(1008));
         assert_eq!(error.message(), Some("policy"));
@@ -535,19 +550,28 @@ async fn a_cancelled_next_keeps_a_close_whose_reply_is_waiting() {
 async fn close_after_a_cancelled_next_reports_alpacas_close() {
     bounded(async {
         // As above, but the caller gives up on `next` and closes instead.
-        let mut acts: Vec<Act> = (0..100_000)
-            .map(|_| Act::Send(Message::Ping(vec![7; 125].into())))
-            .collect();
+        let (open_gate, gate) = std::sync::mpsc::channel();
+        let mut acts = flood();
+        acts.push(Act::Send(Message::text(UPDATE)));
         acts.push(Act::Close(1008, "policy".to_owned()));
-        acts.push(Act::Pause(Duration::from_secs(6)));
+        acts.push(Act::WaitFor(gate));
         acts.push(Act::ReadAll);
         let server = WsServer::start(vec![opened(acts)]);
         let mut stream = open(&server).await;
-        let started = std::time::Instant::now();
-        while started.elapsed() < Duration::from_secs(2) {
-            let result = tokio::time::timeout(Duration::from_millis(20), stream.next()).await;
-            assert!(result.is_err(), "next returned before the caller gave up");
-        }
+        let update = loop {
+            if let Ok(result) = tokio::time::timeout(Duration::from_millis(20), stream.next()).await
+            {
+                break result.unwrap();
+            }
+        };
+        assert_eq!(raw(update).data, UPDATE_DATA);
+        assert!(
+            tokio::time::timeout(Duration::from_secs(1), stream.next())
+                .await
+                .is_err()
+        );
+        // The server reads again; close reports the kept Close.
+        open_gate.send(()).unwrap();
         let (messages, result) = stream.close().await;
         assert!(messages.is_empty());
         let error = result.unwrap_err();
@@ -556,14 +580,12 @@ async fn close_after_a_cancelled_next_reports_alpacas_close() {
         assert_eq!(error.message(), Some("policy"));
         // The reply to Alpaca's Close went out, after the queued Pongs, before
         // the connection was dropped.
+        // However long the server takes to read its backlog; the test's
+        // bound ends a wait that never would.
         let reply = Received::Close(Some((1008, "policy".to_owned())));
-        for _ in 0..500 {
-            if server.seen()[0].frames.last() == Some(&reply) {
-                return;
-            }
+        while server.seen()[0].frames.last() != Some(&reply) {
             tokio::time::sleep(Duration::from_millis(10)).await;
         }
-        panic!("the server never read the reply Close");
     })
     .await
 }
@@ -589,13 +611,14 @@ async fn close_returns_what_arrived_while_closing() {
 #[tokio::test]
 async fn close_keeps_its_messages_when_the_connection_fails() {
     bounded(async {
+        // The server's update is sent before it reads the caller's Close,
+        // and the connection fails right after.
         let server = WsServer::start(vec![opened(vec![
             Act::Send(Message::text(UPDATE)),
-            Act::Pause(Duration::from_millis(100)),
+            Act::Read,
             Act::Drop,
         ])]);
         let stream = open(&server).await;
-        tokio::time::sleep(Duration::from_millis(50)).await;
         let (messages, result) = stream.close().await;
         assert_eq!(messages.len(), 1);
         let error = result.unwrap_err();

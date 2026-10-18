@@ -6,6 +6,7 @@
 
 #![allow(dead_code, reason = "each test binary uses part of the helper")]
 
+use std::sync::mpsc::{Receiver, TryRecvError};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -55,6 +56,9 @@ pub enum Act {
     CloseEmpty,
     /// Waits without reading, so Pings go unanswered.
     Pause(Duration),
+    /// Waits without reading until the test sends on the channel (or drops
+    /// its end): a pause that ends on the test's signal, not on a clock.
+    WaitFor(Receiver<()>),
     /// Drops the connection without a Close frame.
     Drop,
 }
@@ -167,6 +171,14 @@ pub async fn bounded<T>(body: impl std::future::Future<Output = T>) -> T {
     tokio::time::timeout(Duration::from_secs(60), body)
         .await
         .expect("the test ran longer than 60 s")
+}
+
+/// 100,000 Pings sent without reading: the client's Pongs fill the
+/// connection, so a reply to a Close cannot be sent until the server reads.
+pub fn flood() -> Vec<Act> {
+    (0..100_000)
+        .map(|_| Act::Send(Message::Ping(vec![7; 125].into())))
+        .collect()
 }
 
 /// The opening the client is expected to perform, answered successfully.
@@ -322,6 +334,11 @@ async fn play(tcp: tokio::net::TcpStream, step: Step, seen: Arc<Mutex<Vec<Seen>>
                 let _ = ws.send(Message::Close(None)).await;
             }
             Act::Pause(duration) => tokio::time::sleep(duration).await,
+            Act::WaitFor(gate) => {
+                while let Err(TryRecvError::Empty) = gate.try_recv() {
+                    tokio::time::sleep(Duration::from_millis(10)).await;
+                }
+            }
             Act::Drop => return,
         }
     }

@@ -14,7 +14,7 @@ use suri::data::stocks::{self, StreamFeed};
 use suri::data::{Channels, DataStream, news};
 use suri::{Client, Config, Credentials, Environment, Region, StreamErrorKind};
 use tokio_tungstenite::tungstenite::Message;
-use ws_server::{Act, Received, Step, WsServer, bounded, data_opened};
+use ws_server::{Act, Received, Step, WsServer, bounded, data_opened, flood};
 
 const KEY: &str = "PKSENTINELKEY0001";
 const SECRET: &str = "SECRETSENTINELVALUE0001";
@@ -530,23 +530,35 @@ async fn a_server_close_is_closed_and_scrubbed() {
 async fn a_close_read_by_a_cancelled_next_is_kept() {
     bounded(async {
         // The server sends Pings without reading, so the Pongs fill the
-        // connection and the reply to its Close cannot be flushed at once.
-        let mut acts: Vec<Act> = (0..100_000)
-            .map(|_| Act::Send(Message::Ping(vec![7; 125].into())))
-            .collect();
+        // connection and the reply to its Close cannot be sent. A message
+        // just before the Close tells the test the Pings are read, however
+        // long that takes on this machine, and the server reads nothing
+        // until the test opens its gate.
+        let (open_gate, gate) = std::sync::mpsc::channel();
+        let mut acts = flood();
+        acts.push(frame(&[TRADE]));
         acts.push(Act::Close(1008, "policy".to_owned()));
-        acts.push(Act::Pause(Duration::from_secs(2)));
+        acts.push(Act::WaitFor(gate));
         acts.push(Act::Drop);
         let server = WsServer::start(vec![data_opened(acts)]);
         let mut stream = open(&server).await;
-        let mut cancelled = 0;
-        let error = loop {
-            match tokio::time::timeout(Duration::from_millis(20), stream.next()).await {
-                Ok(result) => break result.unwrap_err(),
-                Err(_) => cancelled += 1,
+        // A caller with other work polls with short timeouts.
+        let messages = loop {
+            if let Ok(result) = tokio::time::timeout(Duration::from_millis(20), stream.next()).await
+            {
+                break result.unwrap();
             }
         };
-        assert!(cancelled > 0);
+        assert_eq!(trade_symbol(&messages[0]), "AAPL");
+        // This call reads the Close and cannot send the reply: it is cancelled.
+        assert!(
+            tokio::time::timeout(Duration::from_secs(1), stream.next())
+                .await
+                .is_err()
+        );
+        // The server goes away; the next call reports the kept Close.
+        open_gate.send(()).unwrap();
+        let error = stream.next().await.unwrap_err();
         assert_eq!(error.kind(), StreamErrorKind::Closed);
         assert_eq!(error.close_code(), Some(1008));
     })
@@ -558,19 +570,28 @@ async fn subscribe_after_a_cancelled_next_reports_alpacas_close() {
     bounded(async {
         // As above, but the caller gives up on `next` and subscribes instead:
         // the kept Close is returned and nothing is written.
-        let mut acts: Vec<Act> = (0..100_000)
-            .map(|_| Act::Send(Message::Ping(vec![7; 125].into())))
-            .collect();
+        let (open_gate, gate) = std::sync::mpsc::channel();
+        let mut acts = flood();
+        acts.push(frame(&[TRADE]));
         acts.push(Act::Close(1008, "policy".to_owned()));
-        acts.push(Act::Pause(Duration::from_secs(6)));
+        acts.push(Act::WaitFor(gate));
         acts.push(Act::ReadAll);
         let server = WsServer::start(vec![data_opened(acts)]);
         let mut stream = open(&server).await;
-        let started = std::time::Instant::now();
-        while started.elapsed() < Duration::from_secs(2) {
-            let result = tokio::time::timeout(Duration::from_millis(20), stream.next()).await;
-            assert!(result.is_err(), "next returned before the caller gave up");
-        }
+        let messages = loop {
+            if let Ok(result) = tokio::time::timeout(Duration::from_millis(20), stream.next()).await
+            {
+                break result.unwrap();
+            }
+        };
+        assert_eq!(trade_symbol(&messages[0]), "AAPL");
+        assert!(
+            tokio::time::timeout(Duration::from_secs(1), stream.next())
+                .await
+                .is_err()
+        );
+        // The server reads again; subscribe reports the kept Close.
+        open_gate.send(()).unwrap();
         let mut channels = Channels::new();
         channels.trades = list(&["AAPL"]);
         let error = stream.subscribe(&channels).await.unwrap_err();

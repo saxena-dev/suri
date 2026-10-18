@@ -530,9 +530,8 @@ API's `trade_updates` stream.
   on multi-leg fills `at`, `event_id`, `position_qtys` and the legs'
   fills, `LegFill`. The stream's orders carry `cancel_requested_at`, which
   REST responses leave out (`None`). A `trade_updates` message that does
-  not read as a `TradeUpdate` (no `event` or `order`, a decimal sent as a
-  JSON number with a fraction or as text with an exponent, a malformed
-  time) is
+  not read as a `TradeUpdate` (no `event` or `order`, a decimal that
+  `Decimal` rejects, see "Decimal values", a malformed time) is
   `TradeStreamMessage::Undecoded` with the message as sent, and the stream
   goes on. A message of any other stream is `TradeStreamMessage::Other`, as
   sent. `close` returns its messages typed the same way.

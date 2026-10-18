@@ -1,7 +1,8 @@
 //! Market Data: prices, sizes and news from Alpaca's data host.
 //!
-//! Each asset class has its own module (`stocks`, `crypto`) with the types
-//! its `Client` methods return and take; this module holds what they share.
+//! Each asset class has its own module (`stocks`, `crypto`, `options`) with
+//! the types its `Client` methods return and take; this module holds what
+//! they share.
 //! Prices, and crypto sizes and volumes, are `f64`, read correctly rounded;
 //! other sizes and counts are integers of the width their format gives. One
 //! call returns one page.
@@ -19,6 +20,7 @@ use crate::value::wire::wire_enum;
 use crate::{Sort, Timestamp};
 
 pub mod crypto;
+pub mod options;
 pub mod stocks;
 
 wire_enum! {

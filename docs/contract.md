@@ -543,7 +543,8 @@ API's `trade_updates` stream.
 ## Market data
 
 Market Data types are in `suri::data` and its per-asset modules
-(`suri::data::stocks`, `suri::data::crypto`); the methods are on `Client`.
+(`suri::data::stocks`, `suri::data::crypto`, `suri::data::options`); the
+methods are on `Client`.
 
 - **Host.** Requests go to `https://data.alpaca.markets` for paper and live
   clients alike (paper Trading users read market data from the production
@@ -559,7 +560,8 @@ Market Data types are in `suri::data` and its per-asset modules
   a value out of range there fails the decode.
 - **Times.** Every time is a `Timestamp` read from RFC 3339 text with up to
   nine fractional digits; an auction day is a `Date`. Query bounds
-  (`start`, `end`) are `Timestamp`s, sent as `…Z`.
+  (`start`, `end`, `updated_since`) are `Timestamp`s, sent as `…Z`; an
+  option chain's expiration filters are `Date`s, sent as `YYYY-MM-DD`.
 - **Pages.** A historical endpoint returns a `Series`: each symbol's points
   in the order sent, the `currency` when Alpaca names it, and
   `next_page_token`. One call returns one page. A page may hold fewer
@@ -623,6 +625,35 @@ sent, in Alpaca's order, a size of 0 included; its `reset` is `false`
 over REST. The key pair is sent on crypto requests too, although Alpaca
 documents historical crypto data as needing none.
 
+### Options
+
+Symbols are option contract symbols (`AAPL240315C00172500`).
+`Client::option_bars` (`GET /v1beta1/options/bars`) and `option_trades`
+(`/v1beta1/options/trades`) read one page of history, sorted by symbol,
+then time, with the shared `BarsQuery` and `HistoryQuery`; they take no
+feed, and which feed serves them Alpaca does not say. Alpaca keeps option
+history from February 2024. `option_latest_trades`
+(`/v1beta1/options/trades/latest`) and `option_latest_quotes`
+(`/v1beta1/options/quotes/latest`) take a `LatestQuery` (symbols, feed)
+and return a `Latest`; a body whose map is under none of the keys a
+`Latest` reads (`bars`, `trades`, `quotes`, `orderbooks`, `snapshots`),
+such as one under `trade`, fails the call.
+`option_snapshots` (`/v1beta1/options/snapshots`) takes a `SnapshotsQuery`
+and `option_chain` (`/v1beta1/options/snapshots/{underlying_symbol}`) an
+underlying `Symbol` and a `ChainQuery`; both return one page of
+`Snapshots`, each contract's latest trade and quote, bars, greeks and
+implied volatility, any of which Alpaca may leave out (greeks and
+implied volatility need a latest quote with a non-zero bid and ask, the
+underlying's latest trade, an expiry after today and an implied
+volatility Alpaca's model can compute), and `next_page_token`. The
+chain's strike filters are sent as their exact decimal text and its
+contract type as `call` or `put`. `option_conditions` and
+`option_exchanges` (`/v1beta1/options/meta/…`) return the option
+condition and exchange code tables, code to name. A trade or quote
+carries one condition code, which may be a space; exchange codes are
+option exchange codes and keep their case. Without a feed (`Feed`:
+`opra` or `indicative`), Alpaca picks one by the caller's subscription.
+
 ## Market clock
 
 `Client::clock` reads `GET /v2/clock`: the server's time, whether the market
@@ -674,6 +705,6 @@ error. A `CalendarQuery`'s `start` and `end` are sent as dates
 | Unreadable trade updates | Delivered as sent (`Undecoded`); the stream goes on | A stream message cannot be fetched again; the raw message keeps its order ID for the caller to reconcile, and ending the stream would lose every later update too |
 | Market Data host | `https://data.alpaca.markets` for paper and live; the base-URL override replaces it | Paper Trading users read market data from the production host; the sandbox data host is for Broker partners |
 | Single-symbol stock endpoints | Not offered; pass one symbol to the multi-symbol method | They return the same data in another envelope |
-| Request times | `start` and `end` take a `Timestamp` only | The docs accept a bare date without saying in which time zone it is read |
+| Request times | `start`, `end` and `updated_since` take a `Timestamp` only | The docs accept a bare date without saying in which time zone it is read |
 | Stock feeds | One `Feed` for every stock endpoint | The docs' feed lists differ by endpoint and their guide says the parameter works everywhere; Alpaca decides which it accepts |
 | Market-data integers | The width of the documented format (`u32`, `u64`, `i64`) | A value the format allows always decodes |

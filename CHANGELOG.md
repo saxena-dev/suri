@@ -90,5 +90,10 @@ All notable changes to suri are listed here. The format follows
   `crypto_latest_orderbooks` and `crypto_snapshots`, at a `Location`, with
   the shared `BarsQuery`, `HistoryQuery` and `SymbolsQuery` in
   `suri::data`.
+- Options market data in `suri::data::options`: `Client::option_bars`,
+  `option_trades`, `option_latest_trades`, `option_latest_quotes`,
+  `option_snapshots`, `option_chain`, `option_conditions` and
+  `option_exchanges`, with `Greeks`, `Snapshots` and the chain's
+  `ChainQuery`.
 - With `stream`, the dependencies `tokio-tungstenite`, `futures-util`,
   `rustls` and `rustls-platform-verifier`.

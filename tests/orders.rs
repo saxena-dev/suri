@@ -1,5 +1,6 @@
 //! Orders: the request's wire form, the order Alpaca reports, the lookup by
-//! client order ID, and a placement made exactly once whatever goes wrong.
+//! client order ID, and a placement sent at most once, never retried,
+//! whatever goes wrong.
 
 #![cfg(feature = "rest")]
 

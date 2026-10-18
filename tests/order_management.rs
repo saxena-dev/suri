@@ -1,23 +1,26 @@
 //! Finding, replacing and cancelling orders: the queries and bodies on the
-//! wire, empty and per-order responses, and mutations made exactly once.
+//! wire, empty and per-order responses, and mutations sent at most once,
+//! never retried.
 
 #![cfg(feature = "rest")]
-
-use std::time::Duration;
 
 #[path = "support/fixture.rs"]
 mod fixture;
 #[path = "support/order.rs"]
 mod order;
+#[path = "support/requests.rs"]
+mod requests;
 #[path = "support/server.rs"]
 mod server;
 
 use order::{AAPL_MARKET_BUY, assert_fixture_order};
-use server::{Request, Server, Step, response};
+use requests::{
+    SECRET, assert_no_body, client, failing_once, only_request, retrying_client, serve,
+};
+use server::Server;
 use suri::{
-    AssetClass, CancelResult, Client, Config, Credentials, Decimal, Environment, ErrorKind, Id,
-    OrderQueryStatus, OrderSide, OrderWindow, OrdersQuery, Region, ReplaceOrderRequest, Sort,
-    Stage, TimeInForce,
+    AssetClass, CancelResult, Decimal, ErrorKind, Id, OrderQueryStatus, OrderSide, OrderWindow,
+    OrdersQuery, ReplaceOrderRequest, Sort, Stage, TimeInForce,
 };
 
 const ORDERS: &str = "trading/trading_client/test_order_routes::test_get_orders::GET /v2/orders#0";
@@ -34,18 +37,6 @@ const PLACED: &str =
     "trading/trading_client/test_order_routes::test_market_order::POST /v2/orders#0";
 
 const ORDER_ID: &str = "61e69015-8549-4bfd-b9c3-01e75843f47d";
-const SECRET: &str = "SECRETSENTINELVALUE0001";
-
-fn client(server: &Server) -> Client {
-    let config = Config::new(
-        Region::US,
-        Environment::Paper,
-        Credentials::api_key("PKSENTINELKEY0001", SECRET),
-    )
-    .with_base_url(&server.url)
-    .with_max_read_attempts(1);
-    Client::new(config).unwrap()
-}
 
 fn dec(text: &str) -> Decimal {
     text.parse().unwrap()
@@ -53,11 +44,6 @@ fn dec(text: &str) -> Decimal {
 
 fn order_id() -> Id {
     ORDER_ID.parse().unwrap()
-}
-
-/// A server that answers once with this status and body.
-fn serve(status: &str, body: &[u8]) -> Server {
-    Server::start(vec![Step::Respond(response(status, &[], body))])
 }
 
 /// The response of an upstream fixture, with its recorded status.
@@ -72,17 +58,6 @@ fn serve_fixture(id: &str) -> Server {
         other => panic!("no status line for {other}"),
     };
     serve(status, &fixture.body)
-}
-
-fn only_request(server: &Server) -> Request {
-    let mut requests = server.requests();
-    assert_eq!(requests.len(), 1);
-    requests.remove(0)
-}
-
-fn assert_no_body(request: &Request) {
-    assert_eq!(request.header("Content-Type"), None);
-    assert!(request.body.is_empty());
 }
 
 #[tokio::test]
@@ -362,28 +337,6 @@ async fn an_item_without_its_id_or_status_fails_the_list() {
         let error = client(&server).cancel_all_orders().await.unwrap_err();
         assert_eq!(error.kind(), ErrorKind::Decode, "{body}");
     }
-}
-
-/// A client with the default four attempts, so a read in the same
-/// situation would reach a server's second step.
-fn retrying_client(server: &Server) -> Client {
-    let config = Config::new(
-        Region::US,
-        Environment::Paper,
-        Credentials::api_key("PKSENTINELKEY0001", SECRET),
-    )
-    .with_base_url(&server.url)
-    .with_retry_base(Duration::from_millis(1));
-    Client::new(config).unwrap()
-}
-
-/// A server that fails the first request with a 503 and keeps a success for
-/// a second one, which a retry would reach.
-fn failing_once(spare: &[u8]) -> Server {
-    Server::start(vec![
-        Step::Respond(response("503 Service Unavailable", &[], b"")),
-        Step::Respond(response("200 OK", &[], spare)),
-    ])
 }
 
 #[tokio::test]

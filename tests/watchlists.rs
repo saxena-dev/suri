@@ -1,19 +1,20 @@
 //! Watchlists: the documented shapes field by field, each request on the
-//! wire, and mutations made exactly once.
+//! wire, and mutations sent at most once, never retried.
 
 #![cfg(feature = "rest")]
 
-use std::time::Duration;
-
 #[path = "support/fixture.rs"]
 mod fixture;
+#[path = "support/requests.rs"]
+mod requests;
 #[path = "support/server.rs"]
 mod server;
 
-use server::{Request, Server, Step, response};
+use requests::{assert_no_body, client, failing_once, only_request, retrying_client, serve};
+use server::Request;
 use suri::{
-    Asset, AssetClass, AssetStatus, Client, Config, CreateWatchlist, Credentials, Environment,
-    ErrorKind, Exchange, Id, Inbound, Region, Symbol, Timestamp, Watchlist, WatchlistUpdate,
+    Asset, AssetClass, AssetStatus, CreateWatchlist, ErrorKind, Exchange, Id, Inbound, Symbol,
+    Timestamp, Watchlist, WatchlistUpdate,
 };
 
 const BROKER_LIST: &str = "broker/broker_client/test_watchlist_routes::test_get_watchlists_for_account::GET /v1/trading/accounts/{account_id}/watchlists#0";
@@ -37,46 +38,12 @@ const WITH_ASSETS: &str = r#"{
 // The list endpoint's example.
 const LIST: &str = r#"[{"account_id":"abe25343-a7ba-4255-bdeb-f7e013e9ee5d","created_at":"2022-01-31T21:49:05.14628Z","id":"3174d6df-7726-44b4-a5bd-7fda5ae6e009","name":"Primary Watchlist","updated_at":"2022-01-31T21:49:05.14628Z"}]"#;
 
-fn config(server: &Server) -> Config {
-    Config::new(
-        Region::US,
-        Environment::Paper,
-        Credentials::api_key("PKSENTINELKEY0001", "SECRETSENTINELVALUE0001"),
-    )
-    .with_base_url(&server.url)
-}
-
-fn client(server: &Server) -> Client {
-    Client::new(config(server).with_max_read_attempts(1)).unwrap()
-}
-
-/// A client with the default four attempts, so a read in the same
-/// situation would reach a server's second step.
-fn retrying_client(server: &Server) -> Client {
-    Client::new(config(server).with_retry_base(Duration::from_millis(1))).unwrap()
-}
-
 fn at(text: &str) -> Timestamp {
     text.parse().unwrap()
 }
 
 fn watchlist_id() -> Id {
     WATCHLIST_ID.parse().unwrap()
-}
-
-fn serve(status: &str, body: &[u8]) -> Server {
-    Server::start(vec![Step::Respond(response(status, &[], body))])
-}
-
-fn only_request(server: &Server) -> Request {
-    let mut requests = server.requests();
-    assert_eq!(requests.len(), 1);
-    requests.remove(0)
-}
-
-fn assert_no_body(request: &Request) {
-    assert_eq!(request.header("Content-Type"), None);
-    assert!(request.body.is_empty());
 }
 
 /// Asserts a request's method, path and exact JSON body.
@@ -323,15 +290,6 @@ async fn a_watchlist_is_deleted() {
     assert_eq!(request.method, "DELETE");
     assert_eq!(request.path, format!("/v2/watchlists/{WATCHLIST_ID}"));
     assert_no_body(&request);
-}
-
-/// A server that fails the first request with a 503 and keeps a success for
-/// a second one, which a retry would reach.
-fn failing_once(spare: &[u8]) -> Server {
-    Server::start(vec![
-        Step::Respond(response("503 Service Unavailable", &[], b"")),
-        Step::Respond(response("200 OK", &[], spare)),
-    ])
 }
 
 #[tokio::test]

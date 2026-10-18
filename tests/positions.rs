@@ -1,23 +1,28 @@
 //! Positions: the upstream fixtures field by field, closing one or all
-//! positions, exercising options, and mutations made exactly once.
+//! positions, exercising options, and mutations sent at most once, never
+//! retried.
 
 #![cfg(feature = "rest")]
-
-use std::time::Duration;
 
 #[path = "support/fixture.rs"]
 mod fixture;
 #[path = "support/order.rs"]
 mod order;
+#[path = "support/requests.rs"]
+mod requests;
 #[path = "support/server.rs"]
 mod server;
 
 use order::{AAPL_MARKET_BUY, Expected, assert_fixture_order};
-use server::{Request, Server, Step, response};
+use requests::{
+    SECRET, assert_empty_post, assert_no_body, client, failing_once, only_request, retrying_client,
+    serve,
+};
+use server::Request;
 use suri::{
-    AssetClass, Client, ClosePosition, ClosedPosition, Config, Credentials, Decimal, Environment,
-    ErrorKind, Exchange, Inbound, OrderClass, OrderSide, OrderStatus, OrderType, Position,
-    PositionIntent, PositionSide, Region, Symbol, TimeInForce, Timestamp,
+    AssetClass, ClosePosition, ClosedPosition, Decimal, ErrorKind, Exchange, Inbound, OrderClass,
+    OrderSide, OrderStatus, OrderType, Position, PositionIntent, PositionSide, Symbol, TimeInForce,
+    Timestamp,
 };
 
 const ROUTES: &str = "trading/trading_client/test_position_routes";
@@ -36,7 +41,6 @@ const EXERCISE_BY_ID: &str =
     "test_exercise_options_position_with_id::POST /v2/positions/{contract_id}/exercise#0";
 
 const ASSET_ID: &str = "904837e3-3b76-47ec-b432-046db621571b";
-const SECRET: &str = "SECRETSENTINELVALUE0001";
 
 // Built from the position schema's first example, with the properties it
 // lacks set to distinct values, an option's empty exchange and an unknown
@@ -52,17 +56,6 @@ const FULL: &str = r#"{
   "usd":{"avg_entry_price":"108.11","cost_basis":"540.55"},
   "unknown_member":[1]
 }"#;
-
-fn client(server: &Server) -> Client {
-    let config = Config::new(
-        Region::US,
-        Environment::Paper,
-        Credentials::api_key("PKSENTINELKEY0001", SECRET),
-    )
-    .with_base_url(&server.url)
-    .with_max_read_attempts(1);
-    Client::new(config).unwrap()
-}
 
 fn dec(text: &str) -> Decimal {
     text.parse().unwrap()
@@ -82,28 +75,6 @@ fn symbol(text: &str) -> Symbol {
 
 fn upstream(name: &str) -> Vec<u8> {
     fixture::upstream(&format!("{ROUTES}::{name}")).body
-}
-
-fn serve(status: &str, body: &[u8]) -> Server {
-    Server::start(vec![Step::Respond(response(status, &[], body))])
-}
-
-fn only_request(server: &Server) -> Request {
-    let mut requests = server.requests();
-    assert_eq!(requests.len(), 1);
-    requests.remove(0)
-}
-
-fn assert_no_body(request: &Request) {
-    assert_eq!(request.header("Content-Type"), None);
-    assert!(request.body.is_empty());
-}
-
-/// A POST without a body states its length as zero.
-fn assert_empty_post(request: &Request) {
-    assert_eq!(request.method, "POST");
-    assert_no_body(request);
-    assert_eq!(request.header("Content-Length"), Some("0"));
 }
 
 /// The one position every upstream position fixture carries.
@@ -577,28 +548,6 @@ async fn a_refused_instruction_is_an_api_error_with_its_code() {
         error.endpoint(),
         "/v2/positions/{symbol_or_contract_id}/exercise"
     );
-}
-
-/// A client with the default four attempts, so a read in the same
-/// situation would reach a server's second step.
-fn retrying_client(server: &Server) -> Client {
-    let config = Config::new(
-        Region::US,
-        Environment::Paper,
-        Credentials::api_key("PKSENTINELKEY0001", SECRET),
-    )
-    .with_base_url(&server.url)
-    .with_retry_base(Duration::from_millis(1));
-    Client::new(config).unwrap()
-}
-
-/// A server that fails the first request with a 503 and keeps a success for
-/// a second one, which a retry would reach.
-fn failing_once(spare: &[u8]) -> Server {
-    Server::start(vec![
-        Step::Respond(response("503 Service Unavailable", &[], b"")),
-        Step::Respond(response("200 OK", &[], spare)),
-    ])
 }
 
 #[tokio::test]

@@ -1,4 +1,5 @@
-//! Orders: placing them exactly once, and what Alpaca reports of them.
+//! Orders: placing them at most once, never retried, and what Alpaca
+//! reports of them.
 
 use std::collections::hash_map::RandomState;
 use std::fmt;

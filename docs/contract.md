@@ -212,7 +212,7 @@ for Alpaca's error code and message:
 
 suri retries reads (`GET` requests), and only reads. A request that
 changes state, such as an order placement or a configuration update, is
-made exactly once: no
+sent at most once: no
 status, failed connection or timeout leads suri to send it again, and its
 timeout is `request_timeout` alone.
 

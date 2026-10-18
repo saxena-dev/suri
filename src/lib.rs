@@ -3,7 +3,8 @@
 //! Pre-release: the Trading API's REST endpoints in the first release's
 //! scope (see the README), its `trade_updates` stream behind the `stream`
 //! feature, and Market Data's stock, crypto and options data and news,
-//! with the stock, crypto and news streams behind `stream`, so far.
+//! with the stock, crypto, options and news streams behind `stream`, so
+//! far.
 //!
 //! The [contract](https://github.com/saxena-dev/suri/blob/main/docs/contract.md)
 //! states every behaviour suri promises.

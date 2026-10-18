@@ -56,7 +56,11 @@ arrive as `Date` (`YYYY-MM-DD`).
 - **Read:** RFC 3339 text: `YYYY-MM-DD`, `T` or `t`, `HH:MM:SS`, an optional
   fraction of one to nine digits, then `Z`, `z` or an offset `±HH:MM`. The
   offset is applied and not kept: `13:45:04-04:00` and `17:45:04Z` are the
-  same instant.
+  same instant. With the `stream` feature, a `Timestamp` (not a `Date`)
+  also reads MessagePack's timestamp extension (type −1) in its 32-, 64-
+  and 96-bit forms, as the options stream sends times; another extension
+  type, another length, nanoseconds of a second or more, or an instant
+  outside the range is an error.
 - **Rejected rather than altered:** ten or more fractional digits (never
   trimmed), a leap second `:60` (never folded into the next minute), any
   other deviation from that form, and instants outside the range.
@@ -548,17 +552,20 @@ data" below).
 
 ### Market data
 
-`Client::stock_stream`, `Client::crypto_stream` and `Client::news_stream`
-open the Market Data streams on `wss://stream.data.alpaca.markets`, paper
+`Client::stock_stream`, `Client::crypto_stream`, `Client::option_stream`
+and `Client::news_stream` open the Market Data streams on
+`wss://stream.data.alpaca.markets`, paper
 and live alike (a base-URL override replaces the host, with the scheme
 `ws` or `wss`): a stock stream at the path its `StreamFeed` names
 (`/v2/sip`, `/v2/iex`, `/v2/delayed_sip`, `/v1beta1/boats`,
 `/v1beta1/overnight`, or the test stream `/v2/test`, open at all hours
 with the symbol `FAKEPACA`), the crypto stream of a `Location` at
 `/v1beta3/crypto/{loc}` (Alpaca's stream describes `us`, `us-1` and
-`eu-1`), and news at `/v1beta1/news`. Each returns a `DataStream` of its
-family's `Message` (`stocks::Message`, `crypto::Message`,
-`news::Message`), subscribed to nothing.
+`eu-1`), the options stream of a `Feed` at `/v1beta1/opra` or
+`/v1beta1/indicative`, and news at `/v1beta1/news`. Each returns a
+`DataStream` of its family's `Message` (`stocks::Message`,
+`crypto::Message`, `options::Message`, `news::Message`), subscribed to
+nothing.
 
 - **Opening.** The key ID and secret go in the upgrade's
   `APCA-API-KEY-ID` and `APCA-API-SECRET-KEY` headers, so no frame
@@ -598,7 +605,17 @@ family's `Message` (`stocks::Message`, `crypto::Message`,
   imbalances. Crypto: trades, quotes, bars and orderbooks; an orderbook
   with `reset` set is the whole book, one without it an update in which a
   size of 0 removes the level, and suri delivers each as sent. News:
-  articles, as `news::Article`, without images.
+  articles, as `news::Article`, without images. Options: trades and
+  quotes, as the REST models.
+- **The options stream is MessagePack,** its only format: suri asks for it
+  with `Content-Type: application/msgpack` on the upgrade, reads the
+  opening and every frame as one MessagePack array in a binary frame (a
+  text frame is `Decode`), and sends each subscription as a MessagePack
+  map with named keys in one binary frame. A frame nested more than 128
+  levels deep is `Decode` (the JSON streams read any depth and keep a deep
+  element as sent). Times arrive as MessagePack
+  timestamps (see "Time"); prices as floats or integers. `Undecoded` and
+  `Other` hold the element's MessagePack bytes as sent.
 - **Errors.** No `error` message ends a stream after the opening; it
   arrives as an `Error` message with Alpaca's code and scrubbed message:
 
@@ -607,6 +624,7 @@ family's `Message` (`stocks::Message`, `crypto::Message`,
   | 402 | auth failed | `Unauthorized` | `Error` message |
   | 405 | symbol limit exceeded; the subscription is unchanged | `Server` | `Error` message |
   | 407 | slow client; it may not precede the disconnect | `Server` | `Error` message; the Close that follows ends the stream |
+  | 412, 413 (options) | MessagePack required; `"*"` not allowed for option quotes | `Server` | `Error` message |
   | 400, 401, 403, 404, 406, 409, 410, 500, any other | as Alpaca documents them | `Server` | `Error` message |
 
 - **No compression.** suri offers no WebSocket extension, so every frame
@@ -794,6 +812,8 @@ error. A `CalendarQuery`'s `start` and `end` are sent as dates
 | Market-data error codes | During the opening every `error` ends it (402 `Unauthorized`, others `Server`); after it, none ends the stream by itself | The stream is unusable until authenticated; the docs never say an error ends an open stream, 405 leaves it as it was, and the disconnect that may follow 407 is a Close |
 | One frame per call | `DataStream::next` returns one frame's messages; suri keeps no queue | Nothing waits inside suri to be dropped, and a call stays cancel-safe |
 | Stream compression | None offered; every frame arrives uncompressed | Offering it is a later, additive change once a need is measured |
+| Options stream encoding | MessagePack, asked for by `Content-Type` | Alpaca's docs say the options stream is only available in MessagePack |
+| MessagePack outbound | Subscriptions as MessagePack maps with named keys, one frame each | Alpaca's examples are named maps; whether the server takes JSON there, or limits a frame's size, is undocumented, and a refusal reaches the caller as an `Error` message or a Close |
 | Market Data host | `https://data.alpaca.markets` for paper and live; the base-URL override replaces it | Paper Trading users read market data from the production host; the sandbox data host is for Broker partners |
 | Single-symbol stock endpoints | Not offered; pass one symbol to the multi-symbol method | They return the same data in another envelope |
 | Request times | `start`, `end` and `updated_since` take a `Timestamp` only | The docs accept a bare date without saying in which time zone it is read |

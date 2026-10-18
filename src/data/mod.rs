@@ -34,13 +34,26 @@ pub use stream::{Channels, DataMessage, DataStream};
 /// `DataMessage`.
 #[cfg(feature = "stream")]
 mod sealed {
+    /// How a stream's frames are encoded.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub enum Codec {
+        /// JSON, in text or binary frames.
+        Json,
+        /// MessagePack, in binary frames.
+        MessagePack,
+    }
+
     pub trait Sealed {
         /// The stream's name, the `stream` field of its span.
         const STREAM: &'static str;
 
-        /// Reads one element of a frame, its JSON text; every element
+        /// The stream's encoding: how its opening frames and its frames
+        /// are read and how a subscription is written.
+        const CODEC: Codec;
+
+        /// Reads one element of a frame, its exact bytes; every element
         /// becomes a message. `credentials` scrub an `error` message.
-        fn decode(element: &str, credentials: &[&str; 2]) -> Self;
+        fn decode(element: &[u8], credentials: &[&str; 2]) -> Self;
     }
 }
 

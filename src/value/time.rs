@@ -355,10 +355,115 @@ impl<T: FromStr<Err = ParseTimeError>> Visitor<'_> for TextVisitor<T> {
     }
 }
 
-/// Accepts a JSON string in RFC 3339 form; anything else is an error.
+/// Reads a `Timestamp`: RFC 3339 text and, with the `stream` feature, the
+/// MessagePack timestamp extension.
+struct TimestampVisitor;
+
+impl<'de> Visitor<'de> for TimestampVisitor {
+    type Value = Timestamp;
+
+    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("an RFC 3339 string")
+    }
+
+    fn visit_str<E: de::Error>(self, text: &str) -> Result<Timestamp, E> {
+        TextVisitor(std::marker::PhantomData).visit_str(text)
+    }
+
+    // rmp-serde hands an extension over as a newtype holding its type and
+    // its data.
+    #[cfg(feature = "stream")]
+    fn visit_newtype_struct<D: Deserializer<'de>>(
+        self,
+        deserializer: D,
+    ) -> Result<Timestamp, D::Error> {
+        deserializer.deserialize_seq(ExtensionVisitor)
+    }
+}
+
+/// Reads a MessagePack extension's type and data as a timestamp.
+#[cfg(feature = "stream")]
+struct ExtensionVisitor;
+
+#[cfg(feature = "stream")]
+impl<'de> Visitor<'de> for ExtensionVisitor {
+    type Value = Timestamp;
+
+    fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("a MessagePack timestamp")
+    }
+
+    fn visit_seq<A: de::SeqAccess<'de>>(self, mut seq: A) -> Result<Timestamp, A::Error> {
+        let kind: i8 = seq
+            .next_element()?
+            .ok_or_else(|| de::Error::invalid_length(0, &self))?;
+        let Extension(timestamp) = seq
+            .next_element()?
+            .ok_or_else(|| de::Error::invalid_length(1, &self))?;
+        match (kind, timestamp) {
+            (-1, Some(timestamp)) => Ok(timestamp),
+            _ => Err(de::Error::invalid_value(
+                de::Unexpected::Other("another extension"),
+                &self,
+            )),
+        }
+    }
+}
+
+/// An extension's data read as a timestamp's: `None` for a length the
+/// format does not define, nanoseconds of a second or more, or an instant
+/// outside `Timestamp`'s range.
+#[cfg(feature = "stream")]
+struct Extension(Option<Timestamp>);
+
+#[cfg(feature = "stream")]
+impl<'de> Deserialize<'de> for Extension {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        struct Data;
+
+        impl Visitor<'_> for Data {
+            type Value = Extension;
+
+            fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                f.write_str("an extension's data")
+            }
+
+            fn visit_bytes<E: de::Error>(self, data: &[u8]) -> Result<Extension, E> {
+                Ok(Extension(timestamp_extension(data)))
+            }
+        }
+
+        deserializer.deserialize_bytes(Data)
+    }
+}
+
+/// The MessagePack timestamp's three forms, big-endian: 32-bit seconds;
+/// 64-bit, nanoseconds in the upper 30 bits and seconds in the lower 34;
+/// 96-bit, 32-bit nanoseconds then signed 64-bit seconds.
+#[cfg(feature = "stream")]
+fn timestamp_extension(data: &[u8]) -> Option<Timestamp> {
+    match data.len() {
+        4 => Timestamp::from_unix(i64::from(u32::from_be_bytes(data.try_into().ok()?)), 0),
+        8 => {
+            let value = u64::from_be_bytes(data.try_into().ok()?);
+            let nanoseconds = u32::try_from(value >> 34).ok()?;
+            let seconds = i64::try_from(value & 0x3_ffff_ffff).ok()?;
+            Timestamp::from_unix(seconds, nanoseconds)
+        }
+        12 => {
+            let nanoseconds = u32::from_be_bytes(data[..4].try_into().ok()?);
+            let seconds = i64::from_be_bytes(data[4..].try_into().ok()?);
+            Timestamp::from_unix(seconds, nanoseconds)
+        }
+        _ => None,
+    }
+}
+
+/// Accepts a JSON string in RFC 3339 form and, with the `stream` feature,
+/// the MessagePack timestamp extension; anything else is an error.
 impl<'de> Deserialize<'de> for Timestamp {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        deserializer.deserialize_str(TextVisitor(std::marker::PhantomData))
+        deserializer.deserialize_str(TimestampVisitor)
     }
 }
 
@@ -397,5 +502,57 @@ mod tests {
             let (year, month, day) = civil_from_days(days);
             assert_eq!(days_from_civil(year, month, day), days);
         }
+    }
+
+    #[cfg(feature = "stream")]
+    #[test]
+    fn each_messagepack_timestamp_form_reads_and_date_refuses_them() {
+        use super::{Date, Timestamp};
+
+        let read = |bytes: &[u8]| rmp_serde::from_slice::<Timestamp>(bytes);
+        // 32-bit: seconds only.
+        let mut bytes = vec![0xd6, 0xff];
+        bytes.extend(1_700_000_000_u32.to_be_bytes());
+        assert_eq!(
+            read(&bytes).unwrap(),
+            Timestamp::from_unix(1_700_000_000, 0).unwrap()
+        );
+        // 64-bit: nanoseconds in the upper 30 bits, seconds in the lower 34.
+        let value = (123_456_789_u64 << 34) | 17_179_869_183;
+        let mut bytes = vec![0xd7, 0xff];
+        bytes.extend(value.to_be_bytes());
+        assert_eq!(
+            read(&bytes).unwrap(),
+            Timestamp::from_unix(17_179_869_183, 123_456_789).unwrap()
+        );
+        // 96-bit: nanoseconds, then signed seconds, before the epoch here.
+        let mut bytes = vec![0xc7, 12, 0xff];
+        bytes.extend(999_999_999_u32.to_be_bytes());
+        bytes.extend((-1_i64).to_be_bytes());
+        assert_eq!(
+            read(&bytes).unwrap(),
+            Timestamp::from_unix(-1, 999_999_999).unwrap()
+        );
+        // Text still reads.
+        let mut bytes = vec![0xb4];
+        bytes.extend(b"2024-03-12T10:27:48Z");
+        assert_eq!(read(&bytes).unwrap().to_string(), "2024-03-12T10:27:48Z");
+
+        // Another type, a length the format does not define, nanoseconds of
+        // a second, and an instant out of range are refused.
+        let mut other_type = vec![0xd6, 0x01];
+        other_type.extend(1_u32.to_be_bytes());
+        let five_bytes = vec![0xc7, 5, 0xff, 0, 0, 0, 0, 1];
+        let mut whole_second = vec![0xd7, 0xff];
+        whole_second.extend((1_000_000_000_u64 << 34).to_be_bytes());
+        let mut out_of_range = vec![0xc7, 12, 0xff, 0, 0, 0, 0];
+        out_of_range.extend(i64::MAX.to_be_bytes());
+        for bytes in [&other_type, &five_bytes, &whole_second, &out_of_range] {
+            assert!(read(bytes).is_err(), "{bytes:?}");
+        }
+
+        let mut bytes = vec![0xd6, 0xff];
+        bytes.extend(1_700_000_000_u32.to_be_bytes());
+        assert!(rmp_serde::from_slice::<Date>(&bytes).is_err());
     }
 }

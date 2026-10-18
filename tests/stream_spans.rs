@@ -12,6 +12,7 @@ use std::fmt;
 use std::sync::Mutex;
 use std::time::Duration;
 
+use suri::data::options::Feed;
 use suri::data::stocks::StreamFeed;
 use suri::{Client, Config, Credentials, Environment, Region};
 use tokio_tungstenite::tungstenite::Message;
@@ -21,7 +22,7 @@ use tracing::{Event, Level, Subscriber};
 use tracing_subscriber::Layer;
 use tracing_subscriber::layer::{Context, SubscriberExt};
 use tracing_subscriber::registry::LookupSpan;
-use ws_server::{Act, Step, WsServer, data_opened, opened};
+use ws_server::{Act, Step, WsServer, data_opened, msgpack_opened, opened};
 
 const KEY: &str = "PKSENTINELKEY0001";
 const SECRET: &str = "SECRETSENTINELVALUE0001";
@@ -199,9 +200,17 @@ async fn each_stream_is_one_span_with_documented_events() {
     let stream = client(&server, second).news_stream().await.unwrap();
     stream.close().await.1.unwrap();
 
+    // The options stream, over MessagePack.
+    let server = WsServer::start(vec![msgpack_opened(vec![Act::ReadAll])]);
+    let stream = client(&server, second)
+        .option_stream(Feed::Opra)
+        .await
+        .unwrap();
+    stream.close().await.1.unwrap();
+
     let guard = CAPTURED.lock().unwrap();
     let captured = guard.as_ref().unwrap();
-    assert_eq!(captured.spans.len(), 6, "{:?}", captured.spans);
+    assert_eq!(captured.spans.len(), 7, "{:?}", captured.spans);
     let field = |name: &str, value: &str| (name.to_owned(), value.to_owned());
     for (index, span) in captured.spans.iter().enumerate() {
         assert_eq!(span.name, "suri.stream");
@@ -209,7 +218,8 @@ async fn each_stream_is_one_span_with_documented_events() {
         let expected = match index {
             0..4 => vec![field("stream", "trade_updates")],
             4 => vec![field("stream", "stocks"), field("feed", "iex")],
-            _ => vec![field("stream", "news")],
+            5 => vec![field("stream", "news")],
+            _ => vec![field("stream", "options"), field("feed", "opra")],
         };
         assert_eq!(span.fields, expected);
     }
@@ -225,7 +235,7 @@ async fn each_stream_is_one_span_with_documented_events() {
     let (events, kind) = events_of(captured, 3);
     assert_eq!(events, ["connected", "ended"]);
     assert_eq!(kind.as_deref(), Some("unauthorized"));
-    for index in [4, 5] {
+    for index in [4, 5, 6] {
         let (events, kind) = events_of(captured, index);
         assert_eq!(events, ["connected", "authenticated", "ended"]);
         assert_eq!(kind.as_deref(), Some("closed_by_caller"));

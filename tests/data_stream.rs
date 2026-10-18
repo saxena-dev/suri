@@ -138,6 +138,8 @@ async fn each_stream_opens_at_its_documented_path_with_the_key_headers() {
             Some(concat!("suri/", env!("CARGO_PKG_VERSION")))
         );
         assert_eq!(seen.header("sec-websocket-extensions"), None);
+        // Only the options stream asks for MessagePack.
+        assert_eq!(seen.header("content-type"), None);
         // Nothing is written before a subscription: the headers
         // authenticate, so the caller's Close is the first frame.
         assert_eq!(seen.frames, [Received::Close(Some((1000, String::new())))]);
@@ -399,7 +401,12 @@ async fn a_frame_that_is_not_an_array_ends_the_stream() {
     for text in [TRADE.to_owned(), format!("[{TRADE}] []"), "[".to_owned()] {
         let server = WsServer::start(vec![data_opened(vec![send(&text)])]);
         let mut stream = open(&server).await;
-        let error = stream.next().await.unwrap_err();
+        // Bounded, so a frame skipped by mistake fails here instead of
+        // waiting on a connection that answers every Ping.
+        let error = tokio::time::timeout(std::time::Duration::from_secs(5), stream.next())
+            .await
+            .expect("a bad frame ends the stream at once")
+            .unwrap_err();
         assert_eq!(error.kind(), StreamErrorKind::Decode, "{text}");
         assert!(error.to_string().contains("later messages may be lost"));
         assert_eq!(
@@ -407,6 +414,19 @@ async fn a_frame_that_is_not_an_array_ends_the_stream() {
             StreamErrorKind::Ended
         );
     }
+}
+
+#[tokio::test]
+async fn a_deeply_nested_element_is_kept_as_sent() {
+    // 100,000 levels deep: read without recursion, kept as `Other`.
+    let element = format!("{}{}", "[".repeat(100_000), "]".repeat(100_000));
+    let server = WsServer::start(vec![data_opened(vec![send(&format!("[{element}]"))])]);
+    let mut stream = open(&server).await;
+    let messages = tokio::time::timeout(Duration::from_secs(5), stream.next())
+        .await
+        .expect("the frame is read at once")
+        .unwrap();
+    assert_eq!(messages, [stocks::Message::Other(element)]);
 }
 
 #[tokio::test]

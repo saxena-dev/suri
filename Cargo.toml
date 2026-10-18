@@ -20,9 +20,9 @@ exclude = ["/.github", "/vendor", "/tools", "/tests"]
 default = ["rest"]
 # The HTTP client and every type that only it reads.
 rest = ["dep:reqwest", "dep:url", "dep:secrecy", "dep:serde_json", "serde/derive", "dep:tokio", "dep:tracing"]
-# The Trading stream over WebSocket. It reuses the client and its types, so
-# it requires `rest`.
-stream = ["rest", "dep:tokio-tungstenite", "dep:futures-util", "dep:rustls", "dep:rustls-platform-verifier"]
+# The Trading and Market Data streams over WebSocket. They reuse the client
+# and its types, so they require `rest`.
+stream = ["rest", "dep:tokio-tungstenite", "dep:futures-util", "dep:rustls", "dep:rustls-platform-verifier", "dep:rmp-serde", "dep:rmp"]
 
 [dependencies]
 # Decoding and encoding of suri's value types, which implement their serde
@@ -52,6 +52,11 @@ futures-util = { version = "0.3.34", default-features = false, features = ["sink
 # platform's certificate verifier, as the HTTP client's is.
 rustls = { version = "0.23.45", default-features = false, features = ["std", "tls12", "aws_lc_rs"], optional = true }
 rustls-platform-verifier = { version = "0.7.1", optional = true }
+# The options stream's MessagePack: decodes its elements and encodes its
+# subscriptions.
+rmp-serde = { version = "1.3.1", optional = true }
+# Reads a MessagePack frame's array header, to split it into elements.
+rmp = { version = "0.8.15", optional = true }
 
 [dev-dependencies]
 # Re-hashes the fixture tree in tests/fixture_manifest.rs.

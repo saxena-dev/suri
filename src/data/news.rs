@@ -7,9 +7,9 @@ use reqwest::Method;
 use serde::Deserialize;
 
 #[cfg(feature = "stream")]
-use super::sealed::Sealed;
+use super::sealed::{Codec, Sealed};
 #[cfg(feature = "stream")]
-use super::stream::{error, head, open, subscription};
+use super::stream::{error, head, open, read, subscription, text};
 #[cfg(feature = "stream")]
 use super::{Channels, DataMessage, DataStream};
 #[cfg(feature = "stream")]
@@ -176,20 +176,20 @@ pub enum Message {
 #[cfg(feature = "stream")]
 impl Sealed for Message {
     const STREAM: &'static str = "news";
+    const CODEC: Codec = Codec::Json;
 
-    fn decode(element: &str, credentials: &[&str; 2]) -> Message {
-        let Some(head) = head(element) else {
-            return Message::Other(element.to_owned());
+    fn decode(element: &[u8], credentials: &[&str; 2]) -> Message {
+        let Some(head) = head(Self::CODEC, element) else {
+            return Message::Other(text(element));
         };
         let message = match head.kind.as_str() {
-            "n" => serde_json::from_str(element).ok().map(Message::News),
-            "subscription" => subscription(element).map(Message::Subscription),
-            "error" => {
-                error(element, credentials).map(|(code, message)| Message::Error { code, message })
-            }
-            _ => return Message::Other(element.to_owned()),
+            "n" => read(Self::CODEC, element).map(Message::News),
+            "subscription" => subscription(Self::CODEC, element).map(Message::Subscription),
+            "error" => error(Self::CODEC, element, credentials)
+                .map(|(code, message)| Message::Error { code, message }),
+            _ => return Message::Other(text(element)),
         };
-        message.unwrap_or_else(|| Message::Undecoded(element.to_owned()))
+        message.unwrap_or_else(|| Message::Undecoded(text(element)))
     }
 }
 

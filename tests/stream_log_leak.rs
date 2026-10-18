@@ -11,6 +11,7 @@ use std::fmt;
 use std::fmt::Write as _;
 use std::sync::Mutex;
 
+use suri::data::options::Feed;
 use suri::data::stocks::StreamFeed;
 use suri::{Client, Config, Credentials, Environment, Region};
 use tracing::field::{Field, Visit};
@@ -18,7 +19,7 @@ use tracing::span::{Attributes, Id, Record};
 use tracing::{Event, Subscriber};
 use tracing_subscriber::Layer;
 use tracing_subscriber::layer::{Context, SubscriberExt};
-use ws_server::{Act, WsServer, data_opened, opened};
+use ws_server::{Act, WsServer, data_opened, msgpack_opened, opened};
 
 const KEY: &str = "PKSENTINELKEY0001";
 const SECRET: &str = "SECRETSENTINELVALUE0001";
@@ -152,9 +153,13 @@ async fn credentials_reach_only_the_documented_records() {
     }
     server.wait_for_frames(0, 3).await;
 
-    // A market-data stream sends the key pair in the upgrade's headers.
-    let server = WsServer::start(vec![data_opened(vec![Act::ReadAll])]);
-    let stream = Client::new(
+    // A market-data stream sends the key pair in the upgrade's headers; so
+    // does the options stream, which speaks MessagePack.
+    let server = WsServer::start(vec![
+        data_opened(vec![Act::ReadAll]),
+        msgpack_opened(vec![Act::ReadAll]),
+    ]);
+    let data_client = Client::new(
         Config::new(
             Region::US,
             Environment::Paper,
@@ -162,10 +167,10 @@ async fn credentials_reach_only_the_documented_records() {
         )
         .with_base_url(&server.url),
     )
-    .unwrap()
-    .stock_stream(StreamFeed::Iex)
-    .await
     .unwrap();
+    let stream = data_client.stock_stream(StreamFeed::Iex).await.unwrap();
+    stream.close().await.1.unwrap();
+    let stream = data_client.option_stream(Feed::Opra).await.unwrap();
     stream.close().await.1.unwrap();
 
     let lines = LINES.lock().unwrap();

@@ -103,5 +103,8 @@ All notable changes to suri are listed here. The format follows
   (`stocks::Message`, `crypto::Message`, `news::Message`), with the stock
   stream's `StreamFeed`, `Correction`, `Cancel`, `CancelAction`, `Luld`,
   `Status` and `Imbalance`, and `StreamError::code`.
+- With `stream`, the options stream over MessagePack:
+  `Client::option_stream` and `options::Message`; `Timestamp` reads
+  MessagePack's timestamp extension.
 - With `stream`, the dependencies `tokio-tungstenite`, `futures-util`,
-  `rustls` and `rustls-platform-verifier`.
+  `rustls`, `rustls-platform-verifier`, `rmp-serde` and `rmp`.

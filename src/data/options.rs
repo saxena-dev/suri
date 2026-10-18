@@ -1,10 +1,12 @@
 //! Options market data: historical bars and trades, the latest trades and
-//! quotes, snapshots, the option chain, and the code tables.
+//! quotes, snapshots, the option chain, the code tables, and the options
+//! stream.
 //!
 //! The `Client` methods that return these types: `option_bars`,
 //! `option_trades`, `option_latest_trades`, `option_latest_quotes`,
 //! `option_snapshots`, `option_chain`, `option_conditions` and
-//! `option_exchanges`. Symbols are option contract symbols such as
+//! `option_exchanges`; with the `stream` feature, `option_stream`, whose
+//! messages are `Message`. Symbols are option contract symbols such as
 //! `AAPL240315C00172500`. Alpaca keeps historical option data from
 //! February 2024.
 
@@ -13,8 +15,16 @@ use std::collections::BTreeMap;
 use reqwest::Method;
 use serde::Deserialize;
 
+#[cfg(feature = "stream")]
+use super::sealed::{Codec, Sealed};
+#[cfg(feature = "stream")]
+use super::stream::{error, head, open, point, subscription};
 pub use super::{Bar, BarsQuery, HistoryQuery, TickType, Timeframe};
+#[cfg(feature = "stream")]
+use super::{Channels, DataMessage, DataStream};
 use super::{Latest, Series};
+#[cfg(feature = "stream")]
+use crate::StreamError;
 use crate::rest::client::{Endpoint, Host, Request};
 use crate::trading::ContractType;
 use crate::value::wire::wire_enum;
@@ -416,6 +426,87 @@ fn latest<'a>(endpoint: &'a Endpoint, segments: &'a [&'a str], query: &LatestQue
         request.pair("feed", feed.as_str());
     }
     request
+}
+
+/// A message of the options stream that
+/// [`Client::option_stream`](crate::Client::option_stream) opens. A data
+/// message carries its contract symbol. The stream is MessagePack, so a
+/// message suri does not type keeps its MessagePack bytes.
+#[cfg(feature = "stream")]
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq)]
+pub enum Message {
+    /// A trade (`t`).
+    Trade {
+        /// The contract symbol.
+        symbol: String,
+        /// The trade.
+        trade: Trade,
+    },
+    /// A quote (`q`).
+    Quote {
+        /// The contract symbol.
+        symbol: String,
+        /// The quote.
+        quote: Quote,
+    },
+    /// The whole current subscription, Alpaca's reply to a subscribe or
+    /// unsubscribe.
+    Subscription(Channels),
+    /// An error Alpaca reported; the stream goes on.
+    Error {
+        /// Alpaca's code.
+        code: u16,
+        /// Alpaca's message, scrubbed and bounded.
+        message: String,
+    },
+    /// A message of a known type that suri could not read, its MessagePack
+    /// bytes as sent.
+    Undecoded(Vec<u8>),
+    /// A message of another type, or not a map, its MessagePack bytes as
+    /// sent.
+    Other(Vec<u8>),
+}
+
+#[cfg(feature = "stream")]
+impl Sealed for Message {
+    const STREAM: &'static str = "options";
+    const CODEC: Codec = Codec::MessagePack;
+
+    fn decode(element: &[u8], credentials: &[&str; 2]) -> Message {
+        let Some(head) = head(Self::CODEC, element) else {
+            return Message::Other(element.to_vec());
+        };
+        let symbol = head.symbol;
+        let message = match head.kind.as_str() {
+            "t" => point(Self::CODEC, element, symbol)
+                .map(|(symbol, trade)| Message::Trade { symbol, trade }),
+            "q" => point(Self::CODEC, element, symbol)
+                .map(|(symbol, quote)| Message::Quote { symbol, quote }),
+            "subscription" => subscription(Self::CODEC, element).map(Message::Subscription),
+            "error" => error(Self::CODEC, element, credentials)
+                .map(|(code, message)| Message::Error { code, message }),
+            _ => return Message::Other(element.to_vec()),
+        };
+        message.unwrap_or_else(|| Message::Undecoded(element.to_vec()))
+    }
+}
+
+#[cfg(feature = "stream")]
+impl DataMessage for Message {}
+
+#[cfg(feature = "stream")]
+impl Client {
+    /// Opens the options stream of a feed: connects to `/v1beta1/{feed}` on
+    /// the Market Data stream host, authenticated by the key-pair headers
+    /// and asking for MessagePack, the stream's only format, and returns
+    /// once Alpaca confirms the connection, subscribed to nothing. The
+    /// returned value owns the connection and reads it only while
+    /// [`DataStream::next`] or [`DataStream::close`] runs.
+    pub async fn option_stream(&self, feed: Feed) -> Result<DataStream<Message>, StreamError> {
+        let path = format!("/v1beta1/{}", feed.as_str());
+        open(self, &path, Some(feed.as_str())).await
+    }
 }
 
 #[cfg(test)]

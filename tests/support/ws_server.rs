@@ -197,6 +197,26 @@ pub fn data_opened(acts: Vec<Act>) -> Step {
     Step::Upgrade(all)
 }
 
+/// The options stream's opening, answered successfully: Alpaca's two
+/// messages in MessagePack, `[{"T":"success","msg":…}]`, in binary frames.
+pub fn msgpack_opening() -> Vec<Act> {
+    let control = |msg: &str| {
+        let mut bytes = vec![0x91, 0x82, 0xa1, b'T', 0xa7];
+        bytes.extend(b"success");
+        bytes.extend([0xa3, b'm', b's', b'g', 0xa0 | msg.len() as u8]);
+        bytes.extend(msg.as_bytes());
+        Act::Send(Message::binary(bytes))
+    };
+    vec![control("connected"), control("authenticated")]
+}
+
+/// The options opening followed by the given acts.
+pub fn msgpack_opened(acts: Vec<Act>) -> Step {
+    let mut all = msgpack_opening();
+    all.extend(acts);
+    Step::Upgrade(all)
+}
+
 // The handshake callbacks return tungstenite's own error response type.
 #[allow(clippy::result_large_err)]
 async fn play(tcp: tokio::net::TcpStream, step: Step, seen: Arc<Mutex<Vec<Seen>>>, index: usize) {

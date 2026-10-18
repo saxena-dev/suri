@@ -4,8 +4,8 @@
 use serde::Deserialize;
 
 use super::{Bar, Quote, Tape, Trade};
-use crate::data::sealed::Sealed;
-use crate::data::stream::{error, head, open, point, subscription};
+use crate::data::sealed::{Codec, Sealed};
+use crate::data::stream::{error, head, open, point, subscription, text};
 use crate::data::{Channels, DataMessage, DataStream};
 use crate::value::wire::wire_enum;
 use crate::{Client, Inbound, StreamError, Timestamp};
@@ -274,36 +274,40 @@ pub enum Message {
 
 impl Sealed for Message {
     const STREAM: &'static str = "stocks";
+    const CODEC: Codec = Codec::Json;
 
-    fn decode(element: &str, credentials: &[&str; 2]) -> Message {
-        let Some(head) = head(element) else {
-            return Message::Other(element.to_owned());
+    fn decode(element: &[u8], credentials: &[&str; 2]) -> Message {
+        let Some(head) = head(Self::CODEC, element) else {
+            return Message::Other(text(element));
         };
         let symbol = head.symbol;
         let message = match head.kind.as_str() {
-            "t" => point(element, symbol).map(|(symbol, trade)| Message::Trade { symbol, trade }),
-            "q" => point(element, symbol).map(|(symbol, quote)| Message::Quote { symbol, quote }),
-            "b" => point(element, symbol).map(|(symbol, bar)| Message::Bar { symbol, bar }),
-            "d" => point(element, symbol).map(|(symbol, bar)| Message::DailyBar { symbol, bar }),
-            "u" => point(element, symbol).map(|(symbol, bar)| Message::UpdatedBar { symbol, bar }),
-            "c" => point(element, symbol)
+            "t" => point(Self::CODEC, element, symbol)
+                .map(|(symbol, trade)| Message::Trade { symbol, trade }),
+            "q" => point(Self::CODEC, element, symbol)
+                .map(|(symbol, quote)| Message::Quote { symbol, quote }),
+            "b" => point(Self::CODEC, element, symbol)
+                .map(|(symbol, bar)| Message::Bar { symbol, bar }),
+            "d" => point(Self::CODEC, element, symbol)
+                .map(|(symbol, bar)| Message::DailyBar { symbol, bar }),
+            "u" => point(Self::CODEC, element, symbol)
+                .map(|(symbol, bar)| Message::UpdatedBar { symbol, bar }),
+            "c" => point(Self::CODEC, element, symbol)
                 .map(|(symbol, correction)| Message::Correction { symbol, correction }),
-            "x" => {
-                point(element, symbol).map(|(symbol, cancel)| Message::Cancel { symbol, cancel })
-            }
-            "l" => point(element, symbol).map(|(symbol, luld)| Message::Luld { symbol, luld }),
-            "s" => {
-                point(element, symbol).map(|(symbol, status)| Message::Status { symbol, status })
-            }
-            "i" => point(element, symbol)
+            "x" => point(Self::CODEC, element, symbol)
+                .map(|(symbol, cancel)| Message::Cancel { symbol, cancel }),
+            "l" => point(Self::CODEC, element, symbol)
+                .map(|(symbol, luld)| Message::Luld { symbol, luld }),
+            "s" => point(Self::CODEC, element, symbol)
+                .map(|(symbol, status)| Message::Status { symbol, status }),
+            "i" => point(Self::CODEC, element, symbol)
                 .map(|(symbol, imbalance)| Message::Imbalance { symbol, imbalance }),
-            "subscription" => subscription(element).map(Message::Subscription),
-            "error" => {
-                error(element, credentials).map(|(code, message)| Message::Error { code, message })
-            }
-            _ => return Message::Other(element.to_owned()),
+            "subscription" => subscription(Self::CODEC, element).map(Message::Subscription),
+            "error" => error(Self::CODEC, element, credentials)
+                .map(|(code, message)| Message::Error { code, message }),
+            _ => return Message::Other(text(element)),
         };
-        message.unwrap_or_else(|| Message::Undecoded(element.to_owned()))
+        message.unwrap_or_else(|| Message::Undecoded(text(element)))
     }
 }
 

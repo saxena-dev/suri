@@ -82,5 +82,7 @@ All notable changes to suri are listed here. The format follows
 - `Client::stock_latest_bars`, `stock_latest_trades`, `stock_latest_quotes`
   and `stock_snapshots`, with `Latest`, `LatestQuery`, `Snapshot` and
   `Snapshots`.
+- `Client::stock_conditions` and `stock_exchanges`, the stock condition and
+  exchange code tables, with `TickType` and `ConditionsQuery`.
 - With `stream`, the dependencies `tokio-tungstenite`, `futures-util`,
   `rustls` and `rustls-platform-verifier`.

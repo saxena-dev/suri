@@ -14,8 +14,19 @@ use std::fmt;
 use serde::Deserialize;
 
 use crate::Timestamp;
+use crate::value::wire::wire_enum;
 
 pub mod stocks;
+
+wire_enum! {
+    /// The kind of tick a condition code applies to.
+    TickType {
+        /// Trades.
+        Trade => "trade",
+        /// Quotes.
+        Quote => "quote",
+    }
+}
 
 /// One page of points per symbol: bars, trades, quotes or auctions.
 ///

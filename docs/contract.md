@@ -597,6 +597,15 @@ Alpaca may send beside the symbols. Each takes a `LatestQuery` (symbols,
 feed, currency); without a feed, Alpaca picks one by the caller's
 subscription.
 
+### Stock codes
+
+`Client::stock_conditions` (`GET /v2/stocks/meta/conditions/{ticktype}`)
+returns the names of a tape's trade or quote condition codes, and
+`Client::stock_exchanges` (`/v2/stocks/meta/exchanges`) the names of the
+exchange codes, each as a map from code to name. The tick type
+(`TickType`) is a path segment; the tape (`ConditionsQuery`) is sent as
+given, and Alpaca decides which tapes it lists codes for.
+
 ## Market clock
 
 `Client::clock` reads `GET /v2/clock`: the server's time, whether the market

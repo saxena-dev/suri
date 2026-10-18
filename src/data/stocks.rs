@@ -3,7 +3,8 @@
 //!
 //! The `Client` methods that return these types: `stock_bars`,
 //! `stock_trades`, `stock_quotes`, `stock_auctions`, `stock_latest_bars`,
-//! `stock_latest_trades`, `stock_latest_quotes` and `stock_snapshots`.
+//! `stock_latest_trades`, `stock_latest_quotes`, `stock_snapshots`,
+//! `stock_conditions` and `stock_exchanges`.
 
 use std::collections::BTreeMap;
 use std::fmt;
@@ -12,7 +13,7 @@ use reqwest::Method;
 use serde::Deserialize;
 use serde::de::{Deserializer, MapAccess, Visitor};
 
-pub use super::{Bar, Timeframe};
+pub use super::{Bar, TickType, Timeframe};
 use super::{Latest, Series};
 use crate::rest::client::{Endpoint, Host, Request};
 use crate::value::wire::wire_enum;
@@ -191,6 +192,21 @@ impl HistoryQuery {
             page_token: None,
             sort: None,
         }
+    }
+}
+
+/// Which condition codes to read: those of one tape.
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq)]
+pub struct ConditionsQuery {
+    /// The tape (Alpaca accepts `A`, `B` and `C`).
+    pub tape: Tape,
+}
+
+impl ConditionsQuery {
+    /// The codes of this tape.
+    pub fn new(tape: Tape) -> ConditionsQuery {
+        ConditionsQuery { tape }
     }
 }
 
@@ -434,6 +450,18 @@ const SNAPSHOTS: Endpoint = Endpoint {
     template: "/v2/stocks/snapshots",
 };
 
+const CONDITIONS: Endpoint = Endpoint {
+    host: Host::Data,
+    method: Method::GET,
+    template: "/v2/stocks/meta/conditions/{ticktype}",
+};
+
+const EXCHANGES: Endpoint = Endpoint {
+    host: Host::Data,
+    method: Method::GET,
+    template: "/v2/stocks/meta/exchanges",
+};
+
 /// Adds the pairs a bars or history query share after their first ones,
 /// in the docs' order.
 fn tail(
@@ -560,6 +588,28 @@ impl Client {
     }
 }
 
+impl Client {
+    /// Reads the names of a tape's trade or quote condition codes, code to
+    /// name (`GET /v2/stocks/meta/conditions/{ticktype}`).
+    pub async fn stock_conditions(
+        &self,
+        tick_type: TickType,
+        query: &ConditionsQuery,
+    ) -> Result<Response<BTreeMap<String, String>>, Error> {
+        let segments = ["v2", "stocks", "meta", "conditions", tick_type.as_str()];
+        let mut request = Request::new(&CONDITIONS, &segments);
+        request.pair("tape", query.tape.as_str());
+        self.send_request(request).await
+    }
+
+    /// Reads the names of the stock exchange codes, code to name (`GET
+    /// /v2/stocks/meta/exchanges`).
+    pub async fn stock_exchanges(&self) -> Result<Response<BTreeMap<String, String>>, Error> {
+        self.send(&EXCHANGES, &["v2", "stocks", "meta", "exchanges"])
+            .await
+    }
+}
+
 /// A latest-values or snapshots request, its pairs in the docs' order.
 fn latest<'a>(endpoint: &'a Endpoint, segments: &'a [&'a str], query: &LatestQuery) -> Request<'a> {
     let mut request = Request::new(endpoint, segments);
@@ -616,6 +666,8 @@ mod tests {
             &LATEST_TRADES,
             &LATEST_QUOTES,
             &SNAPSHOTS,
+            &CONDITIONS,
+            &EXCHANGES,
         ] {
             assert!(matches!(endpoint.host, Host::Data), "{}", endpoint.template);
         }

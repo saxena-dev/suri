@@ -6,7 +6,9 @@ use std::sync::Arc;
 use std::time::{Duration, Instant, SystemTime};
 
 use reqwest::Method;
-use reqwest::header::{ACCEPT_ENCODING, CONTENT_TYPE, HeaderValue, LOCATION, USER_AGENT};
+use reqwest::header::{
+    ACCEPT_ENCODING, CONTENT_LENGTH, CONTENT_TYPE, HeaderValue, LOCATION, USER_AGENT,
+};
 use secrecy::{ExposeSecret, SecretString};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
@@ -343,6 +345,10 @@ impl Client {
             builder = builder
                 .header(CONTENT_TYPE, "application/json")
                 .body(body.clone());
+        } else if endpoint.method == Method::POST {
+            // A POST defines a meaning for its content, so it states that it
+            // has none rather than leave the length to be inferred.
+            builder = builder.header(CONTENT_LENGTH, "0");
         }
         let sent = builder.send().await;
         let mut response = match sent {

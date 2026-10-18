@@ -140,6 +140,10 @@ bad value fails when the client is built, never at request time.
 - A redirect is never followed; it is an error (below).
 - A value placed in a URL path, such as a symbol, is sent as one encoded
   segment: `BTC/USD` is sent as `BTC%2FUSD`.
+- A request with a body sends it as JSON with `Content-Type:
+  application/json`. A `POST` without a body, such as exercising an
+  option, sends `Content-Length: 0`; a `GET` or `DELETE` without one sends
+  neither header.
 
 ## Responses
 

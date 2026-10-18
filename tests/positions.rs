@@ -99,6 +99,13 @@ fn assert_no_body(request: &Request) {
     assert!(request.body.is_empty());
 }
 
+/// A POST without a body states its length as zero.
+fn assert_empty_post(request: &Request) {
+    assert_eq!(request.method, "POST");
+    assert_no_body(request);
+    assert_eq!(request.header("Content-Length"), Some("0"));
+}
+
 /// The one position every upstream position fixture carries.
 fn assert_fixture_position(position: &Position) {
     assert_eq!(position.asset_id, ASSET_ID);
@@ -145,6 +152,7 @@ async fn the_position_list_fixture_decodes_field_by_field() {
     assert_eq!(request.method, "GET");
     assert_eq!(request.path, "/v2/positions");
     assert_no_body(&request);
+    assert_eq!(request.header("Content-Length"), None);
 }
 
 #[tokio::test]
@@ -311,6 +319,8 @@ async fn close(key: &str, how: &ClosePosition, body: &[u8]) -> (suri::Order, Req
     let request = only_request(&server);
     assert_eq!(request.method, "DELETE");
     assert_no_body(&request);
+    // A DELETE's content has no defined meaning, so no length is stated.
+    assert_eq!(request.header("Content-Length"), None);
     (order, request)
 }
 
@@ -513,9 +523,8 @@ async fn an_option_is_exercised_by_symbol_or_contract_id() {
         let response = client(&server).exercise_option(&symbol(key)).await.unwrap();
         assert_eq!(response.meta().status(), 200);
         let request = only_request(&server);
-        assert_eq!(request.method, "POST");
+        assert_empty_post(&request);
         assert_eq!(request.path, format!("/v2/positions/{key}/exercise"));
-        assert_no_body(&request);
     }
 }
 
@@ -528,12 +537,11 @@ async fn exercise_is_declined_by_symbol() {
         .unwrap();
     assert_eq!(response.meta().status(), 200);
     let request = only_request(&server);
-    assert_eq!(request.method, "POST");
+    assert_empty_post(&request);
     assert_eq!(
         request.path,
         "/v2/positions/AAPL230616C00150000/do-not-exercise"
     );
-    assert_no_body(&request);
 }
 
 #[tokio::test]

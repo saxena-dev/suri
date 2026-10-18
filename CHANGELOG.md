@@ -95,5 +95,7 @@ All notable changes to suri are listed here. The format follows
   `option_snapshots`, `option_chain`, `option_conditions` and
   `option_exchanges`, with `Greeks`, `Snapshots` and the chain's
   `ChainQuery`.
+- News in `suri::data::news`: `Client::news`, one page of articles per
+  call, with `Query`, `Page`, `Article`, `Image` and `ImageSize`.
 - With `stream`, the dependencies `tokio-tungstenite`, `futures-util`,
   `rustls` and `rustls-platform-verifier`.

@@ -7,8 +7,8 @@ Data APIs. Support for the Broker API is planned after the first release.
 endpoints in the first release's scope (below), each change sent at most
 once and never retried, and its `trade_updates` stream behind the
 `stream` feature. Market data is under way: stocks (bars, trades,
-quotes, auctions, latest values, snapshots and code tables), crypto and
-options so far. The crate is being built in the open,
+quotes, auctions, latest values, snapshots and code tables), crypto,
+options and news so far. The crate is being built in the open,
 one tested piece at a time.
 
 ## Scope of 0.1.0

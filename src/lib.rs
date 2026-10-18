@@ -2,7 +2,8 @@
 //!
 //! Pre-release: the Trading API's REST endpoints in the first release's
 //! scope (see the README), its `trade_updates` stream behind the `stream`
-//! feature, and Market Data's stock, crypto and options data so far.
+//! feature, and Market Data's stock, crypto and options data and news so
+//! far.
 //!
 //! The [contract](https://github.com/saxena-dev/suri/blob/main/docs/contract.md)
 //! states every behaviour suri promises.
@@ -16,8 +17,8 @@
 //! Trading API's types (account, assets, calendar, clock, orders,
 //! positions, watchlists and the `trade_updates` stream's messages) are in
 //! the `trading` module, and Market Data's in `data` and its per-asset
-//! modules (`data::stocks`, `data::crypto`, `data::options`). The methods
-//! that call Alpaca are on `Client`.
+//! modules (`data::stocks`, `data::crypto`, `data::options`) and
+//! `data::news`. The methods that call Alpaca are on `Client`.
 
 #[cfg(feature = "rest")]
 pub mod data;

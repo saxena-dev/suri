@@ -543,8 +543,8 @@ API's `trade_updates` stream.
 ## Market data
 
 Market Data types are in `suri::data` and its per-asset modules
-(`suri::data::stocks`, `suri::data::crypto`, `suri::data::options`); the
-methods are on `Client`.
+(`suri::data::stocks`, `suri::data::crypto`, `suri::data::options`) and
+`suri::data::news`; the methods are on `Client`.
 
 - **Host.** Requests go to `https://data.alpaca.markets` for paper and live
   clients alike (paper Trading users read market data from the production
@@ -653,6 +653,19 @@ condition and exchange code tables, code to name. A trade or quote
 carries one condition code, which may be a space; exchange codes are
 option exchange codes and keep their case. Without a feed (`Feed`:
 `opra` or `indicative`), Alpaca picks one by the caller's subscription.
+
+### News
+
+`Client::news` (`GET /v1beta1/news`) reads one `Page` of articles across
+stocks and crypto, with `next_page_token`; with no parameter set, Alpaca
+returns the latest 10. A `Query` takes the interval, the order by update
+time (`Sort`, Alpaca's default descending), the symbols (comma-joined),
+`limit`, and the `include_content` and `exclude_contentless` flags, sent
+as `true` or `false`. An `Article`'s text is read as sent: Alpaca's
+schema forbids empty text, but its responses carry empty summaries and
+contents, and the content may contain HTML. An article without a URL, or
+with a `null` one, has `url` `None`; one without an image list has no
+images. An image size Alpaca has not documented is kept as `Unknown`.
 
 ## Market clock
 

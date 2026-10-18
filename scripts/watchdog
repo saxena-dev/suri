@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# The gate's test runner: runs one test binary and kills it if it runs
+# longer than WATCHDOG_SECONDS (default 300), so a test that hangs fails
+# the gate, naming the binary, instead of stalling it. Exits with the
+# binary's status, 128 plus the signal if a signal ended it, or 124 when
+# the limit passed.
+exec perl -e '
+  my $limit = shift;
+  my $pid = fork() // die "watchdog: fork: $!\n";
+  if ($pid == 0) { exec { $ARGV[0] } @ARGV or die "watchdog: exec $ARGV[0]: $!\n" }
+  local $SIG{ALRM} = sub {
+    kill "KILL", $pid;
+    waitpid($pid, 0);
+    print STDERR "watchdog: $ARGV[0] ran longer than ${limit}s and was killed\n";
+    exit 124;
+  };
+  alarm $limit;
+  waitpid($pid, 0);
+  exit($? & 127 ? 128 + ($? & 127) : $? >> 8);
+' "${WATCHDOG_SECONDS:-300}" "$@"

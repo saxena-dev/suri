@@ -19,7 +19,7 @@ use tracing::span::{Attributes, Id, Record};
 use tracing::{Event, Subscriber};
 use tracing_subscriber::Layer;
 use tracing_subscriber::layer::{Context, SubscriberExt};
-use ws_server::{Act, WsServer, data_opened, msgpack_opened, opened};
+use ws_server::{Act, WsServer, bounded, data_opened, msgpack_opened, opened};
 
 const KEY: &str = "PKSENTINELKEY0001";
 const SECRET: &str = "SECRETSENTINELVALUE0001";
@@ -131,84 +131,88 @@ const DOCUMENTED: [&str; 7] = [
 
 #[tokio::test]
 async fn credentials_reach_only_the_documented_records() {
-    log::set_logger(&Logger).unwrap();
-    log::set_max_level(log::LevelFilter::Trace);
-    tracing::subscriber::set_global_default(tracing_subscriber::registry().with(Capture)).unwrap();
+    bounded(async {
+        log::set_logger(&Logger).unwrap();
+        log::set_max_level(log::LevelFilter::Trace);
+        tracing::subscriber::set_global_default(tracing_subscriber::registry().with(Capture))
+            .unwrap();
 
-    let reason = format!("bad key {KEY} secret {SECRET}");
-    let server = WsServer::start(vec![opened(vec![Act::Close(1008, reason), Act::ReadAll])]);
-    let client = Client::new(
-        Config::new(
-            Region::US,
-            Environment::Paper,
-            Credentials::api_key(KEY, SECRET),
+        let reason = format!("bad key {KEY} secret {SECRET}");
+        let server = WsServer::start(vec![opened(vec![Act::Close(1008, reason), Act::ReadAll])]);
+        let client = Client::new(
+            Config::new(
+                Region::US,
+                Environment::Paper,
+                Credentials::api_key(KEY, SECRET),
+            )
+            .with_base_url(&server.url),
         )
-        .with_base_url(&server.url),
-    )
-    .unwrap();
-    let mut stream = client.trade_updates().await.unwrap();
-    let error = stream.next().await.unwrap_err();
-    for text in [error.to_string(), format!("{error:?}")] {
-        assert!(!leaks(&text), "{text}");
-    }
-    server.wait_for_frames(0, 3).await;
-
-    // A market-data stream sends the key pair in the upgrade's headers; so
-    // does the options stream, which speaks MessagePack.
-    let server = WsServer::start(vec![
-        data_opened(vec![Act::ReadAll]),
-        msgpack_opened(vec![Act::ReadAll]),
-    ]);
-    let data_client = Client::new(
-        Config::new(
-            Region::US,
-            Environment::Paper,
-            Credentials::api_key(KEY, SECRET),
-        )
-        .with_base_url(&server.url),
-    )
-    .unwrap();
-    let stream = data_client.stock_stream(StreamFeed::Iex).await.unwrap();
-    stream.close().await.1.unwrap();
-    let stream = data_client.option_stream(Feed::Opra).await.unwrap();
-    stream.close().await.1.unwrap();
-
-    let lines = LINES.lock().unwrap();
-    let client_lines: Vec<&Line> = lines
-        .iter()
-        .filter(|line| line.thread != "ws-server")
-        .collect();
-    // The capture saw suri's records and the WebSocket library's, so an
-    // empty capture cannot pass.
-    assert!(client_lines.iter().any(|line| line.target == "suri"));
-    for line in &client_lines {
-        if leaks(&line.text) {
-            assert!(line.target.starts_with("tungstenite::"), "{line:?}");
-            assert!(
-                DOCUMENTED.iter().any(|kind| line.text.starts_with(kind)),
-                "{line:?}"
-            );
-            assert!(line.level == "TRACE" || line.level == "DEBUG", "{line:?}");
+        .unwrap();
+        let mut stream = client.trade_updates().await.unwrap();
+        let error = stream.next().await.unwrap_err();
+        for text in [error.to_string(), format!("{error:?}")] {
+            assert!(!leaks(&text), "{text}");
         }
-    }
-    let present = |kind: &str| {
-        client_lines
+        server.wait_for_frames(0, 3).await;
+
+        // A market-data stream sends the key pair in the upgrade's headers; so
+        // does the options stream, which speaks MessagePack.
+        let server = WsServer::start(vec![
+            data_opened(vec![Act::ReadAll]),
+            msgpack_opened(vec![Act::ReadAll]),
+        ]);
+        let data_client = Client::new(
+            Config::new(
+                Region::US,
+                Environment::Paper,
+                Credentials::api_key(KEY, SECRET),
+            )
+            .with_base_url(&server.url),
+        )
+        .unwrap();
+        let stream = data_client.stock_stream(StreamFeed::Iex).await.unwrap();
+        stream.close().await.1.unwrap();
+        let stream = data_client.option_stream(Feed::Opra).await.unwrap();
+        stream.close().await.1.unwrap();
+
+        let lines = LINES.lock().unwrap();
+        let client_lines: Vec<&Line> = lines
             .iter()
-            .any(|line| line.text.starts_with(kind) && line.text.contains(SECRET))
-    };
-    assert!(present("Sending frame"), "the authentication frame");
-    assert!(present("Request:"), "the market-data upgrade's headers");
-    assert!(present("Received close frame"), "the close reason");
-
-    // Under the documented filter, `tungstenite` at INFO, nothing leaks on
-    // any thread.
-    for line in lines.iter() {
-        // tungstenite logs through `log`.
-        let filtered = line.source == "log"
-            && line.target.starts_with("tungstenite")
-            && (line.level == "TRACE" || line.level == "DEBUG");
-        if !filtered {
-            assert!(!leaks(&line.text), "{line:?}");
+            .filter(|line| line.thread != "ws-server")
+            .collect();
+        // The capture saw suri's records and the WebSocket library's, so an
+        // empty capture cannot pass.
+        assert!(client_lines.iter().any(|line| line.target == "suri"));
+        for line in &client_lines {
+            if leaks(&line.text) {
+                assert!(line.target.starts_with("tungstenite::"), "{line:?}");
+                assert!(
+                    DOCUMENTED.iter().any(|kind| line.text.starts_with(kind)),
+                    "{line:?}"
+                );
+                assert!(line.level == "TRACE" || line.level == "DEBUG", "{line:?}");
+            }
         }
-    }
+        let present = |kind: &str| {
+            client_lines
+                .iter()
+                .any(|line| line.text.starts_with(kind) && line.text.contains(SECRET))
+        };
+        assert!(present("Sending frame"), "the authentication frame");
+        assert!(present("Request:"), "the market-data upgrade's headers");
+        assert!(present("Received close frame"), "the close reason");
+
+        // Under the documented filter, `tungstenite` at INFO, nothing leaks on
+        // any thread.
+        for line in lines.iter() {
+            // tungstenite logs through `log`.
+            let filtered = line.source == "log"
+                && line.target.starts_with("tungstenite")
+                && (line.level == "TRACE" || line.level == "DEBUG");
+            if !filtered {
+                assert!(!leaks(&line.text), "{line:?}");
+            }
+        }
+    })
+    .await
 }

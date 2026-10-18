@@ -22,7 +22,7 @@ use tracing::{Event, Level, Subscriber};
 use tracing_subscriber::Layer;
 use tracing_subscriber::layer::{Context, SubscriberExt};
 use tracing_subscriber::registry::LookupSpan;
-use ws_server::{Act, Step, WsServer, data_opened, msgpack_opened, opened};
+use ws_server::{Act, Step, WsServer, bounded, data_opened, msgpack_opened, opened};
 
 const KEY: &str = "PKSENTINELKEY0001";
 const SECRET: &str = "SECRETSENTINELVALUE0001";
@@ -148,109 +148,112 @@ fn events_of(captured: &Captured, index: usize) -> (Vec<&'static str>, Option<St
 
 #[tokio::test]
 async fn each_stream_is_one_span_with_documented_events() {
-    tracing::subscriber::set_global_default(tracing_subscriber::registry().with(Capture)).unwrap();
-    let second = Duration::from_secs(5);
+    bounded(async {
+        tracing::subscriber::set_global_default(tracing_subscriber::registry().with(Capture)).unwrap();
+        let second = Duration::from_secs(5);
 
-    // Opens, delivers one message, is closed by the server.
-    let server = WsServer::start(vec![opened(vec![
-        Act::Send(Message::text(UPDATE)),
-        Act::Close(1000, String::new()),
-        Act::ReadAll,
-    ])]);
-    let mut stream = client(&server, second).trade_updates().await.unwrap();
-    stream.next().await.unwrap();
-    stream.next().await.unwrap_err();
-    drop(stream);
+        // Opens, delivers one message, is closed by the server.
+        let server = WsServer::start(vec![opened(vec![
+            Act::Send(Message::text(UPDATE)),
+            Act::Close(1000, String::new()),
+            Act::ReadAll,
+        ])]);
+        let mut stream = client(&server, second).trade_updates().await.unwrap();
+        stream.next().await.unwrap();
+        stream.next().await.unwrap_err();
+        drop(stream);
 
-    // real-time: a short request timeout draws a liveness Ping.
-    let interval = Duration::from_millis(300);
-    let server = WsServer::start(vec![opened(vec![
-        Act::ReadUntilPing,
-        Act::Send(Message::text(UPDATE)),
-    ])]);
-    let mut stream = client(&server, interval).trade_updates().await.unwrap();
-    stream.next().await.unwrap();
-    drop(stream);
+        // real-time: a short request timeout draws a liveness Ping.
+        let interval = Duration::from_millis(300);
+        let server = WsServer::start(vec![opened(vec![
+            Act::ReadUntilPing,
+            Act::Send(Message::text(UPDATE)),
+        ])]);
+        let mut stream = client(&server, interval).trade_updates().await.unwrap();
+        stream.next().await.unwrap();
+        drop(stream);
 
-    // Closed by the caller.
-    let server = WsServer::start(vec![opened(vec![Act::ReadAll])]);
-    let stream = client(&server, second).trade_updates().await.unwrap();
-    stream.close().await.1.unwrap();
+        // Closed by the caller.
+        let server = WsServer::start(vec![opened(vec![Act::ReadAll])]);
+        let stream = client(&server, second).trade_updates().await.unwrap();
+        stream.close().await.1.unwrap();
 
-    // Rejected while opening.
-    let unauthorized =
-        r#"{"stream":"authorization","data":{"status":"unauthorized","action":"authenticate"}}"#;
-    let server = WsServer::start(vec![Step::Upgrade(vec![
-        Act::Read,
-        Act::Send(Message::text(unauthorized)),
-    ])]);
-    client(&server, second).trade_updates().await.unwrap_err();
+        // Rejected while opening.
+        let unauthorized =
+            r#"{"stream":"authorization","data":{"status":"unauthorized","action":"authenticate"}}"#;
+        let server = WsServer::start(vec![Step::Upgrade(vec![
+            Act::Read,
+            Act::Send(Message::text(unauthorized)),
+        ])]);
+        client(&server, second).trade_updates().await.unwrap_err();
 
-    // A stock stream, closed by the caller, and the news stream, which has
-    // no feed.
-    let server = WsServer::start(vec![
-        data_opened(vec![Act::ReadAll]),
-        data_opened(vec![Act::ReadAll]),
-    ]);
-    let stream = client(&server, second)
-        .stock_stream(StreamFeed::Iex)
-        .await
-        .unwrap();
-    stream.close().await.1.unwrap();
-    let stream = client(&server, second).news_stream().await.unwrap();
-    stream.close().await.1.unwrap();
+        // A stock stream, closed by the caller, and the news stream, which has
+        // no feed.
+        let server = WsServer::start(vec![
+            data_opened(vec![Act::ReadAll]),
+            data_opened(vec![Act::ReadAll]),
+        ]);
+        let stream = client(&server, second)
+            .stock_stream(StreamFeed::Iex)
+            .await
+            .unwrap();
+        stream.close().await.1.unwrap();
+        let stream = client(&server, second).news_stream().await.unwrap();
+        stream.close().await.1.unwrap();
 
-    // The options stream, over MessagePack.
-    let server = WsServer::start(vec![msgpack_opened(vec![Act::ReadAll])]);
-    let stream = client(&server, second)
-        .option_stream(Feed::Opra)
-        .await
-        .unwrap();
-    stream.close().await.1.unwrap();
+        // The options stream, over MessagePack.
+        let server = WsServer::start(vec![msgpack_opened(vec![Act::ReadAll])]);
+        let stream = client(&server, second)
+            .option_stream(Feed::Opra)
+            .await
+            .unwrap();
+        stream.close().await.1.unwrap();
 
-    let guard = CAPTURED.lock().unwrap();
-    let captured = guard.as_ref().unwrap();
-    assert_eq!(captured.spans.len(), 7, "{:?}", captured.spans);
-    let field = |name: &str, value: &str| (name.to_owned(), value.to_owned());
-    for (index, span) in captured.spans.iter().enumerate() {
-        assert_eq!(span.name, "suri.stream");
-        assert_eq!(span.level, Level::INFO);
-        let expected = match index {
-            0..4 => vec![field("stream", "trade_updates")],
-            4 => vec![field("stream", "stocks"), field("feed", "iex")],
-            5 => vec![field("stream", "news")],
-            _ => vec![field("stream", "options"), field("feed", "opra")],
-        };
-        assert_eq!(span.fields, expected);
-    }
-    let opened_events = ["connected", "authenticated", "listening"];
-    let (events, kind) = events_of(captured, 0);
-    assert_eq!(events, [&opened_events[..], &["ended"]].concat());
-    assert_eq!(kind.as_deref(), Some("closed"));
-    let (events, _) = events_of(captured, 1);
-    assert_eq!(events, [&opened_events[..], &["ping"]].concat());
-    let (events, kind) = events_of(captured, 2);
-    assert_eq!(events, [&opened_events[..], &["ended"]].concat());
-    assert_eq!(kind.as_deref(), Some("closed_by_caller"));
-    let (events, kind) = events_of(captured, 3);
-    assert_eq!(events, ["connected", "ended"]);
-    assert_eq!(kind.as_deref(), Some("unauthorized"));
-    for index in [4, 5, 6] {
-        let (events, kind) = events_of(captured, index);
-        assert_eq!(events, ["connected", "authenticated", "ended"]);
+        let guard = CAPTURED.lock().unwrap();
+        let captured = guard.as_ref().unwrap();
+        assert_eq!(captured.spans.len(), 7, "{:?}", captured.spans);
+        let field = |name: &str, value: &str| (name.to_owned(), value.to_owned());
+        for (index, span) in captured.spans.iter().enumerate() {
+            assert_eq!(span.name, "suri.stream");
+            assert_eq!(span.level, Level::INFO);
+            let expected = match index {
+                0..4 => vec![field("stream", "trade_updates")],
+                4 => vec![field("stream", "stocks"), field("feed", "iex")],
+                5 => vec![field("stream", "news")],
+                _ => vec![field("stream", "options"), field("feed", "opra")],
+            };
+            assert_eq!(span.fields, expected);
+        }
+        let opened_events = ["connected", "authenticated", "listening"];
+        let (events, kind) = events_of(captured, 0);
+        assert_eq!(events, [&opened_events[..], &["ended"]].concat());
+        assert_eq!(kind.as_deref(), Some("closed"));
+        let (events, _) = events_of(captured, 1);
+        assert_eq!(events, [&opened_events[..], &["ping"]].concat());
+        let (events, kind) = events_of(captured, 2);
+        assert_eq!(events, [&opened_events[..], &["ended"]].concat());
         assert_eq!(kind.as_deref(), Some("closed_by_caller"));
-    }
+        let (events, kind) = events_of(captured, 3);
+        assert_eq!(events, ["connected", "ended"]);
+        assert_eq!(kind.as_deref(), Some("unauthorized"));
+        for index in [4, 5, 6] {
+            let (events, kind) = events_of(captured, index);
+            assert_eq!(events, ["connected", "authenticated", "ended"]);
+            assert_eq!(kind.as_deref(), Some("closed_by_caller"));
+        }
 
-    for record in captured
-        .spans
-        .iter()
-        .flat_map(|span| span.fields.iter())
-        .chain(captured.events.iter().flat_map(|event| event.fields.iter()))
-    {
-        let text = format!("{record:?}");
-        assert!(
-            !text.contains("127.0.0.1") && !text.contains(KEY) && !text.contains(SECRET),
-            "{text}"
-        );
-    }
+        for record in captured
+            .spans
+            .iter()
+            .flat_map(|span| span.fields.iter())
+            .chain(captured.events.iter().flat_map(|event| event.fields.iter()))
+        {
+            let text = format!("{record:?}");
+            assert!(
+                !text.contains("127.0.0.1") && !text.contains(KEY) && !text.contains(SECRET),
+                "{text}"
+            );
+        }
+    })
+    .await
 }

@@ -160,6 +160,15 @@ impl WsServer {
     }
 }
 
+/// Runs a test's body under a time limit, so a regression that leaves a
+/// stream waiting on a healthy connection fails the test, naming it,
+/// instead of hanging the run.
+pub async fn bounded<T>(body: impl std::future::Future<Output = T>) -> T {
+    tokio::time::timeout(Duration::from_secs(60), body)
+        .await
+        .expect("the test ran longer than 60 s")
+}
+
 /// The opening the client is expected to perform, answered successfully.
 pub fn opening() -> Vec<Act> {
     vec![

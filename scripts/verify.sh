@@ -24,6 +24,9 @@
 # The log header records HEAD and a hash of the uncommitted changes, so a run
 # that started before the last edit can be told apart from one that did not.
 #
+# Every test binary runs under scripts/watchdog (WATCHDOG_SECONDS, default
+# 300), so a test that hangs fails the run instead of stalling it.
+#
 # Exits non-zero on the first failure. Every cargo call uses --locked. Never
 # runs cargo publish in any form and never contacts the network for
 # documentation.
@@ -81,11 +84,16 @@ run() {
   "$@"
 }
 
+# Every test binary runs under scripts/watchdog, which kills one that runs
+# longer than its limit, so a hung test fails the gate, naming the binary,
+# instead of stalling it.
+watchdog=(--config "target.'cfg(all())'.runner = [\"$PWD/scripts/watchdog\"]")
+
 run cargo fmt --all -- --check
 
 if [ "$mode" != full ]; then
   run cargo clippy --locked --all-targets --all-features -- -D warnings
-  run cargo test --locked --all-features
+  run cargo test --locked --all-features "${watchdog[@]}"
 fi
 
 if [ "$mode" = rows ]; then
@@ -101,11 +109,11 @@ if [ "$mode" = full ]; then
     # shellcheck disable=SC2046
     run cargo clippy --locked --all-targets $(row_args "$row") -- -D warnings
     # shellcheck disable=SC2046
-    run cargo test --locked $(row_args "$row")
+    run cargo test --locked $(row_args "$row") "${watchdog[@]}"
   done
   # A downstream crate can turn on serde_json's arbitrary_precision, which
   # changes how numbers reach suri's decoders; suri's results must not change.
-  run cargo test --locked --all-features --features serde_json/arbitrary_precision
+  run cargo test --locked --all-features --features serde_json/arbitrary_precision "${watchdog[@]}"
   RUSTDOCFLAGS="-D warnings" run cargo doc --locked --all-features --no-deps
 
   # The package never ships vendored sources, tooling, tests and their
@@ -132,7 +140,7 @@ if [ "$mode" = full ]; then
       # shellcheck disable=SC2046
       run cargo "+$rv" check --locked --all-targets $(row_args "$row")
     done
-    run cargo "+$rv" test --locked --all-features
+    run cargo "+$rv" test --locked --all-features "${watchdog[@]}"
   fi
 fi
 

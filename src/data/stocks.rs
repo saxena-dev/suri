@@ -111,7 +111,7 @@ pub struct BarsQuery {
     /// The bars' interval.
     pub timeframe: Timeframe,
     /// The inclusive start; Alpaca's default is the start of the current
-    /// day.
+    /// day, but at least 15 minutes ago without real-time access.
     pub start: Option<Timestamp>,
     /// The inclusive end; Alpaca's default is now, or 15 minutes ago without
     /// real-time access.

@@ -84,5 +84,11 @@ All notable changes to suri are listed here. The format follows
   `Snapshots`.
 - `Client::stock_conditions` and `stock_exchanges`, the stock condition and
   exchange code tables, with `TickType` and `ConditionsQuery`.
+- Crypto market data in `suri::data::crypto`: `Client::crypto_bars`,
+  `crypto_trades`, `crypto_quotes`, `crypto_latest_bars`,
+  `crypto_latest_trades`, `crypto_latest_quotes`,
+  `crypto_latest_orderbooks` and `crypto_snapshots`, at a `Location`, with
+  the shared `BarsQuery`, `HistoryQuery` and `SymbolsQuery` in
+  `suri::data`.
 - With `stream`, the dependencies `tokio-tungstenite`, `futures-util`,
   `rustls` and `rustls-platform-verifier`.

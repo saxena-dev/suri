@@ -543,7 +543,7 @@ API's `trade_updates` stream.
 ## Market data
 
 Market Data types are in `suri::data` and its per-asset modules
-(`suri::data::stocks`); the methods are on `Client`.
+(`suri::data::stocks`, `suri::data::crypto`); the methods are on `Client`.
 
 - **Host.** Requests go to `https://data.alpaca.markets` for paper and live
   clients alike (paper Trading users read market data from the production
@@ -553,9 +553,10 @@ Market Data types are in `suri::data` and its per-asset modules
   double arrive as `f64`, read correctly rounded to the nearest `f64`
   (which keeps every value seen so far; a value with more than 15
   significant digits that is not the shortest form of some `f64` would be
-  rounded). Sizes, volumes, counts and IDs are integers of the width their
-  documented format gives (`u32`, `u64`, `i64`); a fraction or a value out
-  of range there fails the decode.
+  rounded); crypto sizes and volumes are doubles, so `f64`. Sizes,
+  volumes, counts and IDs the docs type as integers are integers of the
+  width their documented format gives (`u32`, `u64`, `i64`); a fraction or
+  a value out of range there fails the decode.
 - **Times.** Every time is a `Timestamp` read from RFC 3339 text with up to
   nine fractional digits; an auction day is a `Date`. Query bounds
   (`start`, `end`) are `Timestamp`s, sent as `…Z`.
@@ -605,6 +606,22 @@ returns the names of a tape's trade or quote condition codes, and
 exchange codes, each as a map from code to name. The tick type
 (`TickType`) is a path segment; the tape (`ConditionsQuery`) is sent as
 given, and Alpaca decides which tapes it lists codes for.
+
+### Crypto
+
+Every crypto method takes a `Location` first, the path segment Alpaca
+calls `loc`: `Us` (Alpaca US), `Us1` (Kraken US) and `Eu1` (Kraken EU),
+which Alpaca describes, and `Us2` and `Bs1`, which are in its schema
+only. `Client::crypto_bars`, `crypto_trades` and `crypto_quotes` read one
+page of history (`suri::data::BarsQuery` and `HistoryQuery`, without the
+stock-only parameters); `crypto_latest_bars`, `crypto_latest_trades`,
+`crypto_latest_quotes`, `crypto_latest_orderbooks` and `crypto_snapshots`
+take a `SymbolsQuery` and return a `Latest`. Pairs are written with a
+slash (`BTC/USD`), sent percent-encoded and returned as written. Sizes and
+volumes are `f64`; a trade's ID is an `i64`. An orderbook's levels come as
+sent, in Alpaca's order, a size of 0 included; its `reset` is `false`
+over REST. The key pair is sent on crypto requests too, although Alpaca
+documents historical crypto data as needing none.
 
 ## Market clock
 

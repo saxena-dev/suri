@@ -70,3 +70,24 @@ pub fn assert_empty_post(request: &Request) {
     assert_no_body(request);
     assert_eq!(request.header("Content-Length"), Some("0"));
 }
+
+/// The request's query pairs, decoded, in order.
+pub fn pairs(request: &Request) -> Vec<(String, String)> {
+    let url = url::Url::parse(&format!("http://h{}", request.path)).unwrap();
+    url.query_pairs()
+        .map(|(name, value)| (name.into_owned(), value.into_owned()))
+        .collect()
+}
+
+/// Expected query pairs, owned for comparison with `pairs`.
+pub fn owned(pairs: &[(&str, &str)]) -> Vec<(String, String)> {
+    pairs
+        .iter()
+        .map(|(name, value)| ((*name).to_owned(), (*value).to_owned()))
+        .collect()
+}
+
+/// The request's path without its query.
+pub fn path(request: &Request) -> &str {
+    request.path.split('?').next().unwrap()
+}

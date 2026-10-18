@@ -8,7 +8,7 @@ use serde::de::{self, Deserializer, Visitor};
 use serde::{Deserialize, Serialize};
 
 use super::orders::{OrderSide, OrderStatus};
-use crate::rest::client::{Endpoint, Request};
+use crate::rest::client::{Endpoint, Host, Request};
 use crate::value::wire::{Sort, wire_enum};
 use crate::{Client, Date, Decimal, Error, Id, Inbound, Response, Timestamp};
 
@@ -165,6 +165,7 @@ impl Visitor<'_> for IntOrDigits {
 }
 
 const ACCOUNT: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::GET,
     template: "/v2/account",
 };
@@ -671,21 +672,25 @@ fn unix_seconds<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Vec<Timest
 }
 
 const ACCOUNT_CONFIGURATIONS: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::GET,
     template: "/v2/account/configurations",
 };
 
 const UPDATE_ACCOUNT_CONFIGURATIONS: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::PATCH,
     template: "/v2/account/configurations",
 };
 
 const ACCOUNT_ACTIVITIES: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::GET,
     template: "/v2/account/activities",
 };
 
 const PORTFOLIO_HISTORY: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::GET,
     template: "/v2/account/portfolio/history",
 };

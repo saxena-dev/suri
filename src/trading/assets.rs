@@ -3,7 +3,7 @@
 use reqwest::Method;
 use serde::Deserialize;
 
-use crate::rest::client::{Endpoint, Request};
+use crate::rest::client::{Endpoint, Host, Request};
 use crate::value::wire::wire_enum;
 use crate::{Client, Date, Decimal, Error, Inbound, Response, Symbol};
 
@@ -360,21 +360,25 @@ impl OptionContractsQuery {
 }
 
 const ASSETS: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::GET,
     template: "/v2/assets",
 };
 
 const ASSET: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::GET,
     template: "/v2/assets/{symbol_or_asset_id}",
 };
 
 const OPTION_CONTRACTS: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::GET,
     template: "/v2/options/contracts",
 };
 
 const OPTION_CONTRACT: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::GET,
     template: "/v2/options/contracts/{symbol_or_id}",
 };

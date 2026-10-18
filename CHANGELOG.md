@@ -76,5 +76,8 @@ All notable changes to suri are listed here. The format follows
   `TradeEvent` and `LegFill`; a `trade_updates` message suri cannot read,
   and any other stream's message, delivered as sent in a `StreamMessage`.
 - `Order::cancel_requested_at`, sent on the trade updates stream.
+- Market Data: `Client::stock_bars`, `stock_trades`, `stock_quotes` and
+  `stock_auctions`, one page per call, in `suri::data::stocks`, with the
+  shared `Series`, `Bar` and `Timeframe` in `suri::data`.
 - With `stream`, the dependencies `tokio-tungstenite`, `futures-util`,
   `rustls` and `rustls-platform-verifier`.

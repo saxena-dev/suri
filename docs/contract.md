@@ -102,9 +102,10 @@ whole configuration and reports the first problem as a `ConfigError`, so a
 bad value fails when the client is built, never at request time.
 
 - **Hosts:** region `US` with environment `Paper` uses
-  `https://paper-api.alpaca.markets`, and `Live` uses
-  `https://api.alpaca.markets`. Each endpoint carries its own version prefix,
-  such as `/v2`.
+  `https://paper-api.alpaca.markets` for the Trading API, and `Live` uses
+  `https://api.alpaca.markets`; both use `https://data.alpaca.markets` for
+  Market Data. Each endpoint carries its own version prefix, such as `/v2`.
+  A base-URL override replaces every host, streams included.
 - **Credentials:** the key ID and secret must be non-empty printable ASCII
   (bytes `!` to `~`), so a trailing newline read from a file is caught here.
   Neither can be read back from suri, and `Debug` prints `Credentials { .. }`.
@@ -394,9 +395,8 @@ returns the `Order` Alpaca reports.
 - **The order.** A multi-leg order's parent may come with an empty symbol
   and side (the documented REST response example sends both as `""`; the
   documented trade-updates example carries a side), and its legs with an
-  empty type;
-  an empty value is kept
-  as `""`, or as `Unknown` where the enumeration does not document one.
+  empty type; an empty value is kept as `""`, or as `Unknown` where the
+  enumeration does not document one.
 - **Finding orders.** `Client::orders` reads one page of `GET /v2/orders`,
   narrowed by an `OrdersQuery`; its `OrderWindow` is a time window or the
   orders before or after one order, which Alpaca does not combine.
@@ -491,9 +491,9 @@ API's `trade_updates` stream.
 - **Messages.** `TradeUpdates::next` returns the next message as a
   `TradeStreamMessage` (see "Trade updates" below); a message suri does not
   type keeps its `stream` and its `data`, the raw JSON text as sent, in a
-  `StreamMessage`. Text and binary frames (paper sends binary) are read alike; Ping and Pong
-  frames are answered and never delivered. A message larger than
-  `max_body_bytes` ends the stream with `TooLarge`.
+  `StreamMessage`. Text and binary frames (paper sends binary) are read
+  alike; Ping and Pong frames are answered and never delivered. A message
+  larger than `max_body_bytes` ends the stream with `TooLarge`.
 - **Polling.** The `TradeUpdates` value owns its connection and reads it
   only while `next` or `close` runs: there is no background task and no
   queue, so suri drops nothing. While `next` waits, after
@@ -532,12 +532,55 @@ API's `trade_updates` stream.
   `execution_id`, `price`, `qty` and `position_qty` (exact decimals), and
   on multi-leg fills `at`, `event_id`, `position_qtys` and the legs'
   fills, `LegFill`. The stream's orders carry `cancel_requested_at`, which
-  the Trading REST order schema does not list (`None` when absent). A `trade_updates` message that does
-  not read as a `TradeUpdate` (no `event` or `order`, a decimal that
-  `Decimal` rejects, see "Decimal values", a malformed time) is
-  `TradeStreamMessage::Undecoded` with the message as sent, and the stream
-  goes on. A message of any other stream is `TradeStreamMessage::Other`, as
-  sent. `close` returns its messages typed the same way.
+  the Trading REST order schema does not list (`None` when absent). A
+  `trade_updates` message that does not read as a `TradeUpdate` (no
+  `event` or `order`, a decimal that `Decimal` rejects, see "Decimal
+  values", a malformed time) is `TradeStreamMessage::Undecoded` with the
+  message as sent, and the stream goes on. A message of any other stream
+  is `TradeStreamMessage::Other`, as sent. `close` returns its messages
+  typed the same way.
+
+## Market data
+
+Market Data types are in `suri::data` and its per-asset modules
+(`suri::data::stocks`); the methods are on `Client`.
+
+- **Host.** Requests go to `https://data.alpaca.markets` for paper and live
+  clients alike (paper Trading users read market data from the production
+  host); a base-URL override replaces this host too. Every request sends
+  the key-pair headers. Every endpoint is a read, retried as "Retries" says.
+- **Numbers.** Prices, VWAPs and every other value the docs type as a
+  double arrive as `f64`, read correctly rounded to the nearest `f64`
+  (which keeps every value seen so far; a value with more than 15
+  significant digits that is not the shortest form of some `f64` would be
+  rounded). Sizes, volumes, counts and IDs are integers of the width their
+  documented format gives (`u32`, `u64`, `i64`); a fraction or a value out
+  of range there fails the decode.
+- **Times.** Every time is a `Timestamp` read from RFC 3339 text with up to
+  nine fractional digits; an auction day is a `Date`. Query bounds
+  (`start`, `end`) are `Timestamp`s, sent as `…Z`.
+- **Pages.** A historical endpoint returns a `Series`: each symbol's points
+  in the order sent, the `currency` when Alpaca names it, and
+  `next_page_token`. One call returns one page. A page may hold fewer
+  points than the query's `limit` even when more exist; only a `None`
+  token means there is no next page. A symbol whose value is `null`, or a
+  point of another shape, fails the call.
+- **Queries.** Lists are sent comma-joined. A `Timeframe` is sent in
+  Alpaca's long form (`15Min`, `1Hour`, `1Day`, `1Week`, `3Month`); its
+  amount, like `limit` and every other range, is checked by Alpaca, not by
+  suri. A parameter not set is not sent, and Alpaca's default applies.
+
+### Historical stock data
+
+`Client::stock_bars` (`GET /v2/stocks/bars`), `stock_trades`
+(`/v2/stocks/trades`), `stock_quotes` (`/v2/stocks/quotes`) and
+`stock_auctions` (`/v2/stocks/auctions`) each read one page for a list of
+symbols, sorted by symbol, then time. `BarsQuery` adds the timeframe and
+the adjustments (`Adjustment`, comma-joined); every query takes the feed
+(`Feed`: which feeds an endpoint and a subscription allow is Alpaca's to
+decide; auctions accept only `sip`), the symbol mapping (`AsOf`: a date,
+or `Unmapped`, sent as `-`) and the currency. A trade's `update` is `None`
+when the trade is valid; a quote's price of 0 means no active bid or ask.
 
 ## Market clock
 
@@ -577,7 +620,7 @@ error. A `CalendarQuery`'s `start` and `end` are sent as dates
 | Optional fields | Always present only when the schema requires a field, or every documented example and recorded response carries it, and none omits it; otherwise an `Option` | A field missing from a real response must not fail the call; an `Option` loses nothing, and a missing always-present field is reported as a `Decode` error |
 | Mutations are never retried | One attempt for every request that is not a `GET` | Alpaca advises against resending a request whose outcome is unknown; only the caller can find out whether it took effect |
 | Paging | One page per call; the caller passes the cursor | A loop inside suri would hide how many requests a call makes and when it stops |
-| Numbers received as numbers | Portfolio history's JSON numbers and an asset's deprecated `maintenance_margin_requirement` as the correctly rounded nearest `f64` | They are binary floating-point values on the wire; reading them correctly rounded keeps every observed value, and money sent as strings stays exact |
+| Numbers received as numbers | Portfolio history's JSON numbers, an asset's deprecated `maintenance_margin_requirement` and every Market Data double as the correctly rounded nearest `f64` | They are binary floating-point values on the wire; reading them correctly rounded keeps every observed value, and money sent as strings stays exact |
 | Symbols in paths | Percent-encoded as one segment (`BTC/USD` as `BTC%2FUSD`) | Alpaca asks for the encoded form; a bare `/` would split the value into two segments and reach another path |
 | Client order IDs | Generated by `OrderRequest::new` as a random version 4 UUID; replaceable, never absent | Without one, an order whose response is lost cannot be looked up; Alpaca generates one only on its side, where the caller cannot see it |
 | Order placement is never retried | One attempt, every error carrying the client order ID | Alpaca advises against resending a timed-out order; a lookup, the dashboard or Alpaca's support can tell whether it was placed |
@@ -588,3 +631,8 @@ error. A `CalendarQuery`'s `start` and `end` are sent as dates
 | Stream authentication | The documented `auth` message, not alpaca-py's `authenticate` form | The docs are the specification |
 | Stream feature | Off by default and requires `rest` | Most callers use REST; the stream reuses the client and its types |
 | Unreadable trade updates | Delivered as sent (`Undecoded`); the stream goes on | A stream message cannot be fetched again; the raw message keeps its order ID for the caller to reconcile, and ending the stream would lose every later update too |
+| Market Data host | `https://data.alpaca.markets` for paper and live; the base-URL override replaces it | Paper Trading users read market data from the production host; the sandbox data host is for Broker partners |
+| Single-symbol stock endpoints | Not offered; pass one symbol to the multi-symbol method | They return the same data in another envelope |
+| Request times | `start` and `end` take a `Timestamp` only | The docs accept a bare date without saying in which time zone it is read |
+| Stock feeds | One `Feed` for every stock endpoint | The docs' feed lists differ by endpoint and their guide says the parameter works everywhere; Alpaca decides which it accepts |
+| Market-data integers | The width of the documented format (`u32`, `u64`, `i64`) | A value the format allows always decodes |

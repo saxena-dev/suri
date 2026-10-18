@@ -18,9 +18,18 @@ use super::config::{self, Config, ConfigError, Credentials};
 use super::error::details;
 use crate::{Error, ErrorKind, Response, ResponseMeta, Stage};
 
-/// An endpoint: its method, and the path template that errors name in place
-/// of the URL.
+/// The API family an endpoint belongs to, which picks its host.
+pub(crate) enum Host {
+    /// The Trading API.
+    Trading,
+    /// Market Data.
+    Data,
+}
+
+/// An endpoint: its family, its method, and the path template that errors
+/// name in place of the URL.
 pub(crate) struct Endpoint {
+    pub(crate) host: Host,
     pub(crate) method: Method,
     pub(crate) template: &'static str,
 }
@@ -80,6 +89,7 @@ pub struct Client(Arc<Inner>);
 struct Inner {
     http: reqwest::Client,
     base_url: url::Url,
+    data_url: url::Url,
     key_id: HeaderValue,
     secret: HeaderValue,
     /// Kept to scrub them from anything Alpaca echoes back.
@@ -93,6 +103,16 @@ struct Inner {
     retry_base: Duration,
     retry_cap: Duration,
     max_read_attempts: u32,
+}
+
+impl Inner {
+    /// The base URL of an endpoint's family.
+    fn base(&self, host: &Host) -> &url::Url {
+        match host {
+            Host::Trading => &self.base_url,
+            Host::Data => &self.data_url,
+        }
+    }
 }
 
 impl fmt::Debug for Client {
@@ -166,7 +186,7 @@ fn redirect_origin(location: Option<&HeaderValue>) -> Option<String> {
 impl Client {
     /// Checks the configuration and builds the client.
     pub fn new(config: Config) -> Result<Client, ConfigError> {
-        let base_url = config::check(&config)?;
+        let base_urls = config::check(&config)?;
         let http = reqwest::Client::builder()
             .redirect(reqwest::redirect::Policy::none())
             .no_proxy()
@@ -185,7 +205,8 @@ impl Client {
             .map_err(|_| ConfigError::tls())?;
         Ok(Client(Arc::new(Inner {
             http,
-            base_url,
+            base_url: base_urls.trading,
+            data_url: base_urls.data,
             key_id: sensitive_header(&config.credentials.key_id),
             secret: sensitive_header(&config.credentials.secret),
             credentials: config.credentials,
@@ -362,7 +383,7 @@ impl Client {
             .http
             .request(
                 endpoint.method.clone(),
-                request_url(&inner.base_url, request.segments, &request.query),
+                request_url(inner.base(&endpoint.host), request.segments, &request.query),
             )
             .header("APCA-API-KEY-ID", inner.key_id.clone())
             .header("APCA-API-SECRET-KEY", inner.secret.clone())
@@ -593,6 +614,23 @@ mod tests {
         // A reset on another status is not a reason to wait.
         let wait = client.wait(1, &api_error(503, Some(now + 10)));
         assert!(wait < Duration::from_millis(150), "{wait:?}");
+    }
+
+    #[test]
+    fn each_family_goes_to_its_host() {
+        let config = Config::new(
+            crate::Region::US,
+            crate::Environment::Paper,
+            Credentials::api_key("PKSENTINELKEY0001", "SECRETSENTINELVALUE0001"),
+        );
+        let client = Client::new(config).unwrap();
+        let data = request_url(client.0.base(&Host::Data), &["v2", "stocks", "bars"], &[]);
+        assert_eq!(data.as_str(), "https://data.alpaca.markets/v2/stocks/bars");
+        let trading = request_url(client.0.base(&Host::Trading), &["v2", "clock"], &[]);
+        assert_eq!(
+            trading.as_str(),
+            "https://paper-api.alpaca.markets/v2/clock"
+        );
     }
 
     #[test]

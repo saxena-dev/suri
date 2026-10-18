@@ -6,7 +6,7 @@ use reqwest::Method;
 use serde::Deserialize;
 use serde::de::{self, Deserializer, Visitor};
 
-use crate::rest::client::{Endpoint, Request};
+use crate::rest::client::{Endpoint, Host, Request};
 use crate::value::wire::wire_enum;
 use crate::{Client, Date, Error, Response};
 
@@ -139,6 +139,7 @@ impl CalendarQuery {
 }
 
 const CALENDAR: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::GET,
     template: "/v2/calendar",
 };

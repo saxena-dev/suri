@@ -3,7 +3,7 @@
 use reqwest::Method;
 use serde::Deserialize;
 
-use crate::rest::client::Endpoint;
+use crate::rest::client::{Endpoint, Host};
 use crate::{Client, Error, Response, Timestamp};
 
 /// Whether the US equity market is open, and its next open and close.
@@ -21,6 +21,7 @@ pub struct Clock {
 }
 
 const CLOCK: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::GET,
     template: "/v2/clock",
 };

@@ -5,7 +5,7 @@ use serde::Deserialize;
 use serde_json::value::RawValue;
 
 use super::{AssetClass, Exchange, Order};
-use crate::rest::client::{Endpoint, Request};
+use crate::rest::client::{Endpoint, Host, Request};
 use crate::rest::error::{details, sanitise};
 use crate::value::wire::wire_enum;
 use crate::{Client, Decimal, Error, Inbound, Response, Symbol};
@@ -145,31 +145,37 @@ struct WireClosed {
 }
 
 const POSITIONS: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::GET,
     template: "/v2/positions",
 };
 
 const POSITION: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::GET,
     template: "/v2/positions/{symbol_or_asset_id}",
 };
 
 const CLOSE_POSITION: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::DELETE,
     template: "/v2/positions/{symbol_or_asset_id}",
 };
 
 const CLOSE_ALL_POSITIONS: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::DELETE,
     template: "/v2/positions",
 };
 
 const EXERCISE: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::POST,
     template: "/v2/positions/{symbol_or_contract_id}/exercise",
 };
 
 const DO_NOT_EXERCISE: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::POST,
     template: "/v2/positions/{symbol_or_contract_id}/do-not-exercise",
 };

@@ -6,8 +6,9 @@ Data APIs. Support for the Broker API is planned after the first release.
 **Status: pre-release.** The client covers the Trading API's REST
 endpoints in the first release's scope (below), each change sent at most
 once and never retried, and its `trade_updates` stream behind the
-`stream` feature; market data is next. The crate is
-being built in the open, one tested piece at a time.
+`stream` feature. Market data is under way: historical stock bars,
+trades, quotes and auctions so far. The crate is being built in the open,
+one tested piece at a time.
 
 ## Scope of 0.1.0
 

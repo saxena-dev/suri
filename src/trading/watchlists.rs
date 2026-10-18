@@ -4,7 +4,7 @@ use reqwest::Method;
 use serde::{Deserialize, Serialize, Serializer};
 
 use super::Asset;
-use crate::rest::client::{Endpoint, Request};
+use crate::rest::client::{Endpoint, Host, Request};
 use crate::{Client, Error, Id, Response, Symbol, Timestamp};
 
 /// A watchlist.
@@ -96,36 +96,43 @@ struct WireAdd<'a> {
 }
 
 const WATCHLISTS: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::GET,
     template: "/v2/watchlists",
 };
 
 const CREATE_WATCHLIST: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::POST,
     template: "/v2/watchlists",
 };
 
 const WATCHLIST: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::GET,
     template: "/v2/watchlists/{watchlist_id}",
 };
 
 const UPDATE_WATCHLIST: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::PUT,
     template: "/v2/watchlists/{watchlist_id}",
 };
 
 const ADD_TO_WATCHLIST: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::POST,
     template: "/v2/watchlists/{watchlist_id}",
 };
 
 const REMOVE_FROM_WATCHLIST: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::DELETE,
     template: "/v2/watchlists/{watchlist_id}/{symbol}",
 };
 
 const DELETE_WATCHLIST: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::DELETE,
     template: "/v2/watchlists/{watchlist_id}",
 };

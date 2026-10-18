@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize, Serializer};
 use serde_json::value::RawValue;
 
 use super::AssetClass;
-use crate::rest::client::{Endpoint, Request};
+use crate::rest::client::{Endpoint, Host, Request};
 use crate::rest::error::{details, sanitise};
 use crate::value::wire::{Sort, wire_enum};
 use crate::{Client, Decimal, Error, Id, Inbound, Response, Timestamp};
@@ -445,36 +445,43 @@ struct WireCancel {
 }
 
 const PLACE_ORDER: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::POST,
     template: "/v2/orders",
 };
 
 const ORDER_BY_CLIENT_ORDER_ID: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::GET,
     template: "/v2/orders:by_client_order_id",
 };
 
 const ORDERS: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::GET,
     template: "/v2/orders",
 };
 
 const ORDER: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::GET,
     template: "/v2/orders/{order_id}",
 };
 
 const REPLACE_ORDER: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::PATCH,
     template: "/v2/orders/{order_id}",
 };
 
 const CANCEL_ORDER: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::DELETE,
     template: "/v2/orders/{order_id}",
 };
 
 const CANCEL_ALL_ORDERS: Endpoint = Endpoint {
+    host: Host::Trading,
     method: Method::DELETE,
     template: "/v2/orders",
 };

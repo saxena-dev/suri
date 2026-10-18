@@ -32,6 +32,22 @@ pub(crate) fn trading_host(region: Region, environment: Environment) -> &'static
     }
 }
 
+/// The Market Data host for a region. Paper and live clients share it:
+/// paper Trading users read market data from the production host.
+pub(crate) fn data_host(region: Region) -> &'static str {
+    match region {
+        Region::US => "https://data.alpaca.markets",
+    }
+}
+
+/// The base URL of each API family a client calls.
+pub(crate) struct BaseUrls {
+    /// The Trading API.
+    pub(crate) trading: url::Url,
+    /// Market Data.
+    pub(crate) data: url::Url,
+}
+
 /// An API key pair: the key ID and its secret.
 ///
 /// Neither value can be read back, and `Debug` prints `Credentials { .. }`.
@@ -120,9 +136,10 @@ impl Config {
         self
     }
 
-    /// Sends requests to this URL instead of the region's host, for tests
-    /// against a local server. It must use https unless its host is loopback,
-    /// and must have no path, query, fragment or credentials.
+    /// Sends every request to this URL instead of the region's hosts (the
+    /// Trading API, Market Data and the streams alike), for tests against a
+    /// local server. It must use https unless its host is loopback, and must
+    /// have no path, query, fragment or credentials.
     pub fn with_base_url(mut self, url: impl Into<String>) -> Self {
         self.base_url = Some(url.into());
         self
@@ -277,14 +294,24 @@ fn check_base_url(text: &str) -> Result<url::Url, ConfigError> {
 
 /// Checks the credentials, then the base URL, then each policy value in the
 /// contract's table order; the first failure is reported. Returns the base
-/// URL requests go to.
-pub(crate) fn check(config: &Config) -> Result<url::Url, ConfigError> {
+/// URLs requests go to: the region's hosts, or the override for every
+/// family.
+pub(crate) fn check(config: &Config) -> Result<BaseUrls, ConfigError> {
     check_credential(&config.credentials.key_id)?;
     check_credential(&config.credentials.secret)?;
-    let base_url = match &config.base_url {
-        Some(text) => check_base_url(text)?,
-        None => url::Url::parse(trading_host(config.region, config.environment))
-            .expect("the host table holds valid URLs"),
+    let host = |text| url::Url::parse(text).expect("the host table holds valid URLs");
+    let base_urls = match &config.base_url {
+        Some(text) => {
+            let url = check_base_url(text)?;
+            BaseUrls {
+                trading: url.clone(),
+                data: url,
+            }
+        }
+        None => BaseUrls {
+            trading: host(trading_host(config.region, config.environment)),
+            data: host(data_host(config.region)),
+        },
     };
     let between = |value, low, high| (low..=high).contains(&value);
     let ms = Duration::from_millis;
@@ -318,7 +345,7 @@ pub(crate) fn check(config: &Config) -> Result<url::Url, ConfigError> {
     if !(1..=10).contains(&config.max_read_attempts) {
         return fail(Kind::MaxReadAttempts);
     }
-    Ok(base_url)
+    Ok(base_urls)
 }
 
 #[cfg(test)]
@@ -336,7 +363,23 @@ mod tests {
         };
         let paper = check(&config(Environment::Paper)).unwrap();
         let live = check(&config(Environment::Live)).unwrap();
-        assert_eq!(paper.as_str(), "https://paper-api.alpaca.markets/");
-        assert_eq!(live.as_str(), "https://api.alpaca.markets/");
+        assert_eq!(paper.trading.as_str(), "https://paper-api.alpaca.markets/");
+        assert_eq!(live.trading.as_str(), "https://api.alpaca.markets/");
+        // Paper and live read market data from the same host.
+        assert_eq!(paper.data.as_str(), "https://data.alpaca.markets/");
+        assert_eq!(live.data.as_str(), "https://data.alpaca.markets/");
+    }
+
+    #[test]
+    fn a_base_url_override_replaces_every_host() {
+        let config = Config::new(
+            Region::US,
+            Environment::Live,
+            Credentials::api_key("PKSENTINELKEY0001", "SECRETSENTINELVALUE0001"),
+        )
+        .with_base_url("http://127.0.0.1:9");
+        let urls = check(&config).unwrap();
+        assert_eq!(urls.trading.as_str(), "http://127.0.0.1:9/");
+        assert_eq!(urls.data.as_str(), "http://127.0.0.1:9/");
     }
 }

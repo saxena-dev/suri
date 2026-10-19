@@ -20,6 +20,12 @@
 //! modules (`data::stocks`, `data::crypto`, `data::options`) and
 //! `data::news`. The methods that call Alpaca are on `Client`.
 
+// The README's examples compile as doc tests, so they cannot drift from the
+// API. They use every feature, so they are checked when all are enabled.
+#[cfg(all(doctest, feature = "rest", feature = "stream"))]
+#[doc = include_str!("../README.md")]
+struct ReadmeDoctests;
+
 #[cfg(feature = "rest")]
 pub mod data;
 #[cfg(feature = "rest")]

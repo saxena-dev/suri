@@ -63,8 +63,9 @@ rmp = { version = "0.8.15", optional = true }
 sha2 = "0.10.9"
 # Reads the upstream fixture index, and drives the JSON decoding tests.
 serde_json = "1.0.154"
-# Runs the client's async tests.
-tokio = { version = "1.53.3", features = ["macros", "rt"] }
+# Runs the client's async tests, and the README's examples, whose
+# #[tokio::main] needs the multi-threaded runtime.
+tokio = { version = "1.53.3", features = ["macros", "rt", "rt-multi-thread"] }
 # Capture every log record and tracing span and event in the observability
 # tests.
 log = "0.4.34"

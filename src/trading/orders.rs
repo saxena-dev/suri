@@ -490,7 +490,10 @@ impl Client {
     /// Places an order (`POST /v2/orders`). It is made once and never
     /// retried. Every error carries the order's client order ID: after an
     /// error that [may have reached Alpaca](Error::may_have_reached_broker),
-    /// look the order up by it before doing anything else.
+    /// look the order up by it with
+    /// [`order_by_client_order_id`](Client::order_by_client_order_id) before
+    /// doing anything else. A placed order is not a filled one: follow it
+    /// with [`order`](Client::order) or the `trade_updates` stream.
     pub async fn place_order(&self, order: &OrderRequest) -> Result<Response<Order>, Error> {
         let request = Request::new(&PLACE_ORDER, &["v2", "orders"]).json(order);
         self.send_request(request)
@@ -500,6 +503,11 @@ impl Client {
 
     /// Reads an order by its client order ID (`GET
     /// /v2/orders:by_client_order_id`).
+    ///
+    /// This is how you find out whether a placement that failed was placed:
+    /// an order means it was; a 404 [`Api`](crate::ErrorKind::Api) error
+    /// means Alpaca had no order with that ID when it answered (Alpaca does
+    /// not document this response).
     pub async fn order_by_client_order_id(
         &self,
         client_order_id: &ClientOrderId,

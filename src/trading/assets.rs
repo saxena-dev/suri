@@ -313,7 +313,9 @@ pub struct OptionContracts {
     pub next_page_token: Option<String>,
 }
 
-/// Which option contracts to list. By default Alpaca lists active contracts
+/// Which option contracts to list.
+///
+/// By default Alpaca lists active contracts
 /// expiring before the next weekend. One page per call: to read the next
 /// page, set `page_token` to the previous page's `next_page_token`.
 #[non_exhaustive]

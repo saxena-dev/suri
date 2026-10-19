@@ -1,14 +1,28 @@
-//! Crypto market data: historical bars, trades and quotes, the latest
-//! values, orderbooks and snapshots, and the crypto stream, each at a
-//! location.
+//! Crypto market data: history, the latest values, orderbooks and
+//! snapshots, and the live crypto stream, each at a [`Location`].
 //!
-//! The `Client` methods that return these types: `crypto_bars`,
-//! `crypto_trades`, `crypto_quotes`, `crypto_latest_bars`,
-//! `crypto_latest_trades`, `crypto_latest_quotes`,
-//! `crypto_latest_orderbooks` and `crypto_snapshots`; with the `stream`
-//! feature, `crypto_stream`, whose messages are `Message`. Symbols are pairs
-//! such as `BTC/USD`; they are sent percent-encoded and come back as
-//! written.
+//! | To… | Call |
+//! |---|---|
+//! | read history, one page per call | [`crypto_bars`], [`crypto_trades`] and [`crypto_quotes`] |
+//! | read each pair's latest value | [`crypto_latest_bars`], [`crypto_latest_trades`] and [`crypto_latest_quotes`] |
+//! | read each pair's orderbook | [`crypto_latest_orderbooks`] |
+//! | read a pair's whole picture at once | [`crypto_snapshots`] |
+//! | stream trades, quotes, bars and orderbooks live | [`crypto_stream`], with the `stream` feature; its messages are [`Message`] |
+//!
+//! Every call takes a [`Location`] first: `Us` for Alpaca US, `Us1` for
+//! Kraken US, `Eu1` for Kraken EU. Symbols are pairs such as `BTC/USD`;
+//! they are sent percent-encoded and come back as written. Unlike stock
+//! bars, a crypto [`Bar`]'s volume can be fractional, so it is an `f64`.
+//!
+//! [`crypto_bars`]: crate::Client::crypto_bars
+//! [`crypto_trades`]: crate::Client::crypto_trades
+//! [`crypto_quotes`]: crate::Client::crypto_quotes
+//! [`crypto_latest_bars`]: crate::Client::crypto_latest_bars
+//! [`crypto_latest_trades`]: crate::Client::crypto_latest_trades
+//! [`crypto_latest_quotes`]: crate::Client::crypto_latest_quotes
+//! [`crypto_latest_orderbooks`]: crate::Client::crypto_latest_orderbooks
+//! [`crypto_snapshots`]: crate::Client::crypto_snapshots
+//! [`crypto_stream`]: crate::Client::crypto_stream
 
 use reqwest::Method;
 use serde::Deserialize;

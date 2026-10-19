@@ -357,7 +357,7 @@ pub enum OrderShape {
         /// The exit.
         exit: Exit,
     },
-    /// Two exits, one canceling the other when it fills; sent as a limit
+    /// Two exits, one cancelling the other when it fills; sent as a limit
     /// order.
     Oco {
         /// The symbol.

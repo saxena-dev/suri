@@ -4,7 +4,8 @@ use reqwest::header::HeaderMap;
 
 use crate::Timestamp;
 
-/// The status and headers of a response that arrived.
+/// The facts of a response that arrived: its status, Alpaca's request ID and
+/// the rate-limit headers.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ResponseMeta {
     status: u16,
@@ -88,7 +89,14 @@ impl RateLimit {
     }
 }
 
-/// A successful response: its data and its metadata.
+/// A successful call's result: the endpoint's value and the facts of the
+/// response.
+///
+/// [`data`](Response::data) is the value itself, never an `Option`: a call
+/// succeeds only when Alpaca answered with success and, for a call that
+/// returns data, a body of the documented shape. [`meta`](Response::meta)
+/// gives the status, the request ID and the rate limit, and
+/// [`into_parts`](Response::into_parts) hands you both.
 #[derive(Debug, Clone)]
 pub struct Response<T> {
     data: T,

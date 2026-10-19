@@ -189,8 +189,15 @@ struct Auth<'a> {
 
 const LISTEN: &str = r#"{"action":"listen","data":{"streams":["trade_updates"]}}"#;
 
-/// The trade-updates stream: one WebSocket connection, read only while
-/// [`next`](TradeUpdates::next) or [`close`](TradeUpdates::close) runs.
+/// The trade-updates stream: your orders' events as they happen, on one
+/// WebSocket connection.
+///
+/// The value owns its connection and reads it only while
+/// [`next`](TradeUpdates::next) or [`close`](TradeUpdates::close) runs:
+/// there is no background task and no queue, so nothing piles up inside
+/// suri or is dropped behind your back. Keep calling `next`; a stream that ends
+/// without your asking returns a [`StreamError`](crate::StreamError) saying
+/// later messages may be lost.
 pub struct TradeUpdates {
     connection: Connection,
 }
@@ -270,9 +277,10 @@ impl Client {
 impl TradeUpdates {
     /// The next message: a trade update, a `trade_updates` message suri
     /// could not read (kept as sent), or a message of another stream. Ping
-    /// and Pong frames are handled and never delivered. After `request_timeout` without any frame, a Ping is sent;
-    /// if nothing arrives within another `request_timeout`, the stream ends
-    /// with `Timeout`. Every end other than [`close`](TradeUpdates::close)
+    /// and Pong frames are handled and never delivered. After
+    /// `request_timeout` without any frame, a Ping is sent; if nothing
+    /// arrives within another `request_timeout`, the stream ends with
+    /// `Timeout`. Every end other than [`close`](TradeUpdates::close)
     /// is an error saying later messages may be lost, and every later call
     /// returns `Ended`. Cancel-safe: dropping the future loses no message.
     pub async fn next(&mut self) -> Result<TradeStreamMessage, StreamError> {

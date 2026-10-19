@@ -7,7 +7,11 @@ use reqwest::Method;
 use crate::ResponseMeta;
 use crate::trading::ClientOrderId;
 
-/// What went wrong.
+/// The kind of failure a call met.
+///
+/// Alpaca answered with an error or a redirect (`Api`, `Redirect`), the
+/// connection failed or ran out of time (`Transport`, `Timeout`), or the
+/// answer could not be read (`BodyTooLarge`, `Decode`).
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ErrorKind {
@@ -26,6 +30,10 @@ pub enum ErrorKind {
 }
 
 /// How far the request got before the error.
+///
+/// Only `NotStarted` means Alpaca never saw the request. At any later stage
+/// a request that changes your account may have taken effect, which is what
+/// [`Error::may_have_reached_broker`] tells you.
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Stage {
@@ -37,8 +45,21 @@ pub enum Stage {
     Unknown,
 }
 
-/// The error of a call: its kind, its stage and what is known of the request
-/// and response.
+/// The error of a failed call: what went wrong, how far the request got, and
+/// what Alpaca said.
+///
+/// Match on [`kind`](Error::kind) to decide what to do. Before you send a
+/// request that changes your account again, check
+/// [`may_have_reached_broker`](Error::may_have_reached_broker): when it is
+/// true, the request may have taken effect. For an order, look it up by its
+/// [`client_order_id`](Error::client_order_id) with
+/// [`Client::order_by_client_order_id`](crate::Client::order_by_client_order_id).
+///
+/// For an [`Api`](ErrorKind::Api) error, match on [`status`](Error::status)
+/// and [`code`](Error::code): Alpaca states that its message texts can
+/// change. Neither `Display` nor `Debug` shows your key pair (the
+/// [contract](https://github.com/saxena-dev/suri/blob/v0.1.0/docs/contract.md)'s
+/// Errors section gives the scrubbing's exact limits).
 pub struct Error(Box<Inner>);
 
 #[derive(Debug)]

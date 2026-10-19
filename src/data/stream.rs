@@ -89,8 +89,16 @@ struct Request<'a> {
     channels: &'a Channels,
 }
 
-/// A market-data stream: one WebSocket connection, read only while
-/// [`next`](DataStream::next) or [`close`](DataStream::close) runs.
+/// A market-data stream: live trades, quotes, bars or news, on one WebSocket
+/// connection.
+///
+/// It opens subscribed to nothing: [`subscribe`](DataStream::subscribe) to
+/// [`Channels`], and each [`next`](DataStream::next) returns the messages of
+/// one frame, in the order sent. The value owns its connection and reads it
+/// only while `next` or [`close`](DataStream::close) runs, so nothing piles
+/// up inside suri or is dropped behind your back. A stream that ends
+/// without your asking returns a [`StreamError`](crate::StreamError) saying
+/// later messages may be lost.
 pub struct DataStream<M> {
     connection: Connection,
     messages: PhantomData<fn() -> M>,

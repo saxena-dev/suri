@@ -79,6 +79,13 @@ pub(crate) enum Phase {
 }
 
 /// The error of a stream: why it ended or did not open.
+///
+/// A stream that ends without your asking reports it once, as this error,
+/// whose message says later messages may be lost; an error while opening
+/// says the stream did not open. Every call after the end returns `Ended`.
+/// There is no reconnection: open a new stream. Match on
+/// [`kind`](StreamError::kind); a close reason or Alpaca's message is
+/// scrubbed of your key pair.
 pub struct StreamError {
     pub(crate) kind: StreamErrorKind,
     phase: Phase,

@@ -1,14 +1,30 @@
-//! Options market data: historical bars and trades, the latest trades and
-//! quotes, snapshots, the option chain, the code tables, and the options
-//! stream.
+//! Options market data: history, the latest trades and quotes, snapshots
+//! with greeks when Alpaca can compute them, the option chain, the code
+//! tables, and the live options stream.
 //!
-//! The `Client` methods that return these types: `option_bars`,
-//! `option_trades`, `option_latest_trades`, `option_latest_quotes`,
-//! `option_snapshots`, `option_chain`, `option_conditions` and
-//! `option_exchanges`; with the `stream` feature, `option_stream`, whose
-//! messages are `Message`. Symbols are option contract symbols such as
-//! `AAPL240315C00172500`. Alpaca keeps historical option data from
-//! February 2024.
+//! | To… | Call |
+//! |---|---|
+//! | read history, one page per call | [`option_bars`] and [`option_trades`] |
+//! | read each contract's latest trade or quote | [`option_latest_trades`] and [`option_latest_quotes`] |
+//! | read contracts' snapshots, one page per call | [`option_snapshots`] |
+//! | read an underlying's chain, one page per call | [`option_chain`], filtered by a [`ChainQuery`] |
+//! | name the codes in trades and quotes | [`option_conditions`] and [`option_exchanges`] |
+//! | stream trades and quotes live | [`option_stream`], with the `stream` feature; its messages are [`Message`] |
+//!
+//! Symbols are option contract symbols such as `AAPL240315C00172500`.
+//! Alpaca keeps historical option data from February 2024. The options
+//! stream speaks MessagePack, not JSON; suri asks for it and reads it, and a
+//! message it cannot read keeps its MessagePack bytes.
+//!
+//! [`option_bars`]: crate::Client::option_bars
+//! [`option_trades`]: crate::Client::option_trades
+//! [`option_latest_trades`]: crate::Client::option_latest_trades
+//! [`option_latest_quotes`]: crate::Client::option_latest_quotes
+//! [`option_snapshots`]: crate::Client::option_snapshots
+//! [`option_chain`]: crate::Client::option_chain
+//! [`option_conditions`]: crate::Client::option_conditions
+//! [`option_exchanges`]: crate::Client::option_exchanges
+//! [`option_stream`]: crate::Client::option_stream
 
 use std::collections::BTreeMap;
 
@@ -198,7 +214,9 @@ pub struct Greeks {
 }
 
 /// An option's latest trade and quote, its bars, greeks and implied
-/// volatility; Alpaca may leave out any of them. Greeks and implied
+/// volatility.
+///
+/// Alpaca may leave out any of them. Greeks and implied
 /// volatility need a latest quote with a non-zero bid and ask, the
 /// underlying's latest trade, an expiry after today and an implied
 /// volatility Alpaca's model can compute, so a same-day contract has none.
@@ -429,8 +447,9 @@ fn latest<'a>(endpoint: &'a Endpoint, segments: &'a [&'a str], query: &LatestQue
 }
 
 /// A message of the options stream that
-/// [`Client::option_stream`](crate::Client::option_stream) opens. A data
-/// message carries its contract symbol. The stream is MessagePack, so a
+/// [`Client::option_stream`](crate::Client::option_stream) opens.
+///
+/// A data message carries its contract symbol. The stream is MessagePack, so a
 /// message suri does not type keeps its MessagePack bytes.
 #[cfg(feature = "stream")]
 #[non_exhaustive]

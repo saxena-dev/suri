@@ -1,7 +1,13 @@
-//! News: articles across stocks and crypto.
+//! News: articles across stocks and crypto, a page at a time or live.
 //!
-//! `Client::news` returns these types; with the `stream` feature,
-//! `news_stream` opens the news stream, whose messages are `Message`.
+//! [`Client::news`](crate::Client::news) reads one [`Page`] of
+//! [`Article`]s per call; with nothing set in the [`Query`], Alpaca returns
+//! the latest 10. With the `stream` feature,
+//! [`Client::news_stream`](crate::Client::news_stream) opens the live news
+//! stream, whose messages are [`Message`].
+//!
+//! An article's text arrives as sent: its content may contain HTML, and its
+//! summary or content may be empty.
 
 use reqwest::Method;
 use serde::Deserialize;

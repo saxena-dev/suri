@@ -1,12 +1,35 @@
-//! Market Data: prices, sizes and news from Alpaca's data host.
+//! Market Data: bars, trades, quotes, snapshots and news from Alpaca's data
+//! host, and the streams that carry them live.
 //!
-//! Each asset class has its own module (`stocks`, `crypto`, `options`), as
-//! does `news`, with the types its `Client` methods return and take; this
-//! module holds what they share.
-//! Prices, and crypto sizes and volumes, are `f64`, read correctly rounded;
-//! other sizes and counts are integers of the width their format gives. One
-//! call returns one page. With the `stream` feature, a `DataStream` reads a
-//! Market Data stream, subscribed with `Channels`.
+//! Each asset class has its own module, and so does news: [`stocks`],
+//! [`crypto`], [`options`] and [`news`]. Every call is a method on
+//! [`Client`](crate::Client), named after its module (`stock_bars`,
+//! `crypto_latest_quotes`, `option_chain`, `news`). This module holds what
+//! the families share: [`Series`], a page of history; [`Latest`], each
+//! symbol's latest value; [`Bar`], [`Timeframe`] and [`TickType`]; and the
+//! queries crypto and options share.
+//!
+//! # Pages
+//!
+//! One call returns one page. A page may hold fewer points than the
+//! query's `limit` even when more exist: only a missing `next_page_token`
+//! means the end. To read the next page, set the query's `page_token` to it
+//! and call again. suri never loops for you: each call reads one page, and
+//! you decide how many to read.
+//!
+//! # Numbers
+//!
+//! Alpaca sends market data as JSON numbers, not decimal strings, so prices
+//! (and crypto sizes and volumes) are `f64`, read correctly rounded to the
+//! nearest `f64`. Sizes, counts and IDs that the documentation types as
+//! integers are integers of the width it gives, and a fraction there fails
+//! the decode.
+//!
+//! # Streams
+//!
+//! With the `stream` feature, a [`DataStream`] reads one Market Data
+//! stream: you `subscribe` to [`Channels`], and each `next` returns the
+//! messages of one frame, in the order sent.
 //!
 //! Glob-import one family module at a time: `stocks` has its own
 //! `BarsQuery` and `HistoryQuery`, and `crypto` its own `Bar`.
@@ -137,7 +160,9 @@ pub struct Bar {
     pub vwap: f64,
 }
 
-/// The length of a bar's interval. It is sent in Alpaca's long form
+/// The length of a bar's interval.
+///
+/// It is sent in Alpaca's long form
 /// (`15Min`, `1Hour`, `1Day`, `1Week`, `3Month`). Alpaca accepts 1 to 59
 /// minutes, 1 to 23 hours, one day, one week, and 1, 2, 3, 4, 6 or 12
 /// months; another amount is sent as given, and Alpaca rejects it.

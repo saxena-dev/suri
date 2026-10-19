@@ -81,8 +81,33 @@ impl<'a> Request<'a> {
     }
 }
 
-/// A client for one region and environment. Cloning it is cheap and shares
-/// its connections.
+/// A client for one region and environment: every call to Alpaca is a
+/// method on it.
+///
+/// Build it with [`Client::new`] from a [`Config`]. The configuration is
+/// checked there, so a bad value fails when the client is built, never
+/// halfway through a request. Cloning a client is cheap and shares its
+/// connections: build one and hand clones to the tasks that need it.
+///
+/// A REST call returns a [`Response`] when Alpaca answers with success and,
+/// for a call that returns data, a body of the documented shape, and an
+/// [`Error`] otherwise. Reads are retried
+/// within the limits in [`Config`]; a request that changes your account is
+/// sent at most once.
+///
+/// # Example
+///
+/// ```no_run
+/// use suri::{Client, Config, Credentials, Environment, Region};
+///
+/// # async fn run() -> Result<(), Box<dyn std::error::Error>> {
+/// let credentials = Credentials::api_key("your key ID", "your secret");
+/// let client = Client::new(Config::new(Region::US, Environment::Paper, credentials))?;
+///
+/// let clock = client.clock().await?;
+/// println!("market open: {}", clock.data().is_open);
+/// # Ok(()) }
+/// ```
 #[derive(Clone)]
 pub struct Client(Arc<Inner>);
 
@@ -187,6 +212,14 @@ fn redirect_origin(location: Option<&HeaderValue>) -> Option<String> {
 
 impl Client {
     /// Checks the configuration and builds the client.
+    ///
+    /// # Errors
+    ///
+    /// A [`ConfigError`] for the first problem found: a credential that is
+    /// empty or not printable ASCII; a base URL that does not parse, is not
+    /// https on a host other than loopback, or carries a path, query,
+    /// fragment or credentials; a limit outside its range or out of order
+    /// with another; or a TLS client that cannot be built.
     pub fn new(config: Config) -> Result<Client, ConfigError> {
         let base_urls = config::check(&config)?;
         let http = reqwest::Client::builder()

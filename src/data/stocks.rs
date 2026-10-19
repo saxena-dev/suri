@@ -1,11 +1,29 @@
-//! Stock market data: historical bars, trades, quotes and auctions, the
-//! latest values and snapshots, and the stock stream.
+//! Stock market data: history, the latest values and snapshots, the
+//! condition and exchange code tables, and the live stock stream.
 //!
-//! The `Client` methods that return these types: `stock_bars`,
-//! `stock_trades`, `stock_quotes`, `stock_auctions`, `stock_latest_bars`,
-//! `stock_latest_trades`, `stock_latest_quotes`, `stock_snapshots`,
-//! `stock_conditions` and `stock_exchanges`; with the `stream` feature,
-//! `stock_stream`, whose messages are `Message`.
+//! | To… | Call |
+//! |---|---|
+//! | read history, one page per call | [`stock_bars`], [`stock_trades`], [`stock_quotes`] and [`stock_auctions`] |
+//! | read each symbol's latest value | [`stock_latest_bars`], [`stock_latest_trades`] and [`stock_latest_quotes`] |
+//! | read a symbol's whole picture at once | [`stock_snapshots`] |
+//! | name the codes in trades and quotes | [`stock_conditions`] and [`stock_exchanges`] |
+//! | stream trades, quotes and bars live | [`stock_stream`], with the `stream` feature; its messages are [`Message`] |
+//!
+//! On REST calls, a [`Feed`] picks the source, such as `iex` or `sip`;
+//! which feeds an endpoint accepts, and which your subscription allows, is
+//! Alpaca's to decide. Without one, Alpaca chooses.
+//!
+//! [`stock_bars`]: crate::Client::stock_bars
+//! [`stock_trades`]: crate::Client::stock_trades
+//! [`stock_quotes`]: crate::Client::stock_quotes
+//! [`stock_auctions`]: crate::Client::stock_auctions
+//! [`stock_latest_bars`]: crate::Client::stock_latest_bars
+//! [`stock_latest_trades`]: crate::Client::stock_latest_trades
+//! [`stock_latest_quotes`]: crate::Client::stock_latest_quotes
+//! [`stock_snapshots`]: crate::Client::stock_snapshots
+//! [`stock_conditions`]: crate::Client::stock_conditions
+//! [`stock_exchanges`]: crate::Client::stock_exchanges
+//! [`stock_stream`]: crate::Client::stock_stream
 
 use std::collections::BTreeMap;
 use std::fmt;

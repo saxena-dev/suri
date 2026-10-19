@@ -72,7 +72,9 @@ pub(crate) struct BaseUrls {
 
 /// An API key pair: the key ID and its secret.
 ///
-/// Neither value can be read back, and `Debug` prints `Credentials { .. }`.
+/// Your program reads them from wherever it keeps secrets and passes them
+/// in; suri reads no `APCA_API_*` variable. Neither value can be read back,
+/// and `Debug` prints `Credentials { .. }`.
 #[derive(Clone)]
 pub struct Credentials {
     pub(crate) key_id: SecretString,
@@ -95,11 +97,30 @@ impl fmt::Debug for Credentials {
     }
 }
 
-/// Everything a [`Client`](crate::Client) needs, checked by
+/// Everything a [`Client`](crate::Client) needs: the region, the
+/// environment, the key pair and the limits, checked by
 /// [`Client::new`](crate::Client::new).
+///
+/// Every limit starts at a documented default, so `Config::new` alone is
+/// enough. Each `with_` method changes one value; `Client::new` checks them
+/// all and names the first that is out of range.
 ///
 /// `Debug` prints the credentials as `Credentials { .. }` and a base URL as
 /// `Some(..)`, since a key pair mistakenly written into a URL must not print.
+///
+/// # Example
+///
+/// ```no_run
+/// use std::time::Duration;
+/// use suri::{Client, Config, Credentials, Environment, Region};
+///
+/// # fn run(credentials: Credentials) -> Result<Client, suri::ConfigError> {
+/// let config = Config::new(Region::US, Environment::Paper, credentials)
+///     .with_request_timeout(Duration::from_secs(10))
+///     .with_max_read_attempts(2);
+/// Client::new(config)
+/// # }
+/// ```
 #[derive(Clone)]
 pub struct Config {
     pub(crate) region: Region,

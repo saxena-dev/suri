@@ -456,6 +456,8 @@ impl Client {
     /// connection, subscribed to nothing. Alpaca's stream describes `us`,
     /// `us-1` and `eu-1`. The returned value owns the connection and reads
     /// it only while [`DataStream::next`] or [`DataStream::close`] runs.
+    ///
+    /// Needs the `stream` feature.
     pub async fn crypto_stream(
         &self,
         location: Location,

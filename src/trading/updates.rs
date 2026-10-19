@@ -206,6 +206,8 @@ impl Client {
     /// `/stream`, authenticates with the client's key pair and listens to
     /// `trade_updates`. The returned value owns the connection and reads it
     /// only while [`TradeUpdates::next`] or [`TradeUpdates::close`] runs.
+    ///
+    /// Needs the `stream` feature.
     pub async fn trade_updates(&self) -> Result<TradeUpdates, StreamError> {
         let span = tracing::info_span!(target: "suri", "suri.stream", stream = "trade_updates");
         match self.open_trade_updates().instrument(span.clone()).await {

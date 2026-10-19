@@ -503,6 +503,8 @@ impl Client {
     /// once Alpaca confirms the connection, subscribed to nothing. The
     /// returned value owns the connection and reads it only while
     /// [`DataStream::next`] or [`DataStream::close`] runs.
+    ///
+    /// Needs the `stream` feature.
     pub async fn option_stream(&self, feed: Feed) -> Result<DataStream<Message>, StreamError> {
         let path = format!("/v1beta1/{}", feed.as_str());
         open(self, &path, Some(feed.as_str())).await

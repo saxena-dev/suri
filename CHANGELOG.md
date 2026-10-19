@@ -67,23 +67,25 @@ All notable changes to suri are listed here. The format follows
     `WatchlistUpdate`.
 - Market Data, in `suri::data`, its history one page per call, its doubles
   read as the nearest `f64` and its integers at their documented width,
-  with the shared `Series`, `Latest`, `Bar`, `Timeframe`, `TickType`,
-  `BarsQuery`, `HistoryQuery` and `SymbolsQuery`:
+  with the shared `Series`, `Latest`, `Timeframe` and `TickType`:
   - Stocks, in `suri::data::stocks`: `Client::stock_bars`, `stock_trades`,
     `stock_quotes`, `stock_auctions`, `stock_latest_bars`,
     `stock_latest_trades`, `stock_latest_quotes`, `stock_snapshots`,
-    `stock_conditions` and `stock_exchanges`, with `LatestQuery`,
+    `stock_conditions` and `stock_exchanges`, with their own `BarsQuery`
+    and `HistoryQuery`, the shared `Bar`, and `LatestQuery`,
     `ConditionsQuery`, `Snapshot`, `Snapshots`, `Feed` and `Adjustment`.
   - Crypto, in `suri::data::crypto`, at a `Location`:
     `Client::crypto_bars`, `crypto_trades`, `crypto_quotes`,
     `crypto_latest_bars`, `crypto_latest_trades`, `crypto_latest_quotes`,
-    `crypto_latest_orderbooks` and `crypto_snapshots`, with `Orderbook`
-    and `TakerSide`.
+    `crypto_latest_orderbooks` and `crypto_snapshots`, with their own
+    `Bar`, the shared `BarsQuery` and `HistoryQuery`, and `SymbolsQuery`,
+    `Orderbook` and `TakerSide`.
   - Options, in `suri::data::options`: `Client::option_bars`,
     `option_trades`, `option_latest_trades`, `option_latest_quotes`,
     `option_snapshots`, `option_chain`, with strike filters sent as exact
-    decimal text, `option_conditions` and `option_exchanges`, with
-    `Greeks`, `Snapshots` and the chain's `ChainQuery`.
+    decimal text, `option_conditions` and `option_exchanges`, with the
+    shared `Bar`, `BarsQuery` and `HistoryQuery`, and `Greeks`,
+    `Snapshots` and the chain's `ChainQuery`.
   - News, in `suri::data::news`: `Client::news`, with `Query`, `Page`,
     `Article`, `Image` and `ImageSize`.
 - The `stream` feature (off by default, requires `rest`): WebSocket

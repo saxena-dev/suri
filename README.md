@@ -97,6 +97,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .await
             {
                 Ok(found) => println!("order {} was placed", found.data().id),
+                Err(lookup) if lookup.status() == Some(404) => {
+                    println!("Alpaca had no order {}", request.client_order_id);
+                }
                 Err(lookup) => println!("lookup failed: {lookup}"),
             }
         }
@@ -220,7 +223,9 @@ x86 Windows the NASM assembler as well.
 - An order is never sent twice behind your back; when its outcome is unknown,
   you are told so.
 - A stream message is never dropped without an error.
-- Your credentials never appear in suri's logs, spans or errors.
+- Your credentials never appear in suri's logs, spans or errors. Where a
+  library suri depends on can log them at its most detailed levels, the
+  contract names that library and the filter that removes them.
 
 The [contract](docs/contract.md) states every behaviour suri promises and
 changes together with the code. The [migration guide](docs/migration.md)

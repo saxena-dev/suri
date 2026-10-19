@@ -6,6 +6,8 @@ All notable changes to suri are listed here. The format follows
 
 ## Unreleased
 
+## 0.1.0 - 2026-10-19
+
 ### Added
 
 - The value types, in every build: `Decimal`, an exact decimal kept as

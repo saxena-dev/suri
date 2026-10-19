@@ -1,6 +1,6 @@
 [package]
 name = "suri"
-version = "0.0.0"
+version = "0.1.0"
 edition = "2024"
 # 1.88 is the first release with let chains (edition 2024), which suri's code
 # may use. Dependencies alone would allow 1.85, the edition's own floor.
@@ -14,7 +14,20 @@ authors = ["Paresh Saxena <pareshsaxena@gmail.com>"]
 license = "MIT"
 # Tooling, CI configuration, tests and test data (some under other licences)
 # stay out of the published crate.
-exclude = ["/.github", "/vendor", "/tools", "/tests"]
+exclude = [
+    "/.github",
+    "/.gitattributes",
+    "/.gitignore",
+    "/.gitmodules",
+    "/scripts",
+    "/vendor",
+    "/tools",
+    "/tests",
+]
+
+# docs.rs documents every feature, so the `stream` items appear there too.
+[package.metadata.docs.rs]
+all-features = true
 
 [features]
 default = ["rest"]

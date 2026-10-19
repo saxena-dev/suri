@@ -118,10 +118,11 @@ if [ "$mode" = full ]; then
 
   # The package never ships vendored sources, tooling, tests and their
   # fixtures, hidden directories or top-level Markdown other than README and
-  # CHANGELOG.
+  # CHANGELOG, nor the top-level .git* files or the scripts. (Cargo adds
+  # .cargo_vcs_info.json to every package; it cannot be excluded.)
   list=$(cargo package --locked --list --allow-dirty)
   bad=$(printf '%s\n' "$list" \
-    | grep -E '^(vendor|tools|tests)/|^\.[^/]+/|^[^/]+\.md$' \
+    | grep -E '^(vendor|tools|tests|scripts)/|^\.[^/]+/|^\.git[^/]*$|^[^/]+\.md$' \
     | grep -vxE 'README\.md|CHANGELOG\.md' || true)
   if [ -n "$bad" ]; then
     echo "the package must not contain:" >&2

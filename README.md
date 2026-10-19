@@ -3,14 +3,15 @@
 A Rust client for the [Alpaca](https://alpaca.markets) Trading and Market
 Data APIs. Support for the Broker API is planned after the first release.
 
-**Status: pre-release.** The client covers the Trading API's REST
-endpoints in the first release's scope (below), each change sent at most
-once and never retried, and its `trade_updates` stream behind the
-`stream` feature. Market Data covers stocks (bars, trades, quotes,
-auctions, latest values, snapshots and code tables), crypto, options and
-news over REST, and the stock, crypto, options and news streams behind
-`stream`. The crate is being built in the open, one tested piece at a
-time.
+**Status: 0.1.0, the first release.** It covers the Trading API's REST
+endpoints in the scope below, each change sent at most once and never
+retried, and its `trade_updates` stream behind the `stream` feature.
+Market Data covers stocks (bars, trades, quotes, auctions, latest values,
+snapshots and code tables), crypto, options and news over REST, and the
+stock, crypto, options and news streams behind `stream`. The
+[contract](https://github.com/saxena-dev/suri/blob/v0.1.0/docs/contract.md) states every behaviour suri
+promises, and the [migration guide](https://github.com/saxena-dev/suri/blob/v0.1.0/docs/migration.md) lists
+every break between versions.
 
 ## Quickstart
 

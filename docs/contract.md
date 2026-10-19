@@ -278,9 +278,10 @@ is recorded.
   feed, `opra` or `indicative`), covering the opening and every
   `subscribe`, `unsubscribe`, `next` and `close` call. Its events, level
   DEBUG: `connected`, `authenticated`, `listening` (`trade_updates`
-  only), `ping` (suri sent a liveness Ping), and `ended`, once, when the stream ends for any reason
-  other than being dropped, with the field `kind` (the error kind in snake
-  case, such as `closed` or `transport`, or `closed_by_caller`). Never
+  only), `ping` (suri sent a liveness Ping), and `ended`, once, when the
+  stream ends for any reason other than being dropped, with the field
+  `kind` (the error kind in snake case, such as `closed` or `transport`,
+  or `closed_by_caller`). Never
   recorded: the URL, a frame or message, a close reason, Alpaca's message,
   a header value or a credential.
 - **The WebSocket library, `tungstenite`, does log credentials.** The
@@ -592,8 +593,8 @@ nothing.
   nothing between calls. On the JSON streams, text and binary frames are
   both read as one JSON array, and on the options stream a binary frame
   as one MessagePack array (see below); a frame that is anything else,
-  bytes after the array included, ends the stream with `Decode`. `close` returns the messages of every frame read while
-  closing.
+  bytes after the array included, ends the stream with `Decode`. `close`
+  returns the messages of every frame read while closing.
 - **Every message reaches the caller.** A message of a type (`T`) suri
   knows that reads as its model is typed, a data message with its symbol
   (`S`). A known type that does not read, a data message without its
@@ -654,9 +655,10 @@ Market Data types are in `suri::data` and its per-asset modules
   width their documented format gives (`u32`, `u64`, `i64`); a fraction or
   a value out of range there fails the decode.
 - **Times.** Over REST, every time is a `Timestamp` read from RFC 3339
-  text with up to nine fractional digits; an auction day is a `Date`. Query bounds
-  (`start`, `end`, `updated_since`) are `Timestamp`s, sent as `…Z`; an
-  option chain's expiration filters are `Date`s, sent as `YYYY-MM-DD`.
+  text with up to nine fractional digits; an auction day is a `Date`.
+  Query bounds (`start`, `end`, `updated_since`) are `Timestamp`s, sent as
+  `…Z`; an option chain's expiration filters are `Date`s, sent as
+  `YYYY-MM-DD`.
 - **Pages.** A historical endpoint returns a `Series`: each symbol's points
   in the order sent, the `currency` when Alpaca names it, and
   `next_page_token`. One call returns one page. A page may hold fewer

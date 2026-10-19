@@ -8,103 +8,104 @@ All notable changes to suri are listed here. The format follows
 
 ### Added
 
-- `Decimal`, an exact decimal value kept as text.
-- `Timestamp` and `Date`, read from RFC 3339 text to the nanosecond.
-- `Inbound`, which keeps enum values suri does not know yet.
-- `Symbol` and `Id`, checked values for URL paths.
-- The `rest` feature, on by default, and `Client` with `Client::clock`, which
-  reads the market clock.
-- `Config`, `Credentials`, `Region` and `Environment`, checked when the client
-  is built, with `ConfigError` naming the first problem.
-- `Response` and `ResponseMeta`, with the request ID and rate-limit headers.
-- `Error`, with its kind, its stage and whether the request may have reached
-  Alpaca.
-- `Error::code` and `Error::message`: Alpaca's error code and message, with
-  credentials redacted and the message bounded to one line of 1,024 bytes.
+- The value types, in every build: `Decimal`, an exact decimal kept as
+  text; `Timestamp` and `Date`, read from RFC 3339 text to the nanosecond
+  (with `stream`, `Timestamp` also reads MessagePack's timestamp
+  extension); `Inbound`, which keeps enum values suri does not know yet;
+  `Symbol` and `Id`, checked values for URL paths (an `Id` converts into a
+  `Symbol`); and their parse errors.
+- The `rest` feature, on by default: `Client`, built from a `Config`
+  (`Credentials`, `Region`, `Environment` and the time and size limits)
+  that is checked when the client is built, with `ConfigError` naming the
+  first problem. Requests ask for uncompressed responses
+  (`Accept-Encoding: identity`), and a `POST` without a body sends
+  `Content-Length: 0`.
+- `Response` and `ResponseMeta`, with the request ID and the rate-limit
+  headers (`RateLimit`).
+- `Error`, with its `ErrorKind`, its `Stage`, whether the request may have
+  reached Alpaca, Alpaca's code and message (credentials redacted, the
+  message bounded to one line of 1,024 bytes), and, on every error of an
+  order placement or replacement, the client order ID.
 - Reads are retried on throttling, server errors and failed connections,
   with backoff and jitter, never before a rate-limit reset, within
-  `read_deadline` and `max_read_attempts`.
-- A `tracing` span, `suri.request`, for every call, with `retry` and `error`
-  events; suri installs no subscriber.
-- Requests ask for uncompressed responses (`Accept-Encoding: identity`).
-- `Client::account` and `Account`, with `AccountStatus`; documented enums
-  reject other texts with `ParseEnumError`.
-- `Client::account_configurations` and `Client::update_account_configurations`,
-  which sends only the fields set.
-- `Client::account_activities`: fills and other activities, one page per
-  call.
-- `Client::portfolio_history`, with values read as the nearest `f64`.
-- Requests that change state are made once and never retried.
-- `Client::assets` and `Client::asset`; a symbol in a path is sent
-  percent-encoded, so `BTC/USD` goes as `BTC%2FUSD`.
-- `Client::option_contracts` and `Client::option_contract`, one page per
-  call, with strike filters sent as exact decimal text.
-- `Client::calendar`, with `ClockTime` for the day's local market times.
-- An `Id` converts into a `Symbol`.
-- `Client::place_order`, made once and never retried, with `OrderRequest`
-  and `OrderShape` for every order class; `OrderRequest::new` generates a
-  `ClientOrderId` the caller can read before sending.
-- `Error::client_order_id`, set on every error of an order placement.
-- `Client::order_by_client_order_id`, to find out whether an order whose
-  placement failed was placed.
-- `Client::orders` and `Client::order`, one page per call, with
-  `OrdersQuery` and `OrderWindow`.
-- `Client::replace_order`, made once, with a generated client order ID for
-  the replacing order that every error carries.
-- `Client::cancel_order`, which returns `Response<()>`, and
-  `Client::cancel_all_orders`, with one `CancelResult` per order; both are
-  made once.
-- `Client::positions` and `Client::position`, with `Position` and
-  `PositionSide`; a position's market-data fields are optional, so an
-  allocated IPO not yet trading is read too.
-- `Client::close_position`, with `ClosePosition`, and
-  `Client::close_all_positions`, with one `ClosedPosition` per position;
-  both are made once.
-- `Client::exercise_option` and `Client::decline_exercise`, made once;
-  a `POST` without a body sends `Content-Length: 0`.
-- `Client::watchlists` and `Client::watchlist`, and
-  `Client::create_watchlist`, `Client::update_watchlist`,
-  `Client::add_to_watchlist`, `Client::remove_from_watchlist` and
-  `Client::delete_watchlist`, each made once, with `Watchlist`,
-  `CreateWatchlist` and `WatchlistUpdate`.
-- The `stream` feature (off by default, requires `rest`) and
-  `Client::trade_updates`: the Trading stream over WebSocket, read only
-  while the caller polls, a liveness Ping, every end a `StreamError` that
-  says later messages may be lost, and `TradeUpdates::close`, which returns
-  the messages that arrive while closing.
-- Typed trade updates: `TradeStreamMessage` with `TradeUpdate`,
-  `TradeEvent` and `LegFill`; a `trade_updates` message suri cannot read,
-  and any other stream's message, delivered as sent in a `StreamMessage`.
-- `Order::cancel_requested_at`, sent on the trade updates stream.
-- Market Data: `Client::stock_bars`, `stock_trades`, `stock_quotes` and
-  `stock_auctions`, one page per call, in `suri::data::stocks`, with the
-  shared `Series`, `Bar` and `Timeframe` in `suri::data`.
-- `Client::stock_latest_bars`, `stock_latest_trades`, `stock_latest_quotes`
-  and `stock_snapshots`, with `Latest`, `LatestQuery`, `Snapshot` and
-  `Snapshots`.
-- `Client::stock_conditions` and `stock_exchanges`, the stock condition and
-  exchange code tables, with `TickType` and `ConditionsQuery`.
-- Crypto market data in `suri::data::crypto`: `Client::crypto_bars`,
-  `crypto_trades`, `crypto_quotes`, `crypto_latest_bars`,
-  `crypto_latest_trades`, `crypto_latest_quotes`,
-  `crypto_latest_orderbooks` and `crypto_snapshots`, at a `Location`, with
-  the shared `BarsQuery`, `HistoryQuery` and `SymbolsQuery` in
-  `suri::data`.
-- Options market data in `suri::data::options`: `Client::option_bars`,
-  `option_trades`, `option_latest_trades`, `option_latest_quotes`,
-  `option_snapshots`, `option_chain`, `option_conditions` and
-  `option_exchanges`, with `Greeks`, `Snapshots` and the chain's
-  `ChainQuery`.
-- News in `suri::data::news`: `Client::news`, one page of articles per
-  call, with `Query`, `Page`, `Article`, `Image` and `ImageSize`.
-- With `stream`, the Market Data streams: `Client::stock_stream`,
-  `crypto_stream` and `news_stream` return a `DataStream` that subscribes
-  and unsubscribes `Channels` and delivers each frame's messages
-  (`stocks::Message`, `crypto::Message`, `news::Message`), with the stock
-  stream's `StreamFeed`, `Correction`, `Cancel`, `CancelAction`, `Luld`,
-  `Status` and `Imbalance`, and `StreamError::code`.
-- With `stream`, the options stream over MessagePack:
-  `Client::option_stream` and `options::Message`; `Timestamp` reads
-  MessagePack's timestamp extension.
-- With `stream`, the dependencies `tokio-tungstenite`, `futures-util`,
-  `rustls`, `rustls-platform-verifier`, `rmp-serde` and `rmp`.
+  `read_deadline` and `max_read_attempts`. Requests that change state are
+  made once and never retried.
+- A `tracing` span, `suri.request`, for every call, with `retry` and
+  `error` events; suri installs no subscriber.
+- Documented enums, in `suri::trading` and `suri::data`, reject other
+  texts with `ParseEnumError`, and `Sort` orders a paged query; both are at
+  the crate root, with `rest`.
+- The Trading API, in `suri::trading`:
+  - `Client::clock` and `Client::calendar`, with `Clock`, `CalendarDay`
+    and `ClockTime` for the day's local market times.
+  - `Client::account`, with `Account` and `AccountStatus`;
+    `account_configurations` and `update_account_configurations`, which
+    sends only the fields set; `account_activities`, fills and other
+    activities, one page per call; and `portfolio_history`, its values
+    read as the nearest `f64`.
+  - `Client::assets` and `asset`, and `option_contracts`, one page per call
+    with strike filters sent as exact decimal text, and `option_contract`.
+    A symbol in a path is percent-encoded, so `BTC/USD` goes as
+    `BTC%2FUSD`.
+  - `Client::place_order`, with `OrderRequest` and `OrderShape` for every
+    order class; `OrderRequest::new` generates a `ClientOrderId` the caller
+    can read before sending, and `order_by_client_order_id` finds out
+    whether an order whose placement failed was placed. `orders`, one
+    page per call, with `OrdersQuery` and `OrderWindow`, and `order`, one
+    order by ID;
+    `replace_order`, with a generated client order ID for the replacing
+    order; `cancel_order`, which returns `Response<()>`, and
+    `cancel_all_orders`, with one `CancelResult` per order.
+  - `Client::positions` and `position`, with `Position` and `PositionSide`
+    (a position's market-data fields are optional, so an allocated IPO not
+    yet trading is read too); `close_position`, with `ClosePosition`, and
+    `close_all_positions`, with one `ClosedPosition` per position; and
+    `exercise_option` and `decline_exercise`.
+  - `Client::watchlists`, `watchlist`, `create_watchlist`,
+    `update_watchlist`, `add_to_watchlist`, `remove_from_watchlist` and
+    `delete_watchlist`, with `Watchlist`, `CreateWatchlist` and
+    `WatchlistUpdate`.
+- Market Data, in `suri::data`, its history one page per call, its doubles
+  read as the nearest `f64` and its integers at their documented width,
+  with the shared `Series`, `Latest`, `Bar`, `Timeframe`, `TickType`,
+  `BarsQuery`, `HistoryQuery` and `SymbolsQuery`:
+  - Stocks, in `suri::data::stocks`: `Client::stock_bars`, `stock_trades`,
+    `stock_quotes`, `stock_auctions`, `stock_latest_bars`,
+    `stock_latest_trades`, `stock_latest_quotes`, `stock_snapshots`,
+    `stock_conditions` and `stock_exchanges`, with `LatestQuery`,
+    `ConditionsQuery`, `Snapshot`, `Snapshots`, `Feed` and `Adjustment`.
+  - Crypto, in `suri::data::crypto`, at a `Location`:
+    `Client::crypto_bars`, `crypto_trades`, `crypto_quotes`,
+    `crypto_latest_bars`, `crypto_latest_trades`, `crypto_latest_quotes`,
+    `crypto_latest_orderbooks` and `crypto_snapshots`, with `Orderbook`
+    and `TakerSide`.
+  - Options, in `suri::data::options`: `Client::option_bars`,
+    `option_trades`, `option_latest_trades`, `option_latest_quotes`,
+    `option_snapshots`, `option_chain`, with strike filters sent as exact
+    decimal text, `option_conditions` and `option_exchanges`, with
+    `Greeks`, `Snapshots` and the chain's `ChainQuery`.
+  - News, in `suri::data::news`: `Client::news`, with `Query`, `Page`,
+    `Article`, `Image` and `ImageSize`.
+- The `stream` feature (off by default, requires `rest`): WebSocket
+  streams whose value owns its connection and reads it only while the
+  caller polls (`next`, `close`), with a liveness Ping and a `tracing`
+  span, `suri.stream`, per stream; every end other than `close` is a
+  `StreamError`, with its `StreamErrorKind`, that says later messages may
+  be lost, and `close` returns the messages that arrive while closing.
+  - `Client::trade_updates`: `TradeUpdates`, whose messages are typed as
+    `TradeStreamMessage` with `TradeUpdate`, `TradeEvent` and `LegFill`
+    (orders carry `Order::cancel_requested_at`); a message suri cannot
+    read is delivered as sent in a `StreamMessage`.
+  - The Market Data streams: `Client::stock_stream`, by `StreamFeed`,
+    `crypto_stream`, `option_stream`, over MessagePack, and `news_stream`,
+    each a `DataStream` that can `subscribe` and `unsubscribe` `Channels`
+    and delivers each frame's messages (`stocks::Message`,
+    `crypto::Message`, `options::Message`, `news::Message`, each a
+    `DataMessage`, a trait only suri implements), with the stock stream's
+    `Correction`, `Cancel`, `CancelAction`, `Luld`, `Status` and
+    `Imbalance`; `StreamError::code` carries Alpaca's code when a Market
+    Data stream's opening fails.
+- Dependencies: `serde` in every build; with `rest`, `reqwest` (rustls),
+  `url`, `secrecy`, `serde_json`, `tokio` and `tracing`; with `stream`,
+  `tokio-tungstenite`, `futures-util`, `rustls`, `rustls-platform-verifier`,
+  `rmp-serde` and `rmp`.

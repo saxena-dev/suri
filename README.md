@@ -223,7 +223,8 @@ x86 Windows the NASM assembler as well.
 - Your credentials never appear in suri's logs, spans or errors.
 
 The [contract](docs/contract.md) states every behaviour suri promises and
-changes together with the code.
+changes together with the code. The [migration guide](docs/migration.md)
+lists every break between versions and what to do.
 
 ## Licence
 
